@@ -20,7 +20,6 @@ class ClientBankAccountController extends Controller
             'client_id' => 'required|exists:App\Models\Client,id',
             'bik' => 'required|digits:9',
             'bank_name' => 'required|string',
-            'bank_name_payment' => 'required|string',
             'payment_city' => 'required|string',
             'account_correspondent' => 'required|string',
             'account_payment' => 'required|string',
@@ -40,7 +39,6 @@ class ClientBankAccountController extends Controller
         $data = $request->validate([
             'bik' => 'required|digits:9',
             'bank_name' => 'required|string',
-            'bank_name_payment' => 'required|string',
             'payment_city' => 'required|string',
             'account_correspondent' => 'required|string',
             'account_payment' => 'required|string',

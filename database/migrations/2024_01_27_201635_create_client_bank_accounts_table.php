@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId("client_id")->constrained(table: 'clients')->cascadeOnDelete();
             $table->string("bik", 9);
             $table->string("bank_name");
-            $table->string("bank_name_payment");
             $table->string("payment_city");
             $table->string("account_correspondent");
             $table->string("account_payment");

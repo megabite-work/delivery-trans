@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id()->startingValue(1741511354);
             $table->string("name_short");
             $table->string("name_full");
-            $table->string("opf_short")->nullable();
-            $table->string("opf_full")->nullable();
             $table->enum("type", ["LEGAL", "INDIVIDUAL"]);
             $table->string("inn", 12)->unique();
             $table->string("kpp", 9)->nullable();

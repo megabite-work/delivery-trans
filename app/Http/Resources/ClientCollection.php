@@ -9,6 +9,7 @@ use Illuminate\Http\Resources\Json\ResourceCollection;
 class ClientCollection extends ResourceCollection
 {
     use DTApiCollection;
+
     /**
      * Transform the resource collection into an array.
      *
