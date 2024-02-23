@@ -97,13 +97,18 @@ onBeforeUnmount(() => {
     <Layout title="Заказчики">
         <template #headerExtra><a-button type="primary" @click="() => openMainDrawer()">Новый заказчик</a-button></template>
         <a-table
+            :loading="clientsStore.listLoading"
             :custom-row="tableRowFn"
             :columns="columnsClients"
             :data-source="clientsStore.dataList"
             :pagination="{
-                pageSize: clientsStore.paginator.perPage,
-                current: clientsStore.paginator.currentPage,
-                total: clientsStore.paginator.total,
+                ...clientsStore.paginator,
+                showSizeChanger: true,
+                pageSizeOptions: ['15', '30', '50', '100'],
+                style: {marginRight: '10px'},
+                buildOptionText: size => `${size.value} / стр.`,
+                onChange: page => clientsStore.setPage(page),
+                onShowSizeChange: (page, size) => clientsStore.setPageSize(page, size)
             }"
             :scroll="{ y: clientHeight - 335 }"
             :row-class-name="() => 'cursor-pointer'"
