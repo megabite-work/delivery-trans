@@ -152,7 +152,7 @@ watch(() => prop.errors, () => {
         :title="currentAccount.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
         :width="500"
     >
-        <ClientContact v-model="currentContact.data" />
+        <ClientContact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
     </drawer>
 
     <drawer
@@ -167,7 +167,7 @@ watch(() => prop.errors, () => {
         :title="currentAccount.data.id === null ? 'Новый реквизит' : `Реквизит #${currentAccount.data.id}`"
         :width="500"
     >
-        <ClientBankAccount v-model="currentAccount.data"/>
+        <ClientBankAccount v-model="currentAccount.data" :errors="clientsStore.clientAccountErr?.errors"/>
     </drawer>
 
     <a-form layout="vertical" :model="model">

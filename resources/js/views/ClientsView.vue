@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
             need-deletion-confirm-text="Вы уверены? Заказчик будет удален!"
             delete-text="Удалить"
         >
-            <Client v-model="currentClient.data" :loading="mainDrawer.isLoading" :errors="clientsStore.err?.errors"/>
+            <Client v-model="currentClient.data" :loading="mainDrawer.isLoading" :errors="clientsStore.clientErr?.errors"/>
         </drawer>
     </Layout>
 </template>

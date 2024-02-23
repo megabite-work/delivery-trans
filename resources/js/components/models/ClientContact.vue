@@ -1,6 +1,19 @@
 <script setup>
-const model = defineModel()
+import {reactive, watch} from "vue";
 
+const model = defineModel()
+const prop = defineProps({ errors: { type: Object, default: null } })
+const err = reactive({type: null, value: null, note: null})
+
+watch(() => prop.errors, () => {
+    Object.keys(err).forEach((key) => {
+        if (prop.errors[key]) {
+            err[key] = prop.errors[key][0]
+            return
+        }
+        err[key] = null
+    })
+})
 const styles = { selectIconStyle: {width: '16px', height: '16px', color: '#6b7280', marginRight: '8px'} }
 
 const contactTypes = {
@@ -17,7 +30,7 @@ const contactTypes = {
 
 <template>
     <a-form layout="vertical" :model="model">
-        <a-form-item label="Тип" name="type">
+        <a-form-item label="Тип" name="type" :validate-status="err.type ? 'error': undefined" :help="err.type">
             <a-select
                 placeholder="Тип контакта"
                 ref="select"
@@ -83,14 +96,14 @@ const contactTypes = {
                 </a-select-option>
             </a-select>
         </a-form-item>
-        <a-form-item label="Значение" name="value">
+        <a-form-item label="Значение" name="value" :validate-status="err.value ? 'error': undefined" :help="err.value">
             <a-textarea
                 v-model:value="model.value"
                 :placeholder="`Введите ${contactTypes[model.type] ? contactTypes[model.type] : contactTypes['OTHER']}`"
                 :auto-size="true"
             />
         </a-form-item>
-        <a-form-item label="Описание" name="note">
+        <a-form-item label="Описание" name="note" :validate-status="err.note ? 'error': undefined" :help="err.note">
             <a-input
                 v-model:value="model.note"
                 placeholder="Введите описание контакта"

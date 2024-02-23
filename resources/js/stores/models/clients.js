@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 import axios from "axios";
 
 export const useClientsStore = defineStore('clients', () => {
-    const err = ref(null)
+    const clientErr = ref(null)
+    const clientAccountErr = ref(null)
+    const clientContactErr = ref(null)
 
     const paginator = {
         currentPage: 1,
@@ -34,6 +36,9 @@ export const useClientsStore = defineStore('clients', () => {
             const client = await axios.get(`api/clients/${clientId}`)
             return client.data
         } catch (e) {
+            if (e.response) {
+                clientErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -44,7 +49,7 @@ export const useClientsStore = defineStore('clients', () => {
             return res.data
         } catch (e) {
             if (e.response) {
-                err.value = e.response.data
+                clientErr.value = e.response.data
             }
             throw e
         }
@@ -55,6 +60,9 @@ export const useClientsStore = defineStore('clients', () => {
             const res = await axios.put(`api/clients/${client.id}`, client)
             return res.data
         } catch (e) {
+            if (e.response) {
+                clientErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -63,6 +71,9 @@ export const useClientsStore = defineStore('clients', () => {
         try {
             await axios.delete(`api/clients/${id}`)
         } catch (e) {
+            if (e.response) {
+                clientErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -72,6 +83,9 @@ export const useClientsStore = defineStore('clients', () => {
             const res = await axios.post('api/contacts', clientContact)
             return res.data
         } catch (e) {
+            if (e.response) {
+                clientContactErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -81,6 +95,9 @@ export const useClientsStore = defineStore('clients', () => {
             const res = await axios.put(`api/contacts/${clientContact.id}`, clientContact)
             return res.data
         } catch (e) {
+            if (e.response) {
+                clientContactErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -89,6 +106,9 @@ export const useClientsStore = defineStore('clients', () => {
         try {
             await axios.delete(`api/contacts/${id}`)
         } catch (e) {
+            if (e.response) {
+                clientContactErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -98,6 +118,9 @@ export const useClientsStore = defineStore('clients', () => {
             const clientContacts = await axios.get(`api/clients/${clientId}/contacts`)
             return clientContacts.data
         } catch (e) {
+            if (e.response) {
+                clientContactErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -107,6 +130,9 @@ export const useClientsStore = defineStore('clients', () => {
             const res = await axios.post('api/bank-accounts', clientBankAccount)
             return res.data
         } catch (e) {
+            if (e.response) {
+                clientAccountErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -116,6 +142,9 @@ export const useClientsStore = defineStore('clients', () => {
             const res = await axios.put(`api/bank-accounts/${clientBankAccount.id}`, clientBankAccount)
             return res.data
         } catch (e) {
+            if (e.response) {
+                clientAccountErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -124,6 +153,9 @@ export const useClientsStore = defineStore('clients', () => {
         try {
             await axios.delete(`api/bank-accounts/${id}`)
         } catch (e) {
+            if (e.response) {
+                clientAccountErr.value = e.response.data
+            }
             throw e
         }
     }
@@ -133,12 +165,15 @@ export const useClientsStore = defineStore('clients', () => {
             const clientBankAccounts = await axios.get(`api/clients/${clientId}/bank-accounts`)
             return clientBankAccounts.data
         } catch (e) {
+            if (e.response) {
+                clientAccountErr.value = e.response.data
+            }
             throw e
         }
     }
 
     return {
-        err, paginator, dataList,
+        clientErr, clientContactErr, clientAccountErr, paginator, dataList,
         flushE, refreshDataList,
         getClient, createClient, storeClient, deleteClient,
         createClientContact, storeClientContact, deleteClientContact, getClientContacts,
