@@ -22,7 +22,7 @@ class ClientController extends Controller
         $data = $request->validate([
             'name_short' => 'required|string',
             'name_full' => 'required|string',
-            'type' => [new Enum(ClientType::class)],
+            'type' => ['required', new Enum(ClientType::class)],
             'inn' => ClientType::tryFrom($request->type) == ClientType::LEGAL ?
                 'required|digits:10|unique:App\Models\Client,inn':
                 'required|digits:12|unique:App\Models\Client,inn',
@@ -46,7 +46,7 @@ class ClientController extends Controller
         $data = $request->validate([
             'name_short' => 'required|string',
             'name_full' => 'required|string',
-            'type' => [new Enum(ClientType::class)],
+            'type' => ['required', new Enum(ClientType::class)],
             'inn' => ClientType::tryFrom($request->type) == ClientType::LEGAL ?
                 'required|digits:10':
                 'required|digits:12',

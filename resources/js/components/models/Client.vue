@@ -1,5 +1,5 @@
 <script setup>
-import {onBeforeUnmount, onMounted, reactive, ref} from "vue";
+import {onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 
 import {message} from "ant-design-vue";
 
@@ -9,7 +9,7 @@ import ClientBankAccount from "./ClientBankAccount.vue";
 import ClientContact from "./ClientContact.vue";
 
 const model = defineModel()
-defineProps({ loading: { type: Boolean, default: false } })
+const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
 
 const clientsStore = useClientsStore()
 const clientHeight = ref(document.documentElement.clientHeight)
@@ -120,6 +120,23 @@ onMounted(() => { window.addEventListener('resize', updateClientHeight) })
 onBeforeUnmount(() => { window.removeEventListener('resize', updateClientHeight) })
 const contactsTableRowFn = record => ({ onClick: () => openContactDrawer(record) })
 const accountsTableRowFn = record => ({ onClick: () => openAccountDrawer(record) })
+
+const err = reactive({
+    type: null, inn: null, kpp: null, ogrn: null, name_short: null, name_full: null
+})
+
+watch(() => prop.errors, () => {
+    Object.keys(err).forEach((key) => {
+        if (prop.errors[key]) {
+            err[key] = prop.errors[key][0]
+            return
+        }
+        err[key] = null
+    })
+})
+
+
+
 </script>
 
 <template>
@@ -154,7 +171,7 @@ const accountsTableRowFn = record => ({ onClick: () => openAccountDrawer(record)
     </drawer>
 
     <a-form layout="vertical" :model="model">
-        <a-form-item label="Тип" name="type">
+        <a-form-item label="Тип" name="type" :validate-status="err.type ? 'error': undefined" :help="err.type">
             <a-select
                 placeholder="Тип заказчика"
                 ref="select"
@@ -182,7 +199,7 @@ const accountsTableRowFn = record => ({ onClick: () => openAccountDrawer(record)
         </a-form-item>
         <a-row :gutter="16">
             <a-col :span="model.type === 'LEGAL' ? 12 : 24">
-                <a-form-item label="ИНН" name="inn">
+                <a-form-item label="ИНН" name="inn" :validate-status="err.inn ? 'error': undefined" :help="err.inn">
                     <a-input
                         v-model:value="model.inn"
                         placeholder="Введите ИНН заказчика"
@@ -191,7 +208,7 @@ const accountsTableRowFn = record => ({ onClick: () => openAccountDrawer(record)
                 </a-form-item>
             </a-col>
             <a-col v-if="model.type === 'LEGAL'" :span="12">
-                <a-form-item label="КПП" name="kpp">
+                <a-form-item label="КПП" name="kpp" :validate-status="err.kpp ? 'error': undefined" :help="err.kpp">
                     <a-input
                         v-model:value="model.kpp"
                         placeholder="Введите КПП заказчика"
@@ -200,17 +217,17 @@ const accountsTableRowFn = record => ({ onClick: () => openAccountDrawer(record)
                 </a-form-item>
             </a-col>
         </a-row>
-        <a-form-item :label="model.type === 'LEGAL' ? 'ОГРН' : 'ОГРНИП'" name="ogrn">
+        <a-form-item :label="model.type === 'LEGAL' ? 'ОГРН' : 'ОГРНИП'" name="ogrn" :validate-status="err.ogrn ? 'error': undefined" :help="err.ogrn">
             <a-input
                 v-model:value="model.ogrn"
                 placeholder="Введите ОГРН заказчика"
                 :maxlength="model.type === 'LEGAL' ? 13 : 15"
             />
         </a-form-item>
-        <a-form-item label="Краткое наименование" name="name_short">
+        <a-form-item label="Краткое наименование" name="name_short" :validate-status="err.name_short ? 'error': undefined" :help="err.name_short">
             <a-input v-model:value="model.name_short" placeholder="Введите краткое наименование заказчика" />
         </a-form-item>
-        <a-form-item label="Полное наименование" name="name_full">
+        <a-form-item label="Полное наименование" name="name_full" :validate-status="err.name_full ? 'error': undefined" :help="err.name_full">
             <a-input v-model:value="model.name_full" placeholder="Введите полное наименование заказчика" />
         </a-form-item>
     </a-form>

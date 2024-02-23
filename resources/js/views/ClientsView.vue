@@ -15,7 +15,7 @@ const columnsClients = [
 
 const clientsStore = useClientsStore()
 const clientHeight = ref(document.documentElement.clientHeight)
-const currentClient = reactive({ data:{}, modified: false })
+const currentClient = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 
 const openMainDrawer = async (clientId = null) => {
@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
             need-deletion-confirm-text="Вы уверены? Заказчик будет удален!"
             delete-text="Удалить"
         >
-            <Client v-model="currentClient.data" :loading="mainDrawer.isLoading" />
+            <Client v-model="currentClient.data" :loading="mainDrawer.isLoading" :errors="clientsStore.err?.errors"/>
         </drawer>
     </Layout>
 </template>

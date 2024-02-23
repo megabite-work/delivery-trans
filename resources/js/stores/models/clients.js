@@ -1,8 +1,9 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from "axios";
 
 export const useClientsStore = defineStore('clients', () => {
+    const err = ref(null)
 
     const paginator = {
         currentPage: 1,
@@ -14,6 +15,10 @@ export const useClientsStore = defineStore('clients', () => {
     }
 
     const dataList = ref([])
+
+    function flushE() {
+        err.value = null
+    }
 
     async function refreshDataList() {
         try {
@@ -38,6 +43,9 @@ export const useClientsStore = defineStore('clients', () => {
             const res = await axios.post('api/clients', client)
             return res.data
         } catch (e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
             throw e
         }
     }
@@ -130,8 +138,8 @@ export const useClientsStore = defineStore('clients', () => {
     }
 
     return {
-        paginator, dataList,
-        refreshDataList,
+        err, paginator, dataList,
+        flushE, refreshDataList,
         getClient, createClient, storeClient, deleteClient,
         createClientContact, storeClientContact, deleteClientContact, getClientContacts,
         createClientBankAccount, storeClientBankAccount, deleteClientBankAccount, getClientBankAccounts,
