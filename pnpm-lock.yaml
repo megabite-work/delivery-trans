@@ -8,6 +8,9 @@ dependencies:
   '@ant-design/icons-vue':
     specifier: ^7.0.1
     version: 7.0.1(vue@3.4.5)
+  '@heroicons/vue':
+    specifier: ^2.1.1
+    version: 2.1.1(vue@3.4.5)
   ant-design-vue:
     specifier: 4.x
     version: 4.1.0(vue@3.4.5)
@@ -306,6 +309,14 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@heroicons/vue@2.1.1(vue@3.4.5):
+    resolution: {integrity: sha512-Yi5nh/89L193ALgHyJUQUdNLsKXPrrE3yj5yiR8WAlo7nZyXGxGauQcEAmBsa2XJGMhBMuEdoOiuZ8wEwTBxVQ==}
+    peerDependencies:
+      vue: '>= 3'
+    dependencies:
+      vue: 3.4.5
+    dev: false
 
   /@jridgewell/sourcemap-codec@1.4.15:
     resolution: {integrity: sha512-eF2rxCRulEKXHTRiDrDy6erMYWqNw4LPdQ8UQA4huuxaQsVeRPFl2oM8oDGxMFhJUWZf9McpLtJasDDZb/Bpeg==}

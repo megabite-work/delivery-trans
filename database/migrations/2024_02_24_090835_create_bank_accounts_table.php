@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('client_bank_accounts', function (Blueprint $table) {
+        Schema::create('bank_accounts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("client_id")->constrained(table: 'clients')->cascadeOnDelete();
+            $table->morphs("owner");
             $table->string("bik", 9);
             $table->string("bank_name");
             $table->string("payment_city");
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('client_bank_accounts');
+        Schema::dropIfExists('bank_accounts');
     }
 };

@@ -5,19 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ClientContact extends Model
+class Contact extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        "client_id",
+        "owner_type",
+        "owner_id",
         "type",
         "value",
         "note",
     ];
 
-    public function client()
+    public function owner()
     {
-        return $this->belongsTo(Client::class, "client_id");
+        return $this->morphTo();
     }
 }

@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('client_contacts', function (Blueprint $table) {
+        Schema::create('contacts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId("client_id")->constrained(table: 'clients')->cascadeOnDelete();
+            $table->morphs("owner");
             $table->enum("type", [
                 "PHONE",
                 "EMAIL",
@@ -34,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('client_contacts');
+        Schema::dropIfExists('contacts');
     }
 };

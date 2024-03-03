@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class ClientBankAccount extends Model
+class BankAccount extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        "client_id",
+        "owner_type",
+        "owner_id",
         "bik",
         "bank_name",
         "bank_name_payment",
@@ -19,8 +20,8 @@ class ClientBankAccount extends Model
         "account_payment",
     ];
 
-    public function client()
+    public function owner()
     {
-        return $this->belongsTo(Client::class, "client_id");
+        return $this->morphTo();
     }
 }

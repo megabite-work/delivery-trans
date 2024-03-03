@@ -32,21 +32,13 @@ const accountDrawer = reactive({ isOpen: false, isSaving: false })
 const openContactDrawer = (contact = null) => {
     contactDrawer.isOpen = true
     currentContact.modified = false
-    currentContact.data = contact === null ? {
-        id: null,
-        owner_id: model.value.id,
-        owner_type: 'App\\Models\\Client',
-    } : { ...contact }
+    currentContact.data = contact === null ? { id: null, client_id: model.value.id } : { ...contact }
 }
 
 const openAccountDrawer = (account = null) => {
     accountDrawer.isOpen = true
     currentAccount.modified = false
-    currentAccount.data = account === null ? {
-        id: null,
-        owner_id: model.value.id,
-        owner_type: 'App\\Models\\Client',
-    } : { ...account }
+    currentAccount.data = account === null ? { id: null, client_id: model.value.id } : { ...account }
 }
 
 const currentContact = reactive({ data:{}, modified: false })
@@ -157,7 +149,7 @@ watch(() => prop.errors, () => {
         delete-text=""
         ok-text="Сохранить и закрыть"
         need-deletion-confirm-text="Вы уверены? Контакт будет удален!"
-        :title="currentContact.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
+        :title="currentAccount.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
         :width="500"
     >
         <ClientContact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
