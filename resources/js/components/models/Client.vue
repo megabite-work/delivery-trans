@@ -5,8 +5,8 @@ import {message} from "ant-design-vue";
 
 import {useClientsStore} from "../../stores/models/clients.js";
 import Drawer from "../Drawer.vue";
-import ClientBankAccount from "./ClientBankAccount.vue";
-import ClientContact from "./ClientContact.vue";
+import BankAccount from "./BankAccount.vue";
+import Contact from "./Contact.vue";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
@@ -160,7 +160,7 @@ watch(() => prop.errors, () => {
         :title="currentContact.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
         :width="500"
     >
-        <ClientContact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
+        <Contact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
     </drawer>
 
     <drawer
@@ -175,7 +175,7 @@ watch(() => prop.errors, () => {
         :title="currentAccount.data.id === null ? 'Новый реквизит' : `Реквизит #${currentAccount.data.id}`"
         :width="500"
     >
-        <ClientBankAccount v-model="currentAccount.data" :errors="clientsStore.clientAccountErr?.errors"/>
+        <BankAccount v-model="currentAccount.data" :errors="clientsStore.clientAccountErr?.errors"/>
     </drawer>
 
     <a-form layout="vertical" :model="model">

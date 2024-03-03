@@ -5,8 +5,8 @@ import {message} from "ant-design-vue";
 
 import {useClientsStore} from "../../stores/models/clients.js";
 import Drawer from "../Drawer.vue";
-import ClientBankAccount from "./ClientBankAccount.vue";
-import ClientContact from "./ClientContact.vue";
+import BankAccount from "./BankAccount.vue";
+import Contact from "./Contact.vue";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
@@ -32,14 +32,20 @@ const accountDrawer = reactive({ isOpen: false, isSaving: false })
 const openContactDrawer = (contact = null) => {
     contactDrawer.isOpen = true
     currentContact.modified = false
-    currentContact.data = contact === null ? { id: null, client_id: model.value.id } : { ...contact }
-}
+    currentContact.data = contact === null ? {
+        id: null,
+        owner_id: model.value.id,
+        owner_type: 'App\\Models\\Carrier',
+    } : { ...contact }}
 
 const openAccountDrawer = (account = null) => {
     accountDrawer.isOpen = true
     currentAccount.modified = false
-    currentAccount.data = account === null ? { id: null, client_id: model.value.id } : { ...account }
-}
+    currentAccount.data = account === null ? {
+        id: null,
+        owner_id: model.value.id,
+        owner_type: 'App\\Models\\Carrier',
+    } : { ...account }}
 
 const currentContact = reactive({ data:{}, modified: false })
 const currentAccount = reactive({ data:{}, modified: false })
@@ -50,16 +56,16 @@ const saveContact = async () => {
         if (currentContact.data.id === null) {
             currentContact.data  = await clientsStore.createClientContact(currentContact.data)
             currentContact.modified = false
-            message.success('Контакт заказчика создан')
+            message.success('Контакт перевозчика создан')
         } else {
             currentContact.data = await clientsStore.storeClientContact(currentContact.data)
             currentContact.modified = false
-            message.success('Контакт заказчика записан')
+            message.success('Контакт перевозчика записан')
         }
         model.value.contacts = await clientsStore.getClientContacts(model.value.id)
         contactDrawer.isOpen = false
     } catch (e) {
-        message.error(`Ошибка. Не удалось ${model.value.id === null ? 'создать' : 'сохранить'} контакт заказчика`)
+        message.error(`Ошибка. Не удалось ${model.value.id === null ? 'создать' : 'сохранить'} контакт перевозчика`)
     } finally {
         contactDrawer.isSaving = false
     }
@@ -71,22 +77,22 @@ const saveBankAccount = async () => {
         if (currentAccount.data.id === null) {
             currentAccount.data  = await clientsStore.createClientBankAccount(currentAccount.data)
             currentAccount.modified = false
-            message.success('Запись счета заказчика создана')
+            message.success('Запись счета перевозчика создана')
         } else {
             currentAccount.data = await clientsStore.storeClientBankAccount(currentAccount.data)
             currentAccount.modified = false
-            message.success('Запись счета заказчика записана')
+            message.success('Запись счета перевозчика записана')
         }
         model.value.bank_accounts = await clientsStore.getClientBankAccounts(model.value.id)
         accountDrawer.isOpen = false
     } catch (e) {
-        message.error(`Ошибка. Не удалось ${currentAccount.data.id === null ? 'создать' : 'сохранить'} запись банковского счета заказчика`)
+        message.error(`Ошибка. Не удалось ${currentAccount.data.id === null ? 'создать' : 'сохранить'} запись банковского счета перевозчика`)
     } finally {
         accountDrawer.isSaving = false
     }
 }
 
-const deleteClientContact = async () => {
+const deleteContact = async () => {
     if (currentContact.data.id === null) {
         return
     }
@@ -100,7 +106,7 @@ const deleteClientContact = async () => {
     }
 }
 
-const deleteClientBankAccount = async () => {
+const deleteBankAccount = async () => {
     if (currentAccount.data.id === null) {
         return
     }
@@ -144,7 +150,7 @@ watch(() => prop.errors, () => {
         v-model:open="contactDrawer.isOpen"
         @close="contactDrawer.isOpen = false"
         @save="saveContact"
-        @delete="deleteClientContact"
+        @delete="deleteContact"
         :saving="contactDrawer.isSaving"
         delete-text=""
         ok-text="Сохранить и закрыть"
@@ -152,14 +158,14 @@ watch(() => prop.errors, () => {
         :title="currentAccount.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
         :width="500"
     >
-        <ClientContact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
+        <Contact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
     </drawer>
 
     <drawer
         v-model:open="accountDrawer.isOpen"
         @close="accountDrawer.isOpen = false"
         @save="saveBankAccount"
-        @delete="deleteClientBankAccount"
+        @delete="deleteBankAccount"
         :saving="accountDrawer.isSaving"
         delete-text=""
         ok-text="Сохранить и закрыть"
@@ -167,7 +173,7 @@ watch(() => prop.errors, () => {
         :title="currentAccount.data.id === null ? 'Новый реквизит' : `Реквизит #${currentAccount.data.id}`"
         :width="500"
     >
-        <ClientBankAccount v-model="currentAccount.data" :errors="clientsStore.clientAccountErr?.errors"/>
+        <BankAccount v-model="currentAccount.data" :errors="clientsStore.clientAccountErr?.errors"/>
     </drawer>
 
     <a-form layout="vertical" :model="model">

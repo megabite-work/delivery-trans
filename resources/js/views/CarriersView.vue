@@ -5,6 +5,7 @@ import {onBeforeUnmount, onMounted, reactive, ref} from "vue";
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
 import Drawer from "../components/Drawer.vue";
 import {message} from "ant-design-vue";
+import Carrier from "../components/models/Carrier.vue";
 
 const columnsCarriers = [
     { key: 'type', width: 50 },
@@ -115,8 +116,8 @@ onBeforeUnmount(() => {
                         <a-tooltip placement="right">
                             <template v-if="record.type === 'INDIVIDUAL'" #title>Индивидуальный предприниматель</template>
                             <template v-if="record.type === 'LEGAL'" #title>Юридическое лицо</template>
-                            <UserIcon v-if="record.type === 'INDIVIDUAL'" />
-                            <BuildingOfficeIcon v-else-if="record.type === 'LEGAL'" />
+                            <UserIcon v-if="record.type === 'INDIVIDUAL'" :style="{ position: 'relative' }" />
+                            <BuildingOfficeIcon v-else-if="record.type === 'LEGAL'" :style="{ position: 'relative' }" />
                         </a-tooltip>
                     </div>
                 </template>
@@ -137,7 +138,7 @@ onBeforeUnmount(() => {
             need-deletion-confirm-text="Вы уверены? Перевозчик будет удален!"
             delete-text="Удалить"
         >
-<!--            <Client v-model="currentClient.data" :loading="mainDrawer.isLoading" :errors="clientsStore.clientErr?.errors"/>-->
+            <Carrier v-model="currentCarrier.data" :loading="mainDrawer.isLoading" :errors="carriersStore.carrierErr?.errors"/>
         </drawer>
     </Layout>
 </template>

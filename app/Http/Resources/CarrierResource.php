@@ -16,6 +16,18 @@ class CarrierResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name_short' => $this->name_short,
+            'name_full' => $this->name_full,
+            'type' => $this->type,
+            'inn' => $this->inn,
+            'kpp' => $this->kpp,
+            'ogrn' => $this->ogrn,
+            'is_resident' => $this->is_resident,
+            'is_active' => $this->is_active,
+            'contacts' => ContactResource::collection($this->contacts),
+            'bank_accounts' => BankAccountResource::collection($this->bankAccounts)
+        ];
     }
 }
