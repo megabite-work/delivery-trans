@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import axios from "axios";
 
 export const useCarriersStore = defineStore('carriers', () => {
-    const carrierErr = ref(null)
+    const err = ref(null)
     const listLoading = ref(false)
 
     const paginator = ref({
@@ -53,7 +53,7 @@ export const useCarriersStore = defineStore('carriers', () => {
             return carrier.data
         } catch (e) {
             if (e.response) {
-                carrierErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
@@ -65,7 +65,7 @@ export const useCarriersStore = defineStore('carriers', () => {
             return res.data
         } catch (e) {
             if (e.response) {
-                carrierErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
@@ -77,7 +77,7 @@ export const useCarriersStore = defineStore('carriers', () => {
             return res.data
         } catch (e) {
             if (e.response) {
-                carrierErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
@@ -88,15 +88,14 @@ export const useCarriersStore = defineStore('carriers', () => {
             await axios.delete(`api/carriers/${id}`)
         } catch (e) {
             if (e.response) {
-                carrierErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
     }
 
     return {
-        carrierErr, paginator, dataList, setPage, setPageSize, listLoading,
-        refreshDataList,
+        err, paginator, dataList, setPage, setPageSize, listLoading, refreshDataList,
         getCarrier, createCarrier, storeCarrier, deleteCarrier,
     }
 })

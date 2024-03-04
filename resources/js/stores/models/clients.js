@@ -3,9 +3,7 @@ import { defineStore } from 'pinia'
 import axios from "axios";
 
 export const useClientsStore = defineStore('clients', () => {
-    const clientErr = ref(null)
-    const clientAccountErr = ref(null)
-    const clientContactErr = ref(null)
+    const err = ref(null)
     const listLoading = ref(false)
 
     const paginator = ref({
@@ -27,10 +25,6 @@ export const useClientsStore = defineStore('clients', () => {
     }
 
     const dataList = ref([])
-
-    function flushE() {
-        err.value = null
-    }
 
     async function refreshDataList() {
         try {
@@ -59,7 +53,7 @@ export const useClientsStore = defineStore('clients', () => {
             return client.data
         } catch (e) {
             if (e.response) {
-                clientErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
@@ -71,7 +65,7 @@ export const useClientsStore = defineStore('clients', () => {
             return res.data
         } catch (e) {
             if (e.response) {
-                clientErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
@@ -83,7 +77,7 @@ export const useClientsStore = defineStore('clients', () => {
             return res.data
         } catch (e) {
             if (e.response) {
-                clientErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
@@ -94,111 +88,14 @@ export const useClientsStore = defineStore('clients', () => {
             await axios.delete(`api/clients/${id}`)
         } catch (e) {
             if (e.response) {
-                clientErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function createClientContact(clientContact) {
-        try {
-            const res = await axios.post('api/contacts', clientContact)
-            return res.data
-        } catch (e) {
-            if (e.response) {
-                clientContactErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function storeClientContact(clientContact) {
-        try {
-            const res = await axios.put(`api/contacts/${clientContact.id}`, clientContact)
-            return res.data
-        } catch (e) {
-            if (e.response) {
-                clientContactErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function deleteClientContact(id) {
-        try {
-            await axios.delete(`api/contacts/${id}`)
-        } catch (e) {
-            if (e.response) {
-                clientContactErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function getClientContacts(clientId) {
-        try {
-            const clientContacts = await axios.get(`api/clients/${clientId}/contacts`)
-            return clientContacts.data
-        } catch (e) {
-            if (e.response) {
-                clientContactErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function createClientBankAccount(clientBankAccount) {
-        try {
-            const res = await axios.post('api/bank-accounts', clientBankAccount)
-            return res.data
-        } catch (e) {
-            if (e.response) {
-                clientAccountErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function storeClientBankAccount(clientBankAccount) {
-        try {
-            const res = await axios.put(`api/bank-accounts/${clientBankAccount.id}`, clientBankAccount)
-            return res.data
-        } catch (e) {
-            if (e.response) {
-                clientAccountErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function deleteClientBankAccount(id) {
-        try {
-            await axios.delete(`api/bank-accounts/${id}`)
-        } catch (e) {
-            if (e.response) {
-                clientAccountErr.value = e.response.data
-            }
-            throw e
-        }
-    }
-
-    async function getClientBankAccounts(clientId) {
-        try {
-            const clientBankAccounts = await axios.get(`api/clients/${clientId}/bank-accounts`)
-            return clientBankAccounts.data
-        } catch (e) {
-            if (e.response) {
-                clientAccountErr.value = e.response.data
+                err.value = e.response.data
             }
             throw e
         }
     }
 
     return {
-        clientErr, clientContactErr, clientAccountErr, paginator, dataList, setPage, setPageSize, listLoading,
-        flushE, refreshDataList,
-        getClient, createClient, storeClient, deleteClient,
-        createClientContact, storeClientContact, deleteClientContact, getClientContacts,
-        createClientBankAccount, storeClientBankAccount, deleteClientBankAccount, getClientBankAccounts,
+        err, paginator, dataList, setPage, setPageSize, listLoading,
+        refreshDataList, getClient, createClient, storeClient, deleteClient,
     }
 })
