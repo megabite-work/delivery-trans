@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from "axios";
 
-export const useContactsStore = defineStore('contacts', () => {
+export const useBankAccountsStore = defineStore('bank-accounts', () => {
     const err = ref(null)
 
     async function createBankAccount(bankAccount) {

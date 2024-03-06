@@ -3,15 +3,20 @@ import {onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 
 import {message} from "ant-design-vue";
 
-import {useClientsStore} from "../../stores/models/clients.js";
 import Drawer from "../Drawer.vue";
 import BankAccount from "./BankAccount.vue";
 import Contact from "./Contact.vue";
+import {useClientsStore} from "../../stores/models/clients.js";
+import {useContactsStore} from "../../stores/models/contacts.js";
+import {useBankAccountsStore} from "../../stores/models/bankAccounts.js";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
 
 const clientsStore = useClientsStore()
+const contactsStore = useContactsStore()
+const bankAccountsStore = useBankAccountsStore()
+
 const clientHeight = ref(document.documentElement.clientHeight)
 
 const columnsContacts = [
@@ -56,15 +61,15 @@ const saveContact = async () => {
     contactDrawer.isSaving = true
     try {
         if (currentContact.data.id === null) {
-            currentContact.data  = await clientsStore.createClientContact(currentContact.data)
+            currentContact.data  = await contactsStore.createContact(currentContact.data)
             currentContact.modified = false
             message.success('Контакт заказчика создан')
         } else {
-            currentContact.data = await clientsStore.storeClientContact(currentContact.data)
+            currentContact.data = await contactsStore.storeContact(currentContact.data)
             currentContact.modified = false
             message.success('Контакт заказчика записан')
         }
-        model.value.contacts = await clientsStore.getClientContacts(model.value.id)
+        model.value.contacts = await contactsStore.getContacts(model.value.id, 'clients')
         contactDrawer.isOpen = false
     } catch (e) {
         message.error(`Ошибка. Не удалось ${model.value.id === null ? 'создать' : 'сохранить'} контакт заказчика`)
@@ -77,15 +82,15 @@ const saveBankAccount = async () => {
     accountDrawer.isSaving = true
     try {
         if (currentAccount.data.id === null) {
-            currentAccount.data  = await clientsStore.createClientBankAccount(currentAccount.data)
+            currentAccount.data  = await bankAccountsStore.createBankAccount(currentAccount.data)
             currentAccount.modified = false
             message.success('Запись счета заказчика создана')
         } else {
-            currentAccount.data = await clientsStore.storeClientBankAccount(currentAccount.data)
+            currentAccount.data = await bankAccountsStore.storeBankAccount(currentAccount.data)
             currentAccount.modified = false
             message.success('Запись счета заказчика записана')
         }
-        model.value.bank_accounts = await clientsStore.getClientBankAccounts(model.value.id)
+        model.value.bank_accounts = await bankAccountsStore.getBankAccounts(model.value.id, 'clients')
         accountDrawer.isOpen = false
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentAccount.data.id === null ? 'создать' : 'сохранить'} запись банковского счета заказчика`)
@@ -99,9 +104,9 @@ const deleteClientContact = async () => {
         return
     }
     try {
-        await clientsStore.deleteClientContact(currentContact.data.id)
+        await contactsStore.deleteContact(currentContact.data.id)
         message.success('Запись успешно удалена')
-        model.value.contacts = await clientsStore.getClientContacts(model.value.id)
+        model.value.contacts = await contactsStore.getContacts(model.value.id, 'clients')
         contactDrawer.isOpen = false
     } catch (e) {
         message.error('Ошибка. Не удалось удалить запись')
@@ -113,9 +118,9 @@ const deleteClientBankAccount = async () => {
         return
     }
     try {
-        await clientsStore.deleteClientBankAccount(currentAccount.data.id)
+        await bankAccountsStore.deleteBankAccount(currentAccount.data.id)
         message.success('Запись успешно удалена')
-        model.value.bank_accounts = await clientsStore.getClientBankAccounts(model.value.id)
+        model.value.bank_accounts = await bankAccountsStore.getBankAccounts(model.value.id, 'clients')
         accountDrawer.isOpen = false
     } catch (e) {
         message.error('Ошибка. Не удалось удалить запись')
@@ -142,9 +147,6 @@ watch(() => prop.errors, () => {
         err[key] = null
     })
 })
-
-
-
 </script>
 
 <template>
