@@ -61,8 +61,8 @@ class CarrierController extends Controller
             'name_full' => 'required|string',
             'type' => ['required', new Enum(ClientType::class)],
             'inn' => ClientType::tryFrom($request->type) == ClientType::LEGAL ?
-                'required|digits:10|unique:App\Models\Carrier,inn':
-                'required|digits:12|unique:App\Models\Carrier,inn',
+                'required|digits:10':
+                'required|digits:12',
             'kpp' => 'nullable|digits:9',
             'ogrn' => ClientType::tryFrom($request->type) == ClientType::LEGAL ?
                 'nullable|digits:13':

@@ -238,6 +238,12 @@ watch(() => prop.errors, () => {
         <a-form-item label="Полное наименование" name="name_full" :validate-status="err.name_full ? 'error': undefined" :help="err.name_full">
             <a-input v-model:value="model.name_full" placeholder="Введите полное наименование заказчика" />
         </a-form-item>
+        <a-form-item label="Резидент (свой автопарк)" name="is_resident" :validate-status="err.is_resident ? 'error' : undefined" :help="err.is_resident">
+            <a-switch v-model:checked="model.is_resident" />
+        </a-form-item>
+        <a-form-item label="Активен" name="is_active" :validate-status="err.is_active ? 'error' : undefined" :help="err.is_active">
+            <a-switch v-model:checked="model.is_active" />
+        </a-form-item>
     </a-form>
     <a-tabs v-model:activeKey="currentTab" >
         <a-tab-pane key="contacts" tab="Контакты">

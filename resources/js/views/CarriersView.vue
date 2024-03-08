@@ -1,5 +1,5 @@
 <script setup>
-import Layout from '@/layouts/AppLayout.vue';
+import Layout from '../layouts/AppLayout.vue';
 import {useCarriersStore} from "../stores/models/carriers.js";
 import {onBeforeUnmount, onMounted, reactive, ref} from "vue";
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
@@ -54,6 +54,7 @@ const saveCarrier = async () => {
         currentCarrier.data = await carriersStore.storeCarrier(currentCarrier.data)
         currentCarrier.modified = false
         message.success('Карточка перевозчика записана')
+        mainDrawer.isSaving = false
         closeMainDrawer()
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentCarrier.data.id === null ? 'создать' : 'сохранить'} карточку перевозчика`)

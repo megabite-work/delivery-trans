@@ -73,7 +73,7 @@ export const useCarriersStore = defineStore('carriers', () => {
 
     async function storeCarrier(carrier) {
         try {
-            const res = await axios.put(`api/carrier/${carrier.id}`, carrier)
+            const res = await axios.put(`api/carriers/${carrier.id}`, carrier)
             return res.data
         } catch (e) {
             if (e.response) {

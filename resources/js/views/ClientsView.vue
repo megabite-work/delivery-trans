@@ -56,6 +56,7 @@ const saveClient = async () => {
         currentClient.data = await clientsStore.storeClient(currentClient.data)
         currentClient.modified = false
         message.success('Карточка заказчика записана')
+        mainDrawer.isSaving = false
         closeMainDrawer()
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentClient.data.id === null ? 'создать' : 'сохранить'} карточку заказчика`)
