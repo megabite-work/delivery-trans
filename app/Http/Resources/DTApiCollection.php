@@ -10,8 +10,6 @@ class DTApiCollection extends ResourceCollection
 {
     use DTApiCollectionTrait;
 
-//    public static $wrap = false;
-
     /**
      * Transform the resource collection into an array.
      *

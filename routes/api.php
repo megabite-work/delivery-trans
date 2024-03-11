@@ -3,7 +3,11 @@
 use App\Http\Controllers\Carrier\CarrierController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Dir\BankAccountController;
+use App\Http\Controllers\Dir\CarBodyTypeController;
 use App\Http\Controllers\Dir\ContactController;
+use App\Http\Controllers\Dir\CountriesController;
+use App\Http\Controllers\Carrier\CarController;
+use App\Http\Controllers\Carrier\DriverController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,7 +39,14 @@ Route::apiResources([
 ]);
 Route::get('carriers/{carrier_id}/contacts', [ContactController::class, 'carrierContactsIndex'])->name('carrier.contacts.index');
 Route::get('carriers/{carrier_id}/bank-accounts', [BankAccountController::class, 'carrierBankAccountsIndex'])->name('carrier.bank-accounts.index');
+Route::get('carriers/{carrier_id}/cars', [CarController::class, 'carrierCarsIndex'])->name('carrier.cars.index');
+Route::get('carriers/{carrier_id}/drivers', [DriverController::class, 'carrierDriversIndex'])->name('carrier.drivers.index');
+
+Route::get('suggest/car/body-types', [CarBodyTypeController::class, 'index'])->name("car.body-type.index");
+Route::get('suggest/countries', [CountriesController::class, 'index'])->name("countries.index");
 
 Route::apiResource('contacts', ContactController::class)->except(['index']);
 Route::apiResource('bank-accounts', BankAccountController::class)->except(['index']);
+Route::apiResource('cars', CarController::class)->except(['index']);
+Route::apiResource('drivers', DriverController::class)->except(['index']);
 

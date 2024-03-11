@@ -27,7 +27,9 @@ class CarrierResource extends JsonResource
             'is_resident' => $this->is_resident,
             'is_active' => $this->is_active,
             'contacts' => ContactResource::collection($this->contacts),
-            'bank_accounts' => BankAccountResource::collection($this->bankAccounts)
+            'bank_accounts' => BankAccountResource::collection($this->bankAccounts),
+            'cars' => CarResource::collection($this->cars),
+            'drivers' => DriverResource::collection($this->drivers),
         ];
     }
 }

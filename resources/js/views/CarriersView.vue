@@ -18,7 +18,7 @@ const currentCarrier = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 
 const openMainDrawer = async (carrierId = null) => {
-    currentCarrier.data = { id: null }
+    currentCarrier.data = { id: null, is_active: true }
     currentCarrier.modified = false
     mainDrawer.isOpen = true
     if (carrierId !== null) {
@@ -39,7 +39,7 @@ const closeMainDrawer = () => {
         return
     }
     mainDrawer.isOpen = false
-    currentCarrier.data = { id: null }
+    currentCarrier.data = { id: null, is_active: true }
 }
 
 const saveCarrier = async () => {

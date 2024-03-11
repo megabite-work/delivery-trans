@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Carrier;
+namespace App\Http\Controllers\Dir;
 
 use App\Http\Controllers\Controller;
 use App\Models\CarBodyType;
