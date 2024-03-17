@@ -19,7 +19,7 @@ class Driver extends Model
         "passport_number",
         "passport_issuer",
         "passport_issuer_code",
-        "passport_issue_data",
+        "passport_issue_date",
         "registration_address",
         "phone",
         "email",

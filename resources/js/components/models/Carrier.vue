@@ -15,6 +15,8 @@ import {useDriversStore} from "../../stores/models/drivers.js";
 import {useContactsStore} from "../../stores/models/contacts.js";
 import {useBankAccountsStore} from "../../stores/models/bankAccounts.js";
 
+
+const dateFormat = 'DD.MM.YYYY'
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
 
