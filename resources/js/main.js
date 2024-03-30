@@ -10,6 +10,7 @@ import Antd from 'ant-design-vue';
 import axios from 'axios';
 
 import 'ant-design-vue/dist/reset.css';
+import 'nprogress/nprogress.css'
 
 const app = createApp(App)
 
@@ -44,5 +45,6 @@ router.beforeEach(async (to, from) => {
         }
     }
 })
+
 
 app.mount('#app')
