@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Enums\ClientType;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
 use App\Http\Resources\ClientResource;
 
@@ -64,5 +65,17 @@ class ClientController extends Controller
     {
         $client->delete();
         return response()->noContent();
+    }
+
+    public function searchSuggest(Request $request) {
+        $clients = DB::table("clients")
+            ->select("id", "name_full", "name_short", "inn")
+            ->where("name_short", "ilike", "%{$request['q']}%")
+            ->orWhere("name_full", "ilike", "%{$request['q']}%")
+            ->orWhere("inn", "ilike", "%{$request['q']}%")
+            ->limit(25)
+            ->get();
+
+        return response()->json($clients);
     }
 }

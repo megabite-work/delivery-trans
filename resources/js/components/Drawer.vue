@@ -35,7 +35,9 @@ const open = defineModel('open')
         <a-spin :spinning="loading" tip="Загрузка...">
             <slot />
         </a-spin>
-
+        <template #extra>
+            <slot name="extra" />
+        </template>
         <template #footer>
             <div :style="{ display: 'flex', justifyContent: 'space-between' }">
                 <div>

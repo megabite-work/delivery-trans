@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Enums\ClientType;
 use App\Http\Resources\CarrierResource;
 use App\Http\Resources\DTApiCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
 use App\Models\Carrier;
 use Illuminate\Http\Request;
@@ -81,5 +82,17 @@ class CarrierController extends Controller
     {
         $carrier->delete();
         return response()->noContent();
+    }
+
+    public function searchSuggest(Request $request) {
+        $carriers = DB::table("carriers")
+            ->select("id", "name_full", "name_short", "inn", "is_active")
+            ->where("name_short", "ilike", "%{$request['q']}%")
+            ->orWhere("name_full", "ilike", "%{$request['q']}%")
+            ->orWhere("inn", "ilike", "%{$request['q']}%")
+            ->limit(25)
+            ->get();
+
+        return response()->json($carriers);
     }
 }

@@ -78,4 +78,9 @@ class CarController extends Controller
         $car->delete();
         return response()->noContent();
     }
+
+    public function getCarsByCarrierId(Request $request)
+    {
+
+    }
 }

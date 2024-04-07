@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\DriverResource;
 use App\Models\Driver;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class DriverController extends Controller
 {
@@ -85,5 +87,14 @@ class DriverController extends Controller
     {
         $driver->delete();
         return response()->noContent();
+    }
+    public function getDriversByCarrierID(Request $request)
+    {
+        $drivers = DB::table("drivers")
+            ->select("id", "surname", "name", "patronymic", "phone", "is_active")
+            ->where("carrier_id", $request['carrier_id'])
+            ->get();
+
+        return response()->json($drivers);
     }
 }

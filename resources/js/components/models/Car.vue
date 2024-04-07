@@ -3,22 +3,16 @@ import {reactive, ref, watch} from "vue";
 import {message} from "ant-design-vue";
 
 import axios from "axios";
+import {useSuggests} from "../../stores/models/suggests.js";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
 
+const suggest = useSuggests()
+
 const bodyTypesOptionsList = ref([])
-const bodyTypesOptionsLoading = ref(false)
 const getBodyTypesOptionsList = async () => {
-    bodyTypesOptionsLoading.value = true
-    try {
-        const { data } = await axios.get('api/suggest/car/body-types')
-        bodyTypesOptionsList.value = data.map(el => ({value: el.type, label: el.type}))
-    } catch (e) {
-        message.error('Ошибка загрузки списка')
-    } finally {
-        bodyTypesOptionsLoading.value = false
-    }
+    bodyTypesOptionsList.value = await suggest.getCarBodyTypes()
 }
 
 const err = reactive({
@@ -33,6 +27,10 @@ watch(() => prop.errors, () => {
         err[key] = null
     })
 })
+const tonnagesOptions = ref([])
+const fetchTonnages = async () => {
+    tonnagesOptions.value = await suggest.getTonnages()
+}
 </script>
 
 <template>
@@ -72,7 +70,7 @@ watch(() => prop.errors, () => {
                         placeholder="Тип кузова"
                         v-model:value="model.body_type"
                         :options="bodyTypesOptionsList"
-                        :loading="bodyTypesOptionsLoading"
+                        :loading="suggest.isLoading"
                         @focus="getBodyTypesOptionsList"
                     />
                 </a-form-item>
@@ -97,7 +95,14 @@ watch(() => prop.errors, () => {
                 <a-col :span="8">
                     <a-form-item label="Тоннаж">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <a-input v-model:value="model.tonnage" placeholder="Тоннаж" /><div>т.</div>
+                            <a-select
+                                v-model:value="model.tonnage"
+                                placeholder="Тоннаж"
+                                style="width: 100%"
+                                :options="tonnagesOptions"
+                                @focus="fetchTonnages"
+                                :loading = "suggest.isLoading"
+                            />
                         </div>
                     </a-form-item>
                 </a-col>
