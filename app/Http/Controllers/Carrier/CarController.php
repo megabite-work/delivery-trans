@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CarResource;
 use App\Models\Car;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
 
 class CarController extends Controller
@@ -81,6 +82,11 @@ class CarController extends Controller
 
     public function getCarsByCarrierId(Request $request)
     {
+        $cars = DB::table("cars")
+            ->select("id", "name", "body_type", "plate_number", "type", "tonnage", "volume", "loading_rear", "loading_lateral", "loading_upper")
+            ->where("carrier_id", $request['carrier_id'])
+            ->get();
 
+        return response()->json($cars);
     }
 }

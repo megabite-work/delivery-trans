@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from "axios";
 import {message} from "ant-design-vue";
+import { trim } from "radash";
 
 export const useSuggests = defineStore('suggests', () => {
     const err = ref(null)
@@ -93,12 +94,33 @@ export const useSuggests = defineStore('suggests', () => {
     const getDriversByCarrier = async carrier_id => {
         try {
             isLoading.value = true
-            const {data} = await axios.get('api/suggest/driver-by-carrier', {params: { carrier_id }})
+            const {data} = await axios.get('api/suggest/drivers-by-carrier', {params: { carrier_id }})
+            return data.map(el => {
+                const name = trim(trim(el.surname).concat(' ', trim(el.name), ' ', trim(el.patronymic)))
+                const label = !!el.phone ? el.phone : (!!el.email ? el.email : '')
+                return {
+                    value: el.id,
+                    name,
+                    label: label !== '' ? `${name} (${label})` : name,
+                    phone: el.phone,
+                    disabled: !el.is_active,
+                }
+            })
+        } catch {
+            message.error('Ошибка загрузки списка')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const getCarsByCarrier = async carrier_id => {
+        try {
+            isLoading.value = true
+            const {data} = await axios.get('api/suggest/cars-by-carrier', {params: { carrier_id }})
             return data.map(el => ({
                 value: el.id,
-                label: `${el.surname} ${el.name} ${el.patronymic}`,
-                phone: el.phone,
-                disabled: !el.is_active,
+                label: `${el.name} – ${el.plate_number}`,
+                ...el,
             }))
         } catch {
             message.error('Ошибка загрузки списка')
@@ -110,6 +132,6 @@ export const useSuggests = defineStore('suggests', () => {
     return {
         err, isLoading,
         getCargoNameSuggest, getTonnages, getCarBodyTypes, getTConditions, searchClient, searchCarrier,
-        getDriversByCarrier,
+        getDriversByCarrier, getCarsByCarrier,
     }
 })

@@ -53,7 +53,9 @@ Route::get('suggest/tonnages', [TonnageController::class, 'getTonnage'])->name("
 Route::get('suggest/t-conditions', [TConditionsController::class, 'index'])->name("suggest.t-condition");
 Route::get('suggest/client-search', [ClientController::class, 'searchSuggest'])->name("suggest.client-search");
 Route::get('suggest/carrier-search', [CarrierController::class, 'searchSuggest'])->name("suggest.carrier-search");
-Route::get('suggest/driver-by-carrier', [DriverController::class, 'getDriversByCarrierID'])->name("suggest.driver-by-carrier");
+Route::get('suggest/drivers-by-carrier', [DriverController::class, 'getDriversByCarrierID'])->name("suggest.drivers-by-carrier");
+Route::get('suggest/cars-by-carrier', [CarController::class, 'getCarsByCarrierId'])->name('suggest.cars-by-carrier');
+
 Route::apiResource('contacts', ContactController::class)->except(['index']);
 Route::apiResource('bank-accounts', BankAccountController::class)->except(['index']);
 Route::apiResource('cars', CarController::class)->except(['index']);

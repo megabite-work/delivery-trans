@@ -1,5 +1,5 @@
 <script setup>
-import {ref, h, watch} from "vue";
+import {ref, h, watch, computed} from "vue";
 import { debounce } from "radash";
 
 import { PlusCircleOutlined, EditOutlined, ReloadOutlined } from '@ant-design/icons-vue';
@@ -86,6 +86,41 @@ const fetchDriversByCarrier = async () => {
     }
     driversOptions.value = await suggest.getDriversByCarrier(model.value.carrier_id)
 }
+const carTypes = {
+    'TRUCK': 'Грузовик',
+    'TRACTOR': 'Тягач',
+    'TRAILER': 'Прицеп',
+}
+const carsOptions = ref([])
+const trailerOptions = ref([])
+
+const fetchCarsByCarrier = async () => {
+    if (!model.value.carrier_id) {
+        carsOptions.value = []
+        return
+    }
+    const cars = await suggest.getCarsByCarrier(model.value.carrier_id)
+    carsOptions.value = cars.filter(car => car.type !== 'TRAILER').map(car => ({ ...car, typeLabel: carsOptions[car.type] }))
+}
+
+const fetchTrailersByCarrier = async () => {
+    if (!model.value.carrier_id) {
+        trailerOptions.value = []
+        return
+    }
+    const cars = await suggest.getCarsByCarrier(model.value.carrier_id)
+    trailerOptions.value = cars.filter(car => car.type === 'TRAILER').map(car => ({ ...car, typeLabel: carsOptions[car.type] }))
+}
+
+const currentCarIsTractor = computed(() => {
+    let res = false
+    carsOptions.value.forEach((car) => {
+        if (car.value === model.value.carrier_car_id && car.type === 'TRACTOR') {
+            res = true
+        }
+    })
+    return res
+})
 
 </script>
 
@@ -286,7 +321,7 @@ const fetchDriversByCarrier = async () => {
             </a-form-item>
         </a-col>
     </a-row>
-    <a-divider :dashed="true"/>
+    <a-divider :dashed="true" style="margin: 0"/>
     <a-row :gutter="16">
         <a-col :span="12">
             <a-tabs v-model:activeKey="currentClientTab">
@@ -327,9 +362,85 @@ const fetchDriversByCarrier = async () => {
                         </a-select>
                     </a-space>
                 </a-tab-pane>
-                <a-tab-pane key="price" tab="Тариф"></a-tab-pane>
-                <a-tab-pane key="expenses" tab="Допрасходы"></a-tab-pane>
-                <a-tab-pane key="discount" tab="Скидка"></a-tab-pane>
+                <a-tab-pane key="price" tab="Тариф">
+                    <a-space direction="vertical" style="width: 100%">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 120px; text-align: right">Ставка ₽/час:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.client_tariff_hourly"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">Минимум часов:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.client_min_hours"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">Часов на подачу:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.client_hours_for_coming"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">За МКАД ₽/км:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.client_mkad_price"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <a-divider dashed style="margin: 0;" />
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">Км за МКАД:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.client_mkad_rate"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                    </a-space>
+                </a-tab-pane>
+                <a-tab-pane key="expenses" tab="Допрасходы">
+                    <div>
+                        <div style="text-align: right; margin-bottom: 10px">
+                            <a-button type="dashed" :icon="h(PlusCircleOutlined)">
+                                Добавить расход
+                            </a-button>
+                        </div>
+                        <div>
+                            <a-table />
+                        </div>
+                    </div>
+                </a-tab-pane>
+                <a-tab-pane key="discount" tab="Скидки">
+                    <div>
+                        <div style="text-align: right; margin-bottom: 10px">
+                            <a-button type="dashed" :icon="h(PlusCircleOutlined)">
+                                Добавить скидку
+                            </a-button>
+                        </div>
+                        <div>
+                            <a-table />
+                        </div>
+                    </div>
+                </a-tab-pane>
             </a-tabs>
         </a-col>
         <a-col :span="12">
@@ -370,6 +481,7 @@ const fetchDriversByCarrier = async () => {
                             <a-select-option :value="1">НДС</a-select-option>
                         </a-select>
                         <template v-if="!!model.carrier_id">
+                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Водитель</a-divider>
                             <a-select
                                 v-model:value="model.carrier_driver_id"
                                 placeholder="Выберите водителя"
@@ -377,9 +489,9 @@ const fetchDriversByCarrier = async () => {
                                 @focus="fetchDriversByCarrier"
                                 :options="driversOptions"
                             >
-                                <template #option="{ label, phone }">
+                                <template #option="{ name, phone }">
                                     <div style="display: flex; justify-content: space-between; align-items: center">
-                                        <div>{{ label }}</div>
+                                        <div>{{ name }}</div>
                                         <div style="font-size: 11px; font-weight: 500">
                                             {{ phone }}
                                         </div>
@@ -391,10 +503,81 @@ const fetchDriversByCarrier = async () => {
                                     </div>
                                 </template>
                             </a-select>
+                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Машина</a-divider>
                             <a-select
+                                v-model:value="model.carrier_car_id"
                                 placeholder="Выберите машину"
                                 :style="{ width: '100%' }"
-                            ></a-select>
+                                @focus="fetchCarsByCarrier"
+                                :options="carsOptions"
+                            >
+                                <template #option="car">
+                                    <div style="display:flex; flex-direction: column">
+                                        <div style="display: flex; justify-content: space-between; align-items: center">
+                                            <div>{{ car.name }}</div>
+                                            <div style="font-size: 11px; font-weight: 500">
+                                                {{ car.plate_number }}
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 11px">
+                                            {{ carTypes[car.type] }}
+                                            <template v-if="!!car.body_type">
+                                                <a-divider type="vertical" />{{ car.body_type }}
+                                            </template>
+                                            <template v-if="!!car.tonnage">
+                                                <a-divider type="vertical" />{{ car.tonnage }} т
+                                            </template>
+                                            <template v-if="!!car.volume">
+                                                <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-if="suggest.isLoading" #notFoundContent>
+                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                        <a-spin size="small" />
+                                    </div>
+                                </template>
+                            </a-select>
+                            <template v-if="currentCarIsTractor">
+                                <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Прицеп</a-divider>
+                                <a-select
+                                    v-model:value="model.carrier_trailer_id"
+                                    placeholder="Выберите прицеп"
+                                    :style="{ width: '100%' }"
+                                    @focus="fetchTrailersByCarrier"
+                                    :options="trailerOptions"
+                                >
+                                    <template #option="car">
+                                        <div style="display:flex; flex-direction: column">
+                                            <div style="display: flex; justify-content: space-between; align-items: center">
+                                                <div>{{ car.name }}</div>
+                                                <div style="font-size: 11px; font-weight: 500">
+                                                    {{ car.plate_number }}
+                                                </div>
+                                            </div>
+                                            <div style="font-size: 11px">
+                                                {{ carTypes[car.type] }}
+                                                <template v-if="!!car.body_type">
+                                                    <a-divider type="vertical" />{{ car.body_type }}
+                                                </template>
+                                                <template v-if="!!car.tonnage">
+                                                    <a-divider type="vertical" />{{ car.tonnage }} т
+                                                </template>
+                                                <template v-if="!!car.volume">
+                                                    <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                    <template v-if="suggest.isLoading" #notFoundContent>
+                                        <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                            <a-spin size="small" />
+                                        </div>
+                                    </template>
+                                </a-select>
+                            </template>
+                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Одометр загрузка / разгрузка</a-divider>
                             <a-row :gutter="8">
                                 <a-col :span="12">
                                     <a-input
@@ -412,7 +595,61 @@ const fetchDriversByCarrier = async () => {
                         </template>
                     </a-space>
                 </a-tab-pane>
-                <a-tab-pane key="price" tab="Тариф"></a-tab-pane>
+                <a-tab-pane key="price" tab="Тариф">
+                    <a-space direction="vertical" style="width: 100%">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 120px; text-align: right">Ставка ₽/час:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.courier_tariff_hourly"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">Минимум часов:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.courier_min_hours"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">Часов на подачу:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.courier_hours_for_coming"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">За МКАД ₽/км:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.courier_mkad_price"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                        <a-divider dashed style="margin: 0;" />
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 120px; text-align: right">Км за МКАД:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-midel:value="model.courier_mkad_rate"
+                                    :min="0"
+                                    style="width: 100%"
+                                />
+                            </div>
+                        </div>
+                    </a-space>
+                </a-tab-pane>
                 <a-tab-pane key="expenses" tab="Допрасходы"></a-tab-pane>
                 <a-tab-pane key="fines" tab="Штрафы"></a-tab-pane>
             </a-tabs>
@@ -438,7 +675,7 @@ const fetchDriversByCarrier = async () => {
             </a-card>
         </a-col>
     </a-row>
-    <a-divider :dashed="true"/>
+    <a-divider :dashed="true" />
     <div style="margin-top: 20px">
         <a-tabs>
             <a-tab-pane tab="Дополнительные услуги" key="additional">
