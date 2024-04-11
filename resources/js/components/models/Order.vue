@@ -2,8 +2,13 @@
 import {ref, h, watch, computed} from "vue";
 import { debounce } from "radash";
 
-import { PlusCircleOutlined, EditOutlined, ReloadOutlined } from '@ant-design/icons-vue';
+import {
+    PlusCircleOutlined,
+    EditOutlined,
+    ReloadOutlined,
+} from '@ant-design/icons-vue';
 import {useSuggests} from "../../stores/models/suggests.js";
+import KeyValueTable from "../KeyValueTable.vue";
 
 const suggest = useSuggests()
 const model = defineModel()
@@ -86,6 +91,16 @@ const fetchDriversByCarrier = async () => {
     }
     driversOptions.value = await suggest.getDriversByCarrier(model.value.carrier_id)
 }
+
+const handleCarrierChange = () => {
+    model.value.carrier_driver_id = undefined
+    model.value.carrier_car_id = undefined
+    model.value.carrier_trailer_id = undefined
+    carsOptions.value = []
+    trailerOptions.value = []
+    driversOptions.value = []
+}
+
 const carTypes = {
     'TRUCK': 'Грузовик',
     'TRACTOR': 'Тягач',
@@ -368,7 +383,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Ставка ₽/час:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.client_tariff_hourly"
+                                    v-model:value="model.client_tariff_hourly"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -378,7 +393,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Минимум часов:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.client_min_hours"
+                                    v-model:value="model.client_min_hours"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -388,7 +403,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Часов на подачу:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.client_hours_for_coming"
+                                    v-model:value="model.client_hours_for_coming"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -398,7 +413,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">За МКАД ₽/км:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.client_mkad_price"
+                                    v-model:value="model.client_mkad_price"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -409,7 +424,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Км за МКАД:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.client_mkad_rate"
+                                    v-model:value="model.client_mkad_rate"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -418,28 +433,30 @@ const currentCarIsTractor = computed(() => {
                     </a-space>
                 </a-tab-pane>
                 <a-tab-pane key="expenses" tab="Допрасходы">
-                    <div>
-                        <div style="text-align: right; margin-bottom: 10px">
-                            <a-button type="dashed" :icon="h(PlusCircleOutlined)">
-                                Добавить расход
-                            </a-button>
-                        </div>
-                        <div>
-                            <a-table />
-                        </div>
-                    </div>
+                    <KeyValueTable
+                        v-model="model.client_expenses"
+                        :scroll="{y: 150}"
+                        header-key-text="Наименование"
+                        header-value-text="Cумма"
+                        :value-width="150"
+                        add-button-text="Добавить расход"
+                        key-placeholder-text="Расход"
+                        value-placeholder-text="Сумма"
+                        value-postfix-text="₽"
+                    />
                 </a-tab-pane>
                 <a-tab-pane key="discount" tab="Скидки">
-                    <div>
-                        <div style="text-align: right; margin-bottom: 10px">
-                            <a-button type="dashed" :icon="h(PlusCircleOutlined)">
-                                Добавить скидку
-                            </a-button>
-                        </div>
-                        <div>
-                            <a-table />
-                        </div>
-                    </div>
+                    <KeyValueTable
+                        v-model="model.client_discounts"
+                        :scroll="{y: 150}"
+                        header-key-text="Скидка"
+                        header-value-text="Cумма"
+                        :value-width="150"
+                        add-button-text="Добавить скидку"
+                        key-placeholder-text="Скидка"
+                        value-placeholder-text="Сумма"
+                        value-postfix-text="₽"
+                    />
                 </a-tab-pane>
             </a-tabs>
         </a-col>
@@ -456,6 +473,7 @@ const currentCarIsTractor = computed(() => {
                             :not-found-content="suggest.isLoading ? undefined : null"
                             @search="handleCarrierSearch"
                             @focus="handleCarrierSearchFocus"
+                            @change="handleCarrierChange"
                             :options="carrierOptions"
                         >
                             <template #option="{ label, inn }">
@@ -486,8 +504,8 @@ const currentCarIsTractor = computed(() => {
                                 v-model:value="model.carrier_driver_id"
                                 placeholder="Выберите водителя"
                                 :style="{ width: '100%' }"
-                                @focus="fetchDriversByCarrier"
                                 :options="driversOptions"
+                                @focus="fetchDriversByCarrier"
                             >
                                 <template #option="{ name, phone }">
                                     <div style="display: flex; justify-content: space-between; align-items: center">
@@ -601,7 +619,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Ставка ₽/час:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.courier_tariff_hourly"
+                                    v-model:value="model.courier_tariff_hourly"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -611,7 +629,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Минимум часов:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.courier_min_hours"
+                                    v-model:value="model.courier_min_hours"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -621,7 +639,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Часов на подачу:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.courier_hours_for_coming"
+                                    v-model:value="model.courier_hours_for_coming"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -631,7 +649,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">За МКАД ₽/км:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.courier_mkad_price"
+                                    v-model:value="model.courier_mkad_price"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -642,7 +660,7 @@ const currentCarIsTractor = computed(() => {
                             <div style="width: 120px; text-align: right">Км за МКАД:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-midel:value="model.courier_mkad_rate"
+                                    v-model:value="model.courier_mkad_rate"
                                     :min="0"
                                     style="width: 100%"
                                 />
@@ -650,8 +668,32 @@ const currentCarIsTractor = computed(() => {
                         </div>
                     </a-space>
                 </a-tab-pane>
-                <a-tab-pane key="expenses" tab="Допрасходы"></a-tab-pane>
-                <a-tab-pane key="fines" tab="Штрафы"></a-tab-pane>
+                <a-tab-pane key="expenses" tab="Допрасходы">
+                    <KeyValueTable
+                        v-model="model.carrier_expenses"
+                        :scroll="{y: 150}"
+                        header-key-text="Наименование"
+                        header-value-text="Cумма"
+                        :value-width="150"
+                        add-button-text="Добавить расход"
+                        key-placeholder-text="Расход"
+                        value-placeholder-text="Сумма"
+                        value-postfix-text="₽"
+                    />
+                </a-tab-pane>
+                <a-tab-pane key="fines" tab="Штрафы">
+                    <KeyValueTable
+                        v-model="model.carrier_fines"
+                        :scroll="{y: 150}"
+                        header-key-text="Штраф"
+                        header-value-text="Cумма"
+                        :value-width="150"
+                        add-button-text="Добавить штраф"
+                        key-placeholder-text="Штраф"
+                        value-placeholder-text="Сумма"
+                        value-postfix-text="₽"
+                    />
+                </a-tab-pane>
             </a-tabs>
         </a-col>
     </a-row>
