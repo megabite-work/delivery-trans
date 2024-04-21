@@ -1,20 +1,15 @@
 <script setup>
-import {ref, h, watch, computed, reactive} from "vue";
+import {ref, h, watch, computed} from "vue";
 import { debounce } from "radash";
 
 import {
-    PlusCircleOutlined,
     EditOutlined,
-    ReloadOutlined,
-    CommentOutlined,
-    UpOutlined,
-    DownOutlined
+    ReloadOutlined
 } from '@ant-design/icons-vue';
 import {useSuggests} from "../../stores/models/suggests.js";
 import KeyValueTable from "../KeyValueTable.vue";
-import Drawer from "../Drawer.vue";
-import Address from "./Address.vue";
-import { isArray } from "radash";
+
+import AddressList from "../AddressList.vue";
 
 const suggest = useSuggests()
 const model = defineModel()
@@ -142,40 +137,6 @@ const currentCarIsTractor = computed(() => {
     })
     return res
 })
-
-const addressDrawer = reactive({ isOpen: false, isSaving: false })
-
-const currentAddress = reactive({ data:{}, modified: false, header: 'Новая точка' })
-const currentAddressIdx = ref(-1)
-
-const openAddressDrawer = (address = null) => {
-    addressDrawer.isOpen = true
-    addressDrawer.modified = false
-    currentAddress.data = address === null ? {} : { ...address }
-}
-
-const saveFromWhereAddress = () => {
-    if (!model.value.from_where) {
-        model.value.from_where = []
-    }
-    if (currentAddressIdx.value >= 0) {
-        model.value.from_where[currentAddressIdx.value] = currentAddress.data
-    } else {
-        model.value.from_where.push(currentAddress.data)
-    }
-    addressDrawer.isOpen = false
-    currentAddress.data = {}
-    currentAddressIdx.value = -1
-}
-
-const deleteFromWhereAddress = () => {
-    if (currentAddressIdx.value >= 0) {
-        model.value.from_where.splice(currentAddressIdx.value, 1)
-    }
-    addressDrawer.isOpen = false
-    currentAddress.data = {}
-    currentAddressIdx.value = -1
-}
 
 </script>
 
@@ -739,83 +700,18 @@ const deleteFromWhereAddress = () => {
     </a-row>
     <a-row :gutter="16" style="padding-top: 16px">
         <a-col :span="12">
-            <a-card title="Откуда" style="width: 100%">
-                <template #extra>
-                    <a-button type="link" :icon="h(PlusCircleOutlined)" @click="() => openAddressDrawer(null)">
-                        Добавить адрес загрузки
-                    </a-button>
-                </template>
-            </a-card>
-            <a-list :data-source="model.from_where">
-                <template #renderItem="item">
-                    <a-list-item>
-                        <div style="width: 100%">
-                            <div style="font-size: 15px; font-weight: 600; color: #334155; display: flex; justify-content: space-between">
-                                <div>{{ item.item.arrive_date.format('DD.MM.YYYY') }}</div>
-                                <div v-if="isArray(item.item.arrive_time)">
-                                    <template v-if="item.item.is_time_interval">
-                                        с {{ item.item.arrive_time[0].format('HH:mm') }} до {{ item.item.arrive_time[1].format('HH:mm') }}
-                                    </template>
-                                    <template v-if="!item.item.is_time_interval && item.item.arrive_time[0]">
-                                        строго к {{ item.item.arrive_time[0].format('HH:mm') }}
-                                    </template>
-                                </div>
-                            </div>
-                            <div style="padding-top: 5px">
-                                {{ item.item.address }}
-                            </div>
-                            <a-divider style="margin: 5px 0 0 0" dashed />
-                            <div style="padding-top: 5px">
-                                {{ item.item.contact_person }}
-                            </div>
-                            <div>
-                                {{ item.item.contact_phone }}
-                            </div>
-                            <div style="padding-top: 5px ;width: 100%; display: flex; justify-content: space-between">
-                                <div>
-                                    <a-tooltip
-                                        v-if="model.from_where[item.index].comment"
-                                        :title="model.from_where[item.index].comment"
-                                    >
-                                        <a-button size="small">
-                                            <CommentOutlined style="color: #6b7280" />
-                                        </a-button>
-                                    </a-tooltip>
-                                </div>
-                                <a-space-compact size="small" align="end">
-                                    <a-tooltip v-if="item.index > 0" title="Переместить выше">
-                                        <a-button>
-                                            <UpOutlined style="color: #6b7280" />
-                                        </a-button>
-                                    </a-tooltip>
-                                    <a-tooltip v-if="item.index < model.from_where.length - 1" title="Переместить ниже">
-                                        <a-button>
-                                            <DownOutlined style="color: #6b7280" />
-                                        </a-button>
-                                    </a-tooltip>
-                                    <a-tooltip title="Редактировать">
-                                        <a-button @click="() => {
-                                            currentAddressIdx = item.index
-                                            openAddressDrawer(item.item)
-                                        }">
-                                            <EditOutlined style="color: #6b7280" />
-                                        </a-button>
-                                    </a-tooltip>
-                                </a-space-compact>
-                            </div>
-                        </div>
-                    </a-list-item>
-                </template>
-            </a-list>
+            <AddressList
+                v-model="model.from_where"
+                title="Откуда"
+                add-button-text="Добавить адрес загрузки"
+            />
         </a-col>
         <a-col :span="12">
-            <a-card title="Куда" style="width: 100%">
-                <template #extra>
-                    <a-button type="link" :icon="h(PlusCircleOutlined)">
-                        Добавить адрес разгрузки
-                    </a-button>
-                </template>
-            </a-card>
+            <AddressList
+                v-model="model.to_where"
+                title="Куда"
+                add-button-text="Добавить адрес разгрузки"
+            />
         </a-col>
     </a-row>
     <a-divider :dashed="true" />
@@ -832,19 +728,7 @@ const deleteFromWhereAddress = () => {
         </a-tabs>
     </div>
 </a-form>
-<drawer
-    v-model:open="addressDrawer.isOpen"
-    @close="addressDrawer.isOpen = false"
-    @save="saveFromWhereAddress"
-    @delete="deleteFromWhereAddress"
-    :saving="addressDrawer.isSaving"
-    ok-text="Сохранить"
-    need-deletion-confirm-text="Адрес будет удален! Вы уверены?"
-    :width="700"
-    :title="currentAddress.header"
->
-    <Address v-model="currentAddress.data" />
-</drawer>
+
 </template>
 
 <style scoped>
