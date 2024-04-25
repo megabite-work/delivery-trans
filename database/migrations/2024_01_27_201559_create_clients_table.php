@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string("inn", 12)->unique();
             $table->string("kpp", 9)->nullable();
             $table->string("ogrn", 15)->nullable();
+            $table->smallInteger("vat")->default(0);
 
             $table->timestamps();
         });

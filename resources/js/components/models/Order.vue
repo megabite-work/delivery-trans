@@ -10,6 +10,7 @@ import {useSuggests} from "../../stores/models/suggests.js";
 import KeyValueTable from "../KeyValueTable.vue";
 
 import AddressList from "../AddressList.vue";
+import SelectValueTable from "../SelectValueTable.vue";
 
 const suggest = useSuggests()
 const model = defineModel()
@@ -60,7 +61,7 @@ const fetchBodyTypesOptions = async () => {
 
 const tConditionOptions = ref([])
 const fetchTConditionOptions = async () => {
-    tConditionOptions.value = await  suggest.getTConditions()
+    tConditionOptions.value = await suggest.getTConditions()
 }
 
 const clientOptions = ref([])
@@ -93,13 +94,20 @@ const fetchDriversByCarrier = async () => {
     driversOptions.value = await suggest.getDriversByCarrier(model.value.carrier_id)
 }
 
-const handleCarrierChange = () => {
+const handleCarrierChange = (e) => {
+    const selectedCarrier = carrierOptions.value.find((el) => el.value === e)
+    model.value.carrier_vat = selectedCarrier.vat
     model.value.carrier_driver_id = undefined
     model.value.carrier_car_id = undefined
     model.value.carrier_trailer_id = undefined
     carsOptions.value = []
     trailerOptions.value = []
     driversOptions.value = []
+}
+
+const handleClientChange = (e) => {
+    const selectedClient = clientOptions.value.find((el) => el.value === e)
+    model.value.client_vat = selectedClient.vat
 }
 
 const carTypes = {
@@ -144,7 +152,7 @@ const currentCarIsTractor = computed(() => {
 <div :style="{
     backgroundColor: '#f5f5f4',
     padding: '10px 20px',
-    borderRadius: '6px',
+    borderRadius: '6px'
 }">
     <a-row>
         <a-col :span="12" style="color: #737373">
@@ -352,6 +360,7 @@ const currentCarIsTractor = computed(() => {
                             :not-found-content="suggest.isLoading ? undefined : null"
                             @search="handleClientSearch"
                             @focus="handleClientSearchFocus"
+                            @change="handleClientChange"
                             :options="clientOptions"
                         >
                             <template #option="{ label, inn }">
@@ -370,11 +379,12 @@ const currentCarIsTractor = computed(() => {
                         </a-select>
                         <a-select
                             v-model:value="model.client_vat"
-                            placeholder="НДС"
+                            placeholder="Выбор НДС"
                             :style="{ width: '100%' }"
                         >
                             <a-select-option :value="0">Без НДС</a-select-option>
                             <a-select-option :value="1">НДС</a-select-option>
+                            <a-select-option :value="2">Наличные</a-select-option>
                         </a-select>
                     </a-space>
                 </a-tab-pane>
@@ -493,11 +503,12 @@ const currentCarIsTractor = computed(() => {
                         </a-select>
                         <a-select
                             v-model:value="model.carrier_vat"
-                            placeholder="НДС"
+                            placeholder="Выбор НДС"
                             :style="{ width: '100%' }"
                         >
                             <a-select-option :value="0">Без НДС</a-select-option>
                             <a-select-option :value="1">НДС</a-select-option>
+                            <a-select-option :value="2">Наличные</a-select-option>
                         </a-select>
                         <template v-if="!!model.carrier_id">
                             <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Водитель</a-divider>
@@ -714,19 +725,17 @@ const currentCarIsTractor = computed(() => {
             />
         </a-col>
     </a-row>
-    <a-divider :dashed="true" />
-    <div style="margin-top: 20px">
-        <a-tabs>
-            <a-tab-pane tab="Дополнительные услуги" key="additional">
-                <a-table />
-            </a-tab-pane>
-            <template #rightExtra>
-                <a-button>
-                    Добавить допуслугу
-                </a-button>
-            </template>
-        </a-tabs>
-    </div>
+    <a-divider orientation="left">Дополнительные услуги</a-divider>
+    <SelectValueTable
+        v-model="model.additional_service"
+        header-key-text="Услуга"
+        header-value-text="Сумма"
+        add-button-text="Добавить допуслугу"
+        key-placeholder-text="Выберите допуслугу"
+        value-placeholder-text="Сумма"
+        value-postfix-text="₽"
+        :select-fetcher="suggest.getAdditionalServices"
+    />
 </a-form>
 
 </template>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dir\AdditionalServiceController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -60,4 +61,4 @@ Route::apiResource('contacts', ContactController::class)->except(['index']);
 Route::apiResource('bank-accounts', BankAccountController::class)->except(['index']);
 Route::apiResource('cars', CarController::class)->except(['index']);
 Route::apiResource('drivers', DriverController::class)->except(['index']);
-
+Route::apiResource('additional-services', AdditionalServiceController::class);

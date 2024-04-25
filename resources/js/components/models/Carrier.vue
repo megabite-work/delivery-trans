@@ -328,6 +328,16 @@ watch(() => prop.errors, () => {
                 <a-form-item label="Полное наименование" name="name_full" :validate-status="err.name_full ? 'error': undefined" :help="err.name_full">
                     <a-input v-model:value="model.name_full" placeholder="Введите полное наименование перевозчика" />
                 </a-form-item>
+                <a-form-item label="НДС">
+                    <a-select
+                        v-model:value="model.vat"
+                        placeholder="Выбор НДС"
+                    >
+                        <a-select-option :value="0">Без НДС</a-select-option>
+                        <a-select-option :value="1">НДС</a-select-option>
+                        <a-select-option :value="2">Наличные</a-select-option>
+                    </a-select>
+                </a-form-item>
                 <a-form-item label="Резидент (свой автопарк)" name="is_resident" :validate-status="err.is_resident ? 'error' : undefined" :help="err.is_resident">
                     <a-switch v-model:checked="model.is_resident" />
                 </a-form-item>

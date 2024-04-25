@@ -48,10 +48,22 @@ export const useSuggests = defineStore('suggests', () => {
         try {
             isLoading.value = true
             const {data} = await axios.get('api/suggest/t-conditions')
-            return data.map(el => ({
-                value: `${el.min} ... ${el.max} ℃`,
-                label: `${el.min} ... ${el.max} ℃`,
-            }))
+            return data.map(el => {
+                if (Math.abs(el.min) === Math.abs(el.max)) {
+                    return {
+                        value: `${el.min} ... ${el.max} ℃`,
+                        label: `${el.min} ... ${el.max} ℃`,
+                    }
+                }
+                const t = {
+                    [Math.abs(el.min)]: el.min,
+                    [Math.abs(el.max)]: el.max
+                }
+                return {
+                    value: `${t[Math.min(Math.abs(el.min), Math.abs(el.max))]} ... ${t[Math.max(Math.abs(el.min), Math.abs(el.max))]} ℃`,
+                    label: `${t[Math.min(Math.abs(el.min), Math.abs(el.max))]} ... ${t[Math.max(Math.abs(el.min), Math.abs(el.max))]} ℃`,
+                }
+            })
         } catch {
             message.error('Ошибка загрузки списка')
         } finally {
@@ -67,6 +79,7 @@ export const useSuggests = defineStore('suggests', () => {
                 value: el.id,
                 label: el.name_short,
                 inn: el.inn,
+                vat: el.vat,
             }))
         } catch {
             message.error('Ошибка загрузки списка')
@@ -83,6 +96,7 @@ export const useSuggests = defineStore('suggests', () => {
                 label: el.name_short,
                 inn: el.inn,
                 disabled: !el.is_active,
+                vat: el.vat,
             }))
         } catch {
             message.error('Ошибка загрузки списка')
@@ -129,9 +143,25 @@ export const useSuggests = defineStore('suggests', () => {
         }
     }
 
+    const getAdditionalServices = async () => {
+        try {
+            isLoading.value = true
+            const {data} = await axios.get('api/additional-services')
+            return data.map(el => ({
+                value: el.name,
+                label: `${el.name}${el.price === null ? '' : ` – ${el.price}₽`}`,
+                v: el.price,
+            }))
+        } catch {
+            message.error('Ошибка загрузки списка')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     return {
         err, isLoading,
         getCargoNameSuggest, getTonnages, getCarBodyTypes, getTConditions, searchClient, searchCarrier,
-        getDriversByCarrier, getCarsByCarrier,
+        getDriversByCarrier, getCarsByCarrier, getAdditionalServices,
     }
 })

@@ -16,6 +16,7 @@ class Client extends Model
         "inn",
         "kpp",
         "ogrn",
+        "vat",
     ];
 
     public function contacts()
