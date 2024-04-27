@@ -6,6 +6,7 @@ import {message} from "ant-design-vue";
 import Drawer from "../Drawer.vue";
 import BankAccount from "./BankAccount.vue";
 import Contact from "./Contact.vue";
+import Price from "../Price.vue";
 import {useClientsStore} from "../../stores/models/clients.js";
 import {useContactsStore} from "../../stores/models/contacts.js";
 import {useBankAccountsStore} from "../../stores/models/bankAccounts.js";
@@ -328,6 +329,10 @@ watch(() => prop.errors, () => {
 
             </a-table>
         </a-tab-pane>
+        <a-tab-pane key="price" tab="Прайс-лист">
+            <Price />
+        </a-tab-pane>
+
         <template v-if="model.id !== null" #rightExtra>
             <a-button v-if="currentTab === 'contacts'" @click="() => openContactDrawer()">Новый контакт</a-button>
             <a-button v-if="currentTab === 'accounts'" @click="() => openAccountDrawer()">Новый счет</a-button>
