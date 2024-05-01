@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('car_capacity', function (Blueprint $table) {
+        Schema::create('car_capacities', function (Blueprint $table) {
             $table->id();
             $table->decimal("tonnage")->nullable();
             $table->decimal("volume")->nullable();
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('car_capacity');
+        Schema::dropIfExists('car_capacities');
     }
 };

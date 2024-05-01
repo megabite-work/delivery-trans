@@ -63,4 +63,4 @@ Route::apiResource('bank-accounts', BankAccountController::class)->except(['inde
 Route::apiResource('cars', CarController::class)->except(['index']);
 Route::apiResource('drivers', DriverController::class)->except(['index']);
 Route::apiResource('additional-services', AdditionalServiceController::class);
-Route::apiResource('car-capacity', CarCapacityController::class);
+Route::apiResource('car_capacities', CarCapacityController::class);

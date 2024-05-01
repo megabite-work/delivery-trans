@@ -28,4 +28,9 @@ class Client extends Model
     {
         return $this->morphMany(BankAccount::class, 'owner');
     }
+
+    public function prices()
+    {
+        return $this->morphMany(Price::class, 'owner');
+    }
 }

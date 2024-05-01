@@ -44,6 +44,21 @@ export const useSuggests = defineStore('suggests', () => {
         }
     }
 
+    const getCarCapacities = async () => {
+        try {
+            isLoading.value = true
+            const {data} = await axios.get('api/car_capacities')
+            return data.map(el => ({
+                value: el.id,
+                label: `${el.tonnage}т. – ${el.volume}м³. – ${el.pallets_count}п.`,
+                ...el,
+            }))
+        } catch {
+            message.error('Ошибка загрузки списка')
+        } finally {
+            isLoading.value = false
+        }
+    }
     const getTConditions = async () => {
         try {
             isLoading.value = true
@@ -162,6 +177,6 @@ export const useSuggests = defineStore('suggests', () => {
     return {
         err, isLoading,
         getCargoNameSuggest, getTonnages, getCarBodyTypes, getTConditions, searchClient, searchCarrier,
-        getDriversByCarrier, getCarsByCarrier, getAdditionalServices,
+        getDriversByCarrier, getCarsByCarrier, getAdditionalServices, getCarCapacities,
     }
 })

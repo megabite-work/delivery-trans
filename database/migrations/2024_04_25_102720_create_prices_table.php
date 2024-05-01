@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('prices', function (Blueprint $table) {
             $table->id();
             $table->morphs("owner");
-            $table->string("name");
             $table->bigInteger("car_capacity_id");
             $table->string("car_body_type");
             $table->enum("type", ["CLIENT", "CARRIER"]);
@@ -23,6 +22,8 @@ return new class extends Migration
             $table->decimal("hours_for_coming")->unsigned()->default(0);
             $table->decimal("mkad_price")->unsigned()->default(0);
             $table->timestamps();
+
+            $table->unique(["car_capacity_id", "car_body_type", "type"]);
         });
     }
 
