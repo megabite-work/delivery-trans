@@ -16,7 +16,8 @@ use App\Http\Controllers\Carrier\DriverController;
 use App\Http\Controllers\Carrier\CarrierController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Dir\CarCapacityController;
-
+use App\Http\Controllers\Price\PriceController;
+use App\Http\Controllers\Price\DefaultPriceController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -39,6 +40,7 @@ Route::apiResources([
 ]);
 Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
 Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');
+Route::post('clients/{client_id}/price', [PriceController::class, 'storeForClient'])->name('client.price.store');
 
 Route::apiResources([
     'carriers' => CarrierController::class,
@@ -64,3 +66,5 @@ Route::apiResource('cars', CarController::class)->except(['index']);
 Route::apiResource('drivers', DriverController::class)->except(['index']);
 Route::apiResource('additional-services', AdditionalServiceController::class);
 Route::apiResource('car_capacities', CarCapacityController::class);
+Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
+Route::apiResource('default-prices', DefaultPriceController::class);

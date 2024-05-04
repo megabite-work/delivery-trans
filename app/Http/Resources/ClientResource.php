@@ -25,7 +25,8 @@ class ClientResource extends JsonResource
             'ogrn' => $this->ogrn,
             'vat' => $this->vat,
             'contacts' => ContactResource::collection($this->contacts),
-            'bank_accounts' => BankAccountResource::collection($this->bankAccounts)
+            'bank_accounts' => BankAccountResource::collection($this->bankAccounts),
+            'prices' => PriceResource::collection($this->prices),
         ];
     }
 }

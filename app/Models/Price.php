@@ -25,4 +25,8 @@ class Price extends Model
     {
         return $this->morphTo();
     }
+    public function carCapacity()
+    {
+        return $this->belongsTo(CarCapacity::class, 'car_capacity_id');
+    }
 }

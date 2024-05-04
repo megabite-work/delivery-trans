@@ -23,7 +23,7 @@ return new class extends Migration
             $table->decimal("mkad_price")->unsigned()->default(0);
             $table->timestamps();
 
-            $table->unique(["car_capacity_id", "car_body_type", "type"]);
+            $table->unique(["car_capacity_id", "car_body_type", "type", "owner_id", "owner_type"]);
         });
     }
 

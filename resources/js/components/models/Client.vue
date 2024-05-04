@@ -19,6 +19,7 @@ const contactsStore = useContactsStore()
 const bankAccountsStore = useBankAccountsStore()
 
 const clientHeight = ref(document.documentElement.clientHeight)
+const priceLoading = ref(false)
 
 const columnsContacts = [
     { key: 'type', title: 'Тип', dataIndex: 'type', width: 50 },
@@ -125,6 +126,21 @@ const deleteClientBankAccount = async () => {
         accountDrawer.isOpen = false
     } catch (e) {
         message.error('Ошибка. Не удалось удалить запись')
+    }
+}
+
+const reloadClientPrice = async () => {
+    if (model.value.id === null) {
+        return
+    }
+    try {
+        priceLoading.value = true
+        const { prices } = await clientsStore.getClient(model.value.id)
+        model.value = {...model.value, prices}
+    } catch {
+        message.error('Не удалось загрузить данные клиента')
+    } finally {
+        priceLoading.value = false
     }
 }
 
@@ -252,7 +268,7 @@ watch(() => prop.errors, () => {
             </a-select>
         </a-form-item>
     </a-form>
-    <a-tabs v-model:activeKey="currentTab" >
+    <a-tabs v-if="model.id !== null" v-model:activeKey="currentTab">
         <a-tab-pane key="contacts" tab="Контакты">
             <a-table
                 size="small"
@@ -330,7 +346,12 @@ watch(() => prop.errors, () => {
             </a-table>
         </a-tab-pane>
         <a-tab-pane key="price" tab="Прайс-лист">
-            <Price />
+            <Price
+                :prices="model.prices"
+                @price-change="reloadClientPrice"
+                :owner-id="model.id"
+                :loading="priceLoading"
+            />
         </a-tab-pane>
 
         <template v-if="model.id !== null" #rightExtra>
@@ -339,7 +360,7 @@ watch(() => prop.errors, () => {
         </template>
     </a-tabs>
     <a-alert v-if="model.id === null && !loading"
-             description="Создание контактов и банковских реквизитов заказчика доступно после сохранения нового заказчика."
+             description="Создание контактов, банковских реквизитов и прайс-листов заказчика доступно после сохранения нового заказчика."
              type="info"
     />
 </template>
