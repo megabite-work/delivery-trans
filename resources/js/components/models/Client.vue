@@ -354,7 +354,7 @@ watch(() => prop.errors, () => {
             />
         </a-tab-pane>
 
-        <template v-if="model.id !== null" #rightExtra>
+        <template #rightExtra>
             <a-button v-if="currentTab === 'contacts'" @click="() => openContactDrawer()">Новый контакт</a-button>
             <a-button v-if="currentTab === 'accounts'" @click="() => openAccountDrawer()">Новый счет</a-button>
         </template>
