@@ -41,7 +41,14 @@ const routes = [
         key: 'clients',
         label: 'Заказчики',
     },
-];
+]
+
+const optRoutes = [
+    {
+        key: 'prices',
+        label: 'Прайс-листы'
+    }
+]
 
 </script>
 
@@ -76,6 +83,12 @@ const routes = [
                 <a-menu-item v-for="route in routes" :key="route.key">
                     <router-link :to="{name: route.key}">{{ route.label }}</router-link>
                 </a-menu-item>
+                <a-sub-menu key="options">
+                    <template #title>Справочники</template>
+                    <a-menu-item v-for="route in optRoutes" :key="route.key">
+                        <router-link :to="{name: route.key}">{{ route.label }}</router-link>
+                    </a-menu-item>
+                </a-sub-menu>
             </a-menu>
         </a-layout-header>
         <a-layout-content :style="{ backgroundColor: '#FFFFFF', minHeight: 'calc(100vh - 135px)' }">

@@ -36,6 +36,12 @@ const router = createRouter({
             meta: { requiresAuth: true },
             component: () => import('../views/ClientsView.vue')
         },
+        {
+            path: '/prices',
+            name: 'prices',
+            meta: { requiresAuth: true },
+            component: () => import('../views/PricesView.vue')
+        },
     ]
 })
 router.beforeResolve((to, from, next) => {

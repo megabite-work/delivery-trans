@@ -26,7 +26,7 @@ export const useClientsStore = defineStore('clients', () => {
 
     const dataList = ref([])
 
-    async function refreshDataList() {
+    async function refreshDataList(){
         try {
             listLoading.value = true
             const res = await axios.get('api/clients', {
