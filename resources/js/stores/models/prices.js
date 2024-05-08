@@ -58,9 +58,57 @@ export const usePricesStore = defineStore('prices', () => {
         }
     }
 
+    async function createPriceForDefault(price) {
+        try {
+            const { data } = await axios.post(`/api/default-prices/${price.price_id}/price`, price)
+            return data
+        } catch(e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
+    async function createDefaultPrice(defaultPrice) {
+        try {
+            const { data } = await axios.post('/api/default-prices', defaultPrice)
+            return data
+        } catch (e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
+    async function storeDefaultPrice(defaultPrice) {
+        try {
+            const { data } = await axios.patch(`/api/default-prices/${defaultPrice.id}`, defaultPrice)
+            return data
+        } catch (e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
+    async function deleteDefaultPrice(defaultPriceId) {
+        try {
+            await axios.delete(`/api/default-prices/${defaultPriceId}`)
+        } catch (e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
+
     async function createPriceForClient(price) {
         try {
-            const { data } = axios.post(`/api/clients/${price.client_id}/price`, price)
+            const { data } = await axios.post(`/api/clients/${price.client_id}/price`, price)
             return data
         } catch(e) {
             if (e.response) {
@@ -72,7 +120,7 @@ export const usePricesStore = defineStore('prices', () => {
 
     async function storePrice(price) {
         try {
-            const { data } = axios.put(`api/prices/${price.id}`, price)
+            const { data } = await axios.put(`api/prices/${price.id}`, price)
             return data
         } catch(e) {
             if (e.response) {
@@ -109,7 +157,8 @@ export const usePricesStore = defineStore('prices', () => {
         err, listLoading, dataList, paginator,
         setPage, setPageSize,
         createPriceForClient, storePrice, deletePrice, getPriceById, refreshDataList,
-        getDefaultPriceById,
+        getDefaultPriceById, createPriceForDefault,
+        createDefaultPrice, storeDefaultPrice, deleteDefaultPrice,
     }
 
 })

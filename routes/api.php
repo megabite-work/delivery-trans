@@ -40,7 +40,10 @@ Route::apiResources([
 ]);
 Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
 Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');
+
 Route::post('clients/{client_id}/price', [PriceController::class, 'storeForClient'])->name('client.price.store');
+Route::post('default-prices/{price_id}/price', [PriceController::class, 'storeForDefault'])->name('default.price.store');
+
 
 Route::apiResources([
     'carriers' => CarrierController::class,

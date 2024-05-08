@@ -6,6 +6,7 @@ use App\Enums\PriceType;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PriceResource;
 use App\Models\Client;
+use App\Models\DefaultPrice;
 use App\Models\Price;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
@@ -29,6 +30,25 @@ class PriceController extends Controller
         ]);
         $data["owner_type"] = Client::class;
         $data["owner_id"] = $data["client_id"];
+
+        $price = Price::create($data);
+        return response()->json(new PriceResource($price), 201);
+    }
+
+    public function storeForDefault(Request $request)
+    {
+        $data = $request->validate([
+            'price_id' => 'required|exists:App\Models\DefaultPrice,id',
+            'type' => ['required',new Enum(PriceType::class)],
+            'car_body_type' => 'required|exists:App\Models\CarBodyType,type',
+            'car_capacity_id' => 'required|exists:App\Models\CarCapacity,id',
+            'hourly' => 'required|numeric|min:0',
+            'hours_for_coming' => 'required|numeric|min:0',
+            'min_hours' => 'required|numeric|min:0',
+            'mkad_price' => 'required|numeric|min:0',
+        ]);
+        $data["owner_type"] = DefaultPrice::class;
+        $data["owner_id"] = $data["price_id"];
 
         $price = Price::create($data);
         return response()->json(new PriceResource($price), 201);

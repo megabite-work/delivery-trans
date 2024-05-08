@@ -1,11 +1,13 @@
 <script setup>
-import Layout from '../layouts/AppLayout.vue';
 import {onBeforeUnmount, onMounted, reactive, ref} from "vue";
-import {usePricesStore} from "../stores/models/prices.js";
-import { UnorderedListOutlined } from "@ant-design/icons-vue";
-import {message} from "ant-design-vue";
+
+import Layout from '../layouts/AppLayout.vue';
 import Drawer from "../components/Drawer.vue";
 import Price from "../components/Price.vue";
+
+import {usePricesStore} from "../stores/models/prices.js";
+import {UnorderedListOutlined} from "@ant-design/icons-vue";
+import {message} from "ant-design-vue";
 
 const pricesStore = usePricesStore()
 
@@ -36,8 +38,49 @@ const openMainDrawer = async (priceId = null) => {
     }
 }
 
-const saveDefaultPrice = () => {}
-const deleteDefaultPrice = () => {}
+const reloadDefaultPrice = async () => {
+    try {
+        priceLoading.value = true
+        const dp = await pricesStore.getDefaultPriceById(currentPrice.data.id)
+        currentPrice.data = { ...currentPrice.data, prices: dp.prices }
+    } catch {
+        message.error('Ошибка получения прайс-листа')
+    } finally {
+        priceLoading.value = false
+    }
+}
+const saveDefaultPrice = async () => {
+    try {
+        mainDrawer.isSaving = true
+        if (currentPrice.data.id === null) {
+            currentPrice.data = await pricesStore.createDefaultPrice(currentPrice.data)
+            currentPrice.modified = false
+            message.info('Прайс-лист создан')
+        } else {
+            currentPrice.data = await pricesStore.storeDefaultPrice(currentPrice.data)
+            currentPrice.modified = false
+            message.info('Прайс-лист записан')
+            mainDrawer.isOpen = false
+        }
+    } catch {
+        message.error('Ошибка сохранения прайс-листа')
+    } finally {
+        mainDrawer.isSaving = false
+        await pricesStore.refreshDataList()
+    }
+}
+const deleteDefaultPrice = async () => {
+    try {
+        mainDrawer.isSaving = true
+        await pricesStore.deleteDefaultPrice(currentPrice.data.id)
+        mainDrawer.isOpen = false
+    } catch {
+        message.error('При удалении прайс-листа возникла ошибка')
+    } finally {
+        mainDrawer.isSaving = false
+        await pricesStore.refreshDataList()
+    }
+}
 
 const clientHeight = ref(document.documentElement.clientHeight)
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
@@ -54,7 +97,7 @@ onBeforeUnmount(() => {
 
 <template>
     <Layout title="Прайс-листы">
-        <template #headerExtra><a-button type="primary" @click="() => {}">Новый прайс-лист</a-button></template>
+        <template #headerExtra><a-button type="primary" @click="() => openMainDrawer(null)">Новый прайс-лист</a-button></template>
         <a-table
             :loading="pricesStore.listLoading"
             :custom-row="tableRowFn"
@@ -108,10 +151,16 @@ onBeforeUnmount(() => {
                 </a-form-item>
             </a-form>
             <Price
+                v-if="currentPrice.data.id !== null"
                 :prices="currentPrice.data.prices"
-                @price-change="() => {}"
+                @price-change="reloadDefaultPrice"
                 :owner-id="currentPrice.data.id"
                 :loading="priceLoading"
+                :is-default-price="true"
+            />
+            <a-alert v-if="currentPrice.data.id === null && !mainDrawer.isLoading"
+                     description="Редактирование цен доступно после сохранения нового прайса."
+                     type="info"
             />
         </drawer>
     </Layout>

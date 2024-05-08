@@ -8,7 +8,8 @@ import PriceModel from "./models/PriceModel.vue";
 
 const props = defineProps({
     prices: { type: Object, default: {} },
-    ownerId: { type: Number, required: true },
+    isDefaultPrice: { type: Boolean, default: false },
+    ownerId: { type: Number },
     loading: { type: Boolean, default: false },
 })
 
@@ -102,10 +103,17 @@ const savePrice = async () => {
     try {
         mainDrawer.isSaving = true
         if (currentPrice.data.id === null) {
-            await pricesStore.createPriceForClient({
-                client_id: props.ownerId,
-                ...currentPrice.data,
-            })
+            if (props.isDefaultPrice) {
+                await pricesStore.createPriceForDefault({
+                    price_id: props.ownerId,
+                    ...currentPrice.data,
+                })
+            } else {
+                await pricesStore.createPriceForClient({
+                    client_id: props.ownerId,
+                    ...currentPrice.data,
+                })
+            }
         } else {
             await pricesStore.storePrice(currentPrice.data)
         }
