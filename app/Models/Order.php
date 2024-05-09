@@ -15,7 +15,7 @@ class Order extends Model
         "cargo_temp",
         "cargo_in_pallets",
         "cargo_pallets_count",
-        "vehicle_tonnage",
+        "car_capacity_id",
         "vehicle_body_type",
         "vehicle_loading_rear",
         "vehicle_loading_lateral",
@@ -73,5 +73,10 @@ class Order extends Model
     public function trailer()
     {
         return $this->belongsTo(Car::class, "carrier_trailer_id");
+    }
+
+    public function carCapacity()
+    {
+        return $this->belongsTo(CarCapacity::class, "car_capacity_id");
     }
 }

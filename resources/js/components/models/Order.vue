@@ -2,17 +2,19 @@
 import {ref, h, watch, computed} from "vue";
 import { debounce } from "radash";
 
-import {
-    EditOutlined,
-    ReloadOutlined
-} from '@ant-design/icons-vue';
+import {message} from "ant-design-vue";
+import {EditOutlined, ReloadOutlined} from '@ant-design/icons-vue';
 import {useSuggests} from "../../stores/models/suggests.js";
-import KeyValueTable from "../KeyValueTable.vue";
+import {usePricesStore} from "../../stores/models/prices.js";
+import {useClientsStore} from "../../stores/models/clients.js";
 
+import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
 import SelectValueTable from "../SelectValueTable.vue";
 
 const suggest = useSuggests()
+const pricesStore = usePricesStore()
+const clientStore = useClientsStore()
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
 
@@ -49,14 +51,68 @@ const handleCargoNameSearch = debounce({delay: 500}, async (q) => {
     cargoNameOptions.value = await suggest.getCargoNameSuggest(q)
 })
 
-const tonnagesOptions = ref([])
-const fetchTonnages = async () => {
-    tonnagesOptions.value = await suggest.getTonnages()
+const carCapacitiesOptions = ref([])
+const fetchCarCapacities = async () => {
+    carCapacitiesOptions.value = await suggest.getCarCapacities()
 }
 
 const carBodyTypesOptions = ref([])
 const fetchBodyTypesOptions = async () => {
     carBodyTypesOptions.value = await suggest.getCarBodyTypes()
+}
+
+const defaultPricesOptions = ref([])
+const fetchDefaultPricesOptions = async () => {
+    try {
+        defaultPricesOptions.value = await pricesStore.getDefaultPrices()
+    } catch {
+        message.error('Не удалось получить прайс-листы')
+    }
+}
+const handlePriceLoadingOpen = async (open) => {
+    if (open) {
+        await fetchDefaultPricesOptions()
+    }
+}
+
+const applyClientPrice = async type => {
+    if (!model.value.client_id) {
+        return
+    }
+    try {
+        const client = await clientStore.getClient(model.value.client_id)
+        applyDefaultPrice(client, type)
+    } catch {
+        message.error('Не удалось получить прайс клиента')
+    }
+}
+const applyDefaultPrice = (defaultPrice, type) => {
+    if (!model.value.car_capacity_id || !model.value.vehicle_body_type) {
+        return
+    }
+    const p = defaultPrice.prices.find(price => {
+        return price.type === type &&
+        price.car_capacity_id === model.value.car_capacity_id &&
+        price.car_body_type === model.value.vehicle_body_type
+    })
+
+    if (type === 'CARRIER') {
+        model.value = {
+            ...model.value,
+            carrier_tariff_hourly: p ? parseFloat(p.hourly) : 0,
+            carrier_tariff_min_hours: p ? parseFloat(p.min_hours) : 0,
+            carrier_tariff_hours_for_coming: p ? parseFloat(p.hours_for_coming) : 0,
+            carrier_tariff_mkad_price: p ? parseFloat(p.mkad_price) : 0,
+        }
+    } else if (type === 'CLIENT') {
+        model.value = {
+            ...model.value,
+            client_tariff_hourly: p ? parseFloat(p.hourly) : 0,
+            client_tariff_min_hours: p ? parseFloat(p.min_hours) : 0,
+            client_tariff_hours_for_coming: p ? parseFloat(p.hours_for_coming) : 0,
+            client_tariff_mkad_price: p ? parseFloat(p.mkad_price) : 0,
+        }
+    }
 }
 
 const tConditionOptions = ref([])
@@ -318,26 +374,24 @@ const currentCarIsTractor = computed(() => {
         </a-col>
         <a-col :span="12">
             <a-divider orientation="left">Машина</a-divider>
-            <a-space>
-                <a-form-item label="Тоннаж машины">
-                    <a-select
-                        v-model:value="model.vehicle_tonnage"
-                        placeholder="Тоннаж"
-                        :options="tonnagesOptions"
-                        @focus="fetchTonnages"
-                        :loading = "suggest.isLoading"
-                    />
-                </a-form-item>
-                <a-form-item label="Тип кузова">
-                    <a-select
-                        v-model:value="model.vehicle_body_type"
-                        placeholder="Кузов"
-                        :options="carBodyTypesOptions"
-                        @focus="fetchBodyTypesOptions"
-                        :loading="suggest.isLoading"
-                    />
-                </a-form-item>
-            </a-space>
+            <a-form-item label="Вместимость машины">
+                <a-select
+                    v-model:value="model.car_capacity_id"
+                    placeholder="Вместимость"
+                    :options="carCapacitiesOptions"
+                    @focus="fetchCarCapacities"
+                    :loading = "suggest.isLoading"
+                />
+            </a-form-item>
+            <a-form-item label="Тип кузова">
+                <a-select
+                    v-model:value="model.vehicle_body_type"
+                    placeholder="Кузов"
+                    :options="carBodyTypesOptions"
+                    @focus="fetchBodyTypesOptions"
+                    :loading="suggest.isLoading"
+                />
+            </a-form-item>
             <a-form-item label="Загрузка">
                 <a-checkbox v-model:checked="model.vehicle_loading_rear">Задняя</a-checkbox>
                 <a-checkbox v-model:checked="model.vehicle_loading_lateral">Боковая</a-checkbox>
@@ -391,54 +445,113 @@ const currentCarIsTractor = computed(() => {
                 <a-tab-pane key="price" tab="Тариф">
                     <a-space direction="vertical" style="width: 100%">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 120px; text-align: right">Ставка ₽/час:</div>
+                            <div style="width: 100px; text-align: right"></div>
+                            <div style="flex-grow: 1">
+                                <a-dropdown @open-change="handlePriceLoadingOpen">
+                                    <a-button style="width: 100%">
+                                        Загрузить прайс...
+                                    </a-button>
+                                    <template #overlay>
+                                        <a-menu @click="() => {}">
+                                            <a-menu-item v-if="!model.car_capacity_id || !model.vehicle_body_type" disabled>Заполните параметры машины</a-menu-item>
+                                            <template v-else>
+                                                <a-menu-item
+                                                    key="cp"
+                                                    v-if="!!model.client_id"
+                                                    @click="()=>applyClientPrice('CLIENT')"
+                                                >
+                                                    Прайс заказчика
+                                                </a-menu-item>
+                                                <a-menu-divider v-if="defaultPricesOptions.length > 0 && !!model.client_id" />
+                                                <a-menu-item
+                                                    v-for="defaultPrice in defaultPricesOptions"
+                                                    :key="defaultPrice.id"
+                                                    @click="()=>applyDefaultPrice(defaultPrice, 'CLIENT')"
+                                                >
+                                                    {{defaultPrice.name}}
+                                                </a-menu-item>
+                                            </template>
+                                        </a-menu>
+                                    </template>
+                                </a-dropdown>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 100px; text-align: right">Ставка:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
                                     v-model:value="model.client_tariff_hourly"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Ставка"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">₽ / час</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">Минимум часов:</div>
+                            <div style="width: 100px; text-align: right">Минимум:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.client_min_hours"
+                                    v-model:value="model.client_tariff_min_hours"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Минимум часов"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">час.</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">Часов на подачу:</div>
+                            <div style="width: 100px; text-align: right">На подачу:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.client_hours_for_coming"
+                                    v-model:value="model.client_tariff_hours_for_coming"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Часов на подачу"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">час.</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">За МКАД ₽/км:</div>
+                            <div style="width: 100px; text-align: right">Тариф МКАД:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.client_mkad_price"
+                                    v-model:value="model.client_tariff_mkad_price"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Тариф поездки за МКАД"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">₽ / км.</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                         <a-divider dashed style="margin: 0;" />
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">Км за МКАД:</div>
+                            <div style="width: 100px; text-align: right">За МКАД:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.client_mkad_rate"
+                                    v-model:value="model.client_tariff_mkad_rate"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Поездка за МКАД"
+
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">км.</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                     </a-space>
@@ -611,12 +724,14 @@ const currentCarIsTractor = computed(() => {
                             <a-row :gutter="8">
                                 <a-col :span="12">
                                     <a-input
+                                        v-model:value="model.carrier_odometer_start"
                                         type="number"
                                         placeholder="Одометр загрузка"
                                     />
                                 </a-col>
                                 <a-col :span="12">
                                     <a-input
+                                        v-model:value="model.carrier_odometer_end"
                                         type="number"
                                         placeholder="Одометр разгрузка"
                                     />
@@ -628,54 +743,110 @@ const currentCarIsTractor = computed(() => {
                 <a-tab-pane key="price" tab="Тариф">
                     <a-space direction="vertical" style="width: 100%">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 120px; text-align: right">Ставка ₽/час:</div>
+                            <div style="width: 100px; text-align: right"></div>
+                            <div style="flex-grow: 1">
+                                <a-dropdown @open-change="handlePriceLoadingOpen">
+                                    <a-button style="width: 100%">
+                                        Загрузить прайс...
+                                    </a-button>
+                                    <template #overlay>
+                                        <a-menu @click="() => {}">
+                                            <a-menu-item v-if="!model.car_capacity_id || !model.vehicle_body_type" disabled>Заполните параметры машины</a-menu-item>
+                                            <template v-else>
+                                                <a-menu-item
+                                                    key="cp"
+                                                    v-if="!!model.client_id"
+                                                    @click="()=>applyClientPrice('CARRIER')"
+                                                >
+                                                    Прайс заказчика
+                                                </a-menu-item>
+                                                <a-menu-divider v-if="defaultPricesOptions.length > 0 && !!model.client_id" />
+                                                <a-menu-item
+                                                    v-for="defaultPrice in defaultPricesOptions"
+                                                    :key="defaultPrice.id"
+                                                    @click="()=>applyDefaultPrice(defaultPrice, 'CARRIER')"
+                                                >
+                                                    {{defaultPrice.name}}
+                                                </a-menu-item>
+                                            </template>
+                                        </a-menu>
+                                    </template>
+                                </a-dropdown>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 100px; text-align: right">Ставка:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.courier_tariff_hourly"
+                                    v-model:value="model.carrier_tariff_hourly"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Ставка"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">₽ / час</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">Минимум часов:</div>
+                            <div style="width: 100px; text-align: right">Минимум:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.courier_min_hours"
+                                    v-model:value="model.carrier_tariff_min_hours"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Минимум часов"
+                                >
+                                    <template #addonAfter><div style="width: 45px">час.</div></template>
+                                </a-input-number>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">Часов на подачу:</div>
+                            <div style="width: 100px; text-align: right">На подачу:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.courier_hours_for_coming"
+                                    v-model:value="model.carrier_tariff_hours_for_coming"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Часов на подачу"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">час.</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">За МКАД ₽/км:</div>
+                            <div style="width: 100px; text-align: right">Тариф МКАД:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.courier_mkad_price"
+                                    v-model:value="model.carrier_tariff_mkad_price"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Тариф поездки за МКАД"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">₽ / км.</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                         <a-divider dashed style="margin: 0;" />
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 120px; text-align: right">Км за МКАД:</div>
+                            <div style="width: 100px; text-align: right">За МКАД:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
-                                    v-model:value="model.courier_mkad_rate"
+                                    v-model:value="model.carrier_tariff_mkad_rate"
                                     :min="0"
                                     style="width: 100%"
-                                />
+                                    placeholder="Поездка за МКАД"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">км.</div>
+                                    </template>
+                                </a-input-number>
                             </div>
                         </div>
                     </a-space>

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->boolean('cargo_in_pallets')->default(false);
             $table->integer('cargo_pallets_count')->default(0);
             // Vehicle
-            $table->decimal('vehicle_tonnage')->nullable();
+            $table->foreignId("car_capacity_id")->nullable()->constrained('car_capacities');
             $table->string('vehicle_body_type')->nullable();
             $table->boolean('vehicle_loading_rear')->default(false);
             $table->boolean('vehicle_loading_lateral')->default(false);

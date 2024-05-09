@@ -15,7 +15,7 @@ const VALIDATE_RULES = [
     'cargo_in_pallets' => 'nullable|boolean',
     'cargo_pallets_count' => 'nullable|numeric',
 
-    'vehicle_tonnage' => 'nullable|numeric',
+    'car_capacity_id' => 'nullable|exists:App\Models\CarCapacity,id',
     'vehicle_body_type' => 'nullable|exists:App\Models\CarBodyType,type',
     'vehicle_loading_rear' => 'nullable|boolean',
     'vehicle_loading_lateral' => 'nullable|boolean',

@@ -103,15 +103,7 @@ onBeforeUnmount(() => {
             :custom-row="tableRowFn"
             :columns="columnsPrices"
             :data-source="pricesStore.dataList"
-            :pagination="{
-                ...pricesStore.paginator,
-                showSizeChanger: true,
-                pageSizeOptions: ['15', '30', '50', '100'],
-                style: {marginRight: '10px'},
-                buildOptionText: size => `${size.value} / стр.`,
-                onChange: page => pricesStore.setPage(page),
-                onShowSizeChange: (page, size) => pricesStore.setPageSize(page, size)
-            }"
+            :pagination="false"
             :scroll="{ y: clientHeight - 335 }"
             :row-class-name="() => 'cursor-pointer'"
         >

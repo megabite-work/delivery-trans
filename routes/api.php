@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Dir\AdditionalServiceController;
+use App\Http\Controllers\Order\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -71,3 +72,4 @@ Route::apiResource('additional-services', AdditionalServiceController::class);
 Route::apiResource('car_capacities', CarCapacityController::class);
 Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
 Route::apiResource('default-prices', DefaultPriceController::class);
+Route::apiResource('orders', OrderController::class);

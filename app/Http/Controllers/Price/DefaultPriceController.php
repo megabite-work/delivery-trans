@@ -12,9 +12,9 @@ class DefaultPriceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        return DefaultPriceResource::collection(DefaultPrice::paginate($request['per_page']));
+        return DefaultPriceResource::collection(DefaultPrice::all());
     }
 
     /**
