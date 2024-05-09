@@ -86,16 +86,18 @@ const applyClientPrice = async type => {
         message.error('Не удалось получить прайс клиента')
     }
 }
-const applyDefaultPrice = (defaultPrice, type) => {
+const applyDefaultPrice = (defaultPrice, type, onlyExists = false) => {
     if (!model.value.car_capacity_id || !model.value.vehicle_body_type) {
-        return
+        return false
     }
     const p = defaultPrice.prices.find(price => {
         return price.type === type &&
         price.car_capacity_id === model.value.car_capacity_id &&
         price.car_body_type === model.value.vehicle_body_type
     })
-
+    if (!p && onlyExists) {
+        return false;
+    }
     if (type === 'CARRIER') {
         model.value = {
             ...model.value,
@@ -112,6 +114,40 @@ const applyDefaultPrice = (defaultPrice, type) => {
             client_tariff_hours_for_coming: p ? parseFloat(p.hours_for_coming) : 0,
             client_tariff_mkad_price: p ? parseFloat(p.mkad_price) : 0,
         }
+    }
+    return true
+}
+const handlePRefresh = async () => {
+    if (!model.value.car_capacity_id || !model.value.vehicle_body_type) {
+        return
+    }
+    let ncl = true
+    let nca = true
+    if (model.value.client_id) {
+        try {
+            const client = await clientStore.getClient(model.value.client_id)
+            ncl = !applyDefaultPrice(client, 'CLIENT')
+            nca = !applyDefaultPrice(client, 'CARRIER')
+        } catch {
+            message.error('Не удалось получить прайс клиента')
+        }
+    }
+    if (!ncl && nca) {
+        return
+    }
+    await fetchDefaultPricesOptions()
+    if (defaultPricesOptions.value.length === 0) {
+        return
+    }
+    let p = defaultPricesOptions.value.find(item => item.is_default)
+    if (!p) {
+       p = defaultPricesOptions.value[0]
+    }
+    if (ncl) {
+        applyDefaultPrice(p, 'CLIENT')
+    }
+    if (nca) {
+        applyDefaultPrice(p, 'CARRIER')
     }
 }
 
@@ -161,9 +197,10 @@ const handleCarrierChange = (e) => {
     driversOptions.value = []
 }
 
-const handleClientChange = (e) => {
+const handleClientChange = async (e) => {
     const selectedClient = clientOptions.value.find((el) => el.value === e)
     model.value.client_vat = selectedClient.vat
+    await handlePRefresh()
 }
 
 const carTypes = {
@@ -381,6 +418,7 @@ const currentCarIsTractor = computed(() => {
                     :options="carCapacitiesOptions"
                     @focus="fetchCarCapacities"
                     :loading = "suggest.isLoading"
+                    @change="handlePRefresh"
                 />
             </a-form-item>
             <a-form-item label="Тип кузова">
@@ -390,6 +428,7 @@ const currentCarIsTractor = computed(() => {
                     :options="carBodyTypesOptions"
                     @focus="fetchBodyTypesOptions"
                     :loading="suggest.isLoading"
+                    @change="handlePRefresh"
                 />
             </a-form-item>
             <a-form-item label="Загрузка">
