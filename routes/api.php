@@ -1,7 +1,4 @@
 <?php
-
-use App\Http\Controllers\Dir\AdditionalServiceController;
-use App\Http\Controllers\Order\OrderController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,12 +10,16 @@ use App\Http\Controllers\Dir\SuggestController;
 use App\Http\Controllers\Dir\TonnageController;
 use App\Http\Controllers\Dir\TConditionsController;
 use App\Http\Controllers\Dir\CarCapacityController;
+use App\Http\Controllers\Dir\AdditionalServiceController;
 use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Carrier\CarController;
 use App\Http\Controllers\Carrier\DriverController;
 use App\Http\Controllers\Carrier\CarrierController;
 use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Price\DefaultPriceController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Order\CalculationController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -63,6 +64,7 @@ Route::get('suggest/client-search', [ClientController::class, 'searchSuggest'])-
 Route::get('suggest/carrier-search', [CarrierController::class, 'searchSuggest'])->name("suggest.carrier-search");
 Route::get('suggest/drivers-by-carrier', [DriverController::class, 'getDriversByCarrierID'])->name("suggest.drivers-by-carrier");
 Route::get('suggest/cars-by-carrier', [CarController::class, 'getCarsByCarrierId'])->name('suggest.cars-by-carrier');
+Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 
 Route::apiResource('contacts', ContactController::class)->except(['index']);
 Route::apiResource('bank-accounts', BankAccountController::class)->except(['index']);

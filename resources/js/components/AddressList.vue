@@ -17,6 +17,8 @@ const model = defineModel("modelValue", {
     default: []
 })
 
+const emit = defineEmits(["change"]);
+
 const props = defineProps({
     title: {type: String},
     addButtonText: {type: String}
@@ -42,6 +44,7 @@ const saveAddress = () => {
     addressDrawer.isOpen = false
     currentAddress.data = {}
     currentAddressIdx.value = -1
+    emit('change')
 }
 
 const deleteAddress = () => {
@@ -51,6 +54,7 @@ const deleteAddress = () => {
     addressDrawer.isOpen = false
     currentAddress.data = {}
     currentAddressIdx.value = -1
+    emit('change')
 }
 </script>
 

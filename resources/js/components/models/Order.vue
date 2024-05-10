@@ -1,5 +1,6 @@
 <script setup>
 import {ref, h, watch, computed} from "vue";
+import axios from "axios";
 import { debounce } from "radash";
 
 import {message} from "ant-design-vue";
@@ -127,6 +128,7 @@ const handlePRefresh = async () => {
         }
     }
     if (!ncl && !nca) {
+        await orderCalculate()
         return
     }
     await fetchDefaultPricesOptions()
@@ -137,14 +139,29 @@ const handlePRefresh = async () => {
     if (!p) {
        p = defaultPricesOptions.value[0]
     }
-    console.log(ncl, nca)
     if (ncl) {
         applyDefaultPrice(p, 'CLIENT', true)
     }
     if (nca) {
         applyDefaultPrice(p, 'CARRIER', true)
     }
+    await orderCalculate()
 }
+
+const orderCalculation = ref({
+    client: {sum: 0, expenses: 0, discount: 0, service: 0, total: 0, calculated: true},
+    carrier: {sum: 0, expenses: 0, fine: 0, total: 0, calculated: true}
+})
+const orderCalculate = debounce({delay: 500}, async () => {
+    try {
+        const { data } = await axios.post('/api/calculate', model.value)
+        orderCalculation.value = data
+        model.value.client_sum = orderCalculation.value.client.total
+        model.value.carrier_sum = orderCalculation.value.carrier.total
+    } catch {
+        message.error('Ошибка при подсчете цены заказа')
+    }
+})
 
 const tConditionOptions = ref([])
 const fetchTConditionOptions = async () => {
@@ -270,7 +287,9 @@ const currentCarIsTractor = computed(() => {
                     color: '#27272a'
                 }">
                     <a-dropdown placement="bottom" arrow>
-                        <a class="ant-dropdown-link" @click.prevent>2,134.27 ₽</a>
+                        <a class="ant-dropdown-link" @click.prevent>
+                            {{ orderCalculation.client.total.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                        </a>
                         <template #overlay>
                             <a-menu>
                                 <a-menu-item :icon="h(EditOutlined)">
@@ -288,9 +307,11 @@ const currentCarIsTractor = computed(() => {
                         fontSize: '11px',
                         color: '#404040'
                     }">
-                        Допрасходы: 3,700₽
+                        Допрасходы: {{orderCalculation.client.expenses.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                         <a-divider type="vertical" />
-                        Скидка: 3,000₽
+                        Допуслуги: {{orderCalculation.client.service.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                        <a-divider type="vertical" />
+                        Скидка: {{orderCalculation.client.discount.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                     </div>
                 </div>
             </div>
@@ -321,7 +342,9 @@ const currentCarIsTractor = computed(() => {
                 color: '#27272a'
             }">
                 <a-dropdown placement="bottom" arrow>
-                    <a class="ant-dropdown-link" @click.prevent>1,720.00 ₽</a>
+                    <a class="ant-dropdown-link" @click.prevent>
+                        {{ orderCalculation.carrier.total.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                    </a>
                     <template #overlay>
                         <a-menu>
                             <a-menu-item :icon="h(EditOutlined)">
@@ -339,7 +362,9 @@ const currentCarIsTractor = computed(() => {
                             fontSize: '11px',
                             color: '#404040'
                         }">
-                    Скидка: 500₽
+                    Допрасходы: {{orderCalculation.carrier.expenses.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                    <a-divider type="vertical" />
+                    Штрафы: {{orderCalculation.carrier.fine.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                 </div>
             </div>
         </a-col>
@@ -500,7 +525,7 @@ const currentCarIsTractor = computed(() => {
                                                 <a-menu-item
                                                     v-for="defaultPrice in defaultPricesOptions"
                                                     :key="defaultPrice.id"
-                                                    @click="()=>applyDefaultPrice(defaultPrice, 'CLIENT')"
+                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CLIENT'); await orderCalculate()}"
                                                 >
                                                     {{defaultPrice.name}}
                                                 </a-menu-item>
@@ -519,6 +544,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Ставка"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / час</div>
@@ -534,6 +560,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Минимум часов"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">час.</div>
@@ -549,6 +576,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Часов на подачу"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">час.</div>
@@ -564,6 +592,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Тариф поездки за МКАД"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / км.</div>
@@ -580,7 +609,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
-
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">км.</div>
@@ -601,6 +630,7 @@ const currentCarIsTractor = computed(() => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        @update:model-value="orderCalculate"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="discount" tab="Скидки">
@@ -614,6 +644,7 @@ const currentCarIsTractor = computed(() => {
                         key-placeholder-text="Скидка"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        @update:model-value="orderCalculate"
                     />
                 </a-tab-pane>
             </a-tabs>
@@ -798,7 +829,7 @@ const currentCarIsTractor = computed(() => {
                                                 <a-menu-item
                                                     v-for="defaultPrice in defaultPricesOptions"
                                                     :key="defaultPrice.id"
-                                                    @click="()=>applyDefaultPrice(defaultPrice, 'CARRIER')"
+                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CARRIER'); await orderCalculate()}"
                                                 >
                                                     {{defaultPrice.name}}
                                                 </a-menu-item>
@@ -817,6 +848,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Ставка"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / час</div>
@@ -832,6 +864,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Минимум часов"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter><div style="width: 45px">час.</div></template>
                                 </a-input-number>
@@ -845,6 +878,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Часов на подачу"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">час.</div>
@@ -860,6 +894,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Тариф поездки за МКАД"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / км.</div>
@@ -876,6 +911,7 @@ const currentCarIsTractor = computed(() => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
+                                    @change="orderCalculate"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">км.</div>
@@ -896,6 +932,7 @@ const currentCarIsTractor = computed(() => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        @update:model-value="orderCalculate"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="fines" tab="Штрафы">
@@ -909,6 +946,7 @@ const currentCarIsTractor = computed(() => {
                         key-placeholder-text="Штраф"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        @update:model-value="orderCalculate"
                     />
                 </a-tab-pane>
             </a-tabs>
@@ -920,6 +958,7 @@ const currentCarIsTractor = computed(() => {
                 v-model="model.from_where"
                 title="Откуда"
                 add-button-text="Добавить адрес загрузки"
+                @change="orderCalculate"
             />
         </a-col>
         <a-col :span="12">
@@ -927,6 +966,7 @@ const currentCarIsTractor = computed(() => {
                 v-model="model.to_where"
                 title="Куда"
                 add-button-text="Добавить адрес разгрузки"
+                @change="orderCalculate"
             />
         </a-col>
     </a-row>
@@ -940,6 +980,7 @@ const currentCarIsTractor = computed(() => {
         value-placeholder-text="Сумма"
         value-postfix-text="₽"
         :select-fetcher="suggest.getAdditionalServices"
+        @change="orderCalculate"
     />
 </a-form>
 

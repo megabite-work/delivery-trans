@@ -12,6 +12,8 @@ const model = defineModel("modelValue", {
     default: []
 })
 
+const emit = defineEmits(["change"]);
+
 const prop = defineProps({
     selectFetcher: {type: Function, default: () => []},
     withoutSelected: {type: Boolean, default: true},
@@ -69,11 +71,15 @@ const editRow = idx => currentRowIdx.value = idx
 const applyRow = (e) => {
     if (!!e) { e.stopPropagation() }
     currentRowIdx.value = -1
+    emit('change')
 }
 const deleteRow = (e, idx) => {
     e.stopPropagation()
     currentRowIdx.value = -1
-    delete model.value[idx]
+    if (idx >= 0) {
+        model.value.splice(idx, 1)
+    }
+    emit('change')
 }
 </script>
 

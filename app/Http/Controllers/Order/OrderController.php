@@ -56,7 +56,9 @@ const VALIDATE_RULES = [
     'additional_service' => 'nullable|JSON',
 
     'client_sum' => 'nullable|numeric',
+    'client_sum_calculated' => 'nullable|boolean',
     'carrier_sum' => 'nullable|numeric',
+    'carrier_sum_calculated' => 'nullable|boolean',
 ];
 
 class OrderController extends Controller
