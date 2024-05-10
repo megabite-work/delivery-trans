@@ -61,7 +61,12 @@ return new class extends Migration
             $table->jsonb("additional_service")->nullable();
             // Cash
             $table->decimal("client_sum")->default(0);
+            $table->boolean('client_sum_calculated')->default(true);
+            $table->string('client_sum_author')->nullable();
+
             $table->decimal("carrier_sum")->default(0);
+            $table->boolean('carrier_sum_calculated')->default(true);
+            $table->string('carrier_sum_author')->nullable();
             // Timestamps
             $table->timestamps();
         });

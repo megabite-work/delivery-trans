@@ -47,7 +47,11 @@ class Order extends Model
         "to_locations",
         "additional_service",
         "client_sum",
+        "client_sum_calculated",
+        "client_sum_author",
         "carrier_sum",
+        "carrier_sum_calculated",
+        "carrier_sum_author",
     ];
 
     public function client()

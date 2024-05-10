@@ -12,11 +12,11 @@ use App\Http\Controllers\Dir\CountriesController;
 use App\Http\Controllers\Dir\SuggestController;
 use App\Http\Controllers\Dir\TonnageController;
 use App\Http\Controllers\Dir\TConditionsController;
+use App\Http\Controllers\Dir\CarCapacityController;
+use App\Http\Controllers\Client\ClientController;
 use App\Http\Controllers\Carrier\CarController;
 use App\Http\Controllers\Carrier\DriverController;
 use App\Http\Controllers\Carrier\CarrierController;
-use App\Http\Controllers\Client\ClientController;
-use App\Http\Controllers\Dir\CarCapacityController;
 use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Price\DefaultPriceController;
 /*
