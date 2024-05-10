@@ -99,21 +99,15 @@ const applyDefaultPrice = (defaultPrice, type, onlyExists = false) => {
         return false;
     }
     if (type === 'CARRIER') {
-        model.value = {
-            ...model.value,
-            carrier_tariff_hourly: p ? parseFloat(p.hourly) : 0,
-            carrier_tariff_min_hours: p ? parseFloat(p.min_hours) : 0,
-            carrier_tariff_hours_for_coming: p ? parseFloat(p.hours_for_coming) : 0,
-            carrier_tariff_mkad_price: p ? parseFloat(p.mkad_price) : 0,
-        }
+        model.value.carrier_tariff_hourly = p ? parseFloat(p.hourly) : 0
+        model.value.carrier_tariff_min_hours = p ? parseFloat(p.min_hours) : 0
+        model.value.carrier_tariff_hours_for_coming = p ? parseFloat(p.hours_for_coming) : 0
+        model.value.carrier_tariff_mkad_price = p ? parseFloat(p.mkad_price) : 0
     } else if (type === 'CLIENT') {
-        model.value = {
-            ...model.value,
-            client_tariff_hourly: p ? parseFloat(p.hourly) : 0,
-            client_tariff_min_hours: p ? parseFloat(p.min_hours) : 0,
-            client_tariff_hours_for_coming: p ? parseFloat(p.hours_for_coming) : 0,
-            client_tariff_mkad_price: p ? parseFloat(p.mkad_price) : 0,
-        }
+        model.value.client_tariff_hourly = p ? parseFloat(p.hourly) : 0
+        model.value.client_tariff_min_hours = p ? parseFloat(p.min_hours) : 0
+        model.value.client_tariff_hours_for_coming = p ? parseFloat(p.hours_for_coming) : 0
+        model.value.client_tariff_mkad_price = p ? parseFloat(p.mkad_price) : 0
     }
     return true
 }
@@ -126,13 +120,13 @@ const handlePRefresh = async () => {
     if (model.value.client_id) {
         try {
             const client = await clientStore.getClient(model.value.client_id)
-            ncl = !applyDefaultPrice(client, 'CLIENT')
-            nca = !applyDefaultPrice(client, 'CARRIER')
+            ncl = !applyDefaultPrice(client, 'CLIENT', true)
+            nca = !applyDefaultPrice(client, 'CARRIER', true)
         } catch {
             message.error('Не удалось получить прайс клиента')
         }
     }
-    if (!ncl && nca) {
+    if (!ncl && !nca) {
         return
     }
     await fetchDefaultPricesOptions()
@@ -143,11 +137,12 @@ const handlePRefresh = async () => {
     if (!p) {
        p = defaultPricesOptions.value[0]
     }
+    console.log(ncl, nca)
     if (ncl) {
-        applyDefaultPrice(p, 'CLIENT')
+        applyDefaultPrice(p, 'CLIENT', true)
     }
     if (nca) {
-        applyDefaultPrice(p, 'CARRIER')
+        applyDefaultPrice(p, 'CARRIER', true)
     }
 }
 
