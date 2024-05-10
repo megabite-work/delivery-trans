@@ -27,9 +27,21 @@ watch(() => model.value.cargo_weight, () => {
     }
     cargoWeight.value = model.value.cargo_weight
 })
-const handleCargoWeightChange = v => {
+const handleCargoWeightChange = async v => {
     model.value.cargo_weight = v * (weightSegmentsValue.value === 'т' ? 1000 : 1)
+    await syncCargoWeightWithCap(model.value.cargo_weight / 1000)
 }
+
+const syncCargoWeightWithCap = debounce({delay: 500}, async (tonnage) => {
+    if (carCapacitiesOptions.value.length === 0) {
+        await fetchCarCapacities()
+    }
+    const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= tonnage)
+    if (o) {
+        model.value.car_capacity_id = o.id
+    }
+})
+
 const handleWeightTypeChange = (v) => {
     if (!!cargoWeight.value) {
         if (v === 'т') {
@@ -251,6 +263,12 @@ const currentCarIsTractor = computed(() => {
     return res
 })
 
+const handleTempChange = () => {
+    if (!model.value.vehicle_body_type) {
+        model.value.vehicle_body_type = 'Рефрежератор'
+    }
+}
+
 </script>
 
 <template>
@@ -412,6 +430,7 @@ const currentCarIsTractor = computed(() => {
                         :options="tConditionOptions"
                         @focus="fetchTConditionOptions"
                         :loading = "suggest.isLoading"
+                        @change="handleTempChange"
                     />
                 </a-form-item>
             </a-space>
