@@ -31,10 +31,10 @@ class CalculationController extends Controller
         $res["carrier"]["calculated"] = !$request->has('carrier_sum_calculated') || $request->boolean('carrier_sum_calculated');
 
         $hh = 0;
-        if ($request->has('from_where') && $request->has('to_where')) {
+        if ($request->has('from_locations') && $request->has('to_locations')) {
             $mt = null;
             $gt = null;
-            foreach ($request->get('from_where', []) as $from) {
+            foreach ($request->get('from_locations', []) as $from) {
                 if (array_key_exists('arrive_date', $from) && array_key_exists('arrive_time', $from)) {
                     $d = Date::parse($from['arrive_date'], null);
                     $t = Date::parse($from['arrive_time'][0], null);
@@ -46,7 +46,7 @@ class CalculationController extends Controller
                     }
                 }
             }
-            foreach ($request->get('to_where', []) as $to) {
+            foreach ($request->get('to_locations', []) as $to) {
                 if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to)) {
                     $d = Date::parse($to['arrive_date'], null);
                     $t = Date::parse($to['arrive_time'][0], null);

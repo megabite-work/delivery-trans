@@ -1,7 +1,7 @@
 <script setup>
 import {ref, h, watch, computed} from "vue";
 import axios from "axios";
-import { debounce } from "radash";
+import {debounce, isArray} from "radash";
 
 import {message} from "ant-design-vue";
 import {EditOutlined, ReloadOutlined} from '@ant-design/icons-vue';
@@ -269,6 +269,34 @@ const handleTempChange = () => {
     }
 }
 
+const getTotal = arr => {
+    let total = 0
+    if (isArray(arr)) {
+        arr.forEach(v => total += parseFloat(v.v))
+    }
+    return total
+}
+
+const clientExpensesTotal = computed(() => {
+    return getTotal(model.value.client_expenses)
+})
+
+const clientDiscountsTotal = computed(() => {
+    return getTotal(model.value.client_discounts)
+})
+
+const additionalServiceTotal = computed(() => {
+    return getTotal(model.value.additional_service)
+})
+
+const carrierExpensesTotal = computed(() => {
+    return getTotal(model.value.carrier_expenses)
+})
+
+const carrierFinesTotal = computed(() => {
+    return getTotal(model.value.carrier_fines)
+})
+
 </script>
 
 <template>
@@ -306,7 +334,7 @@ const handleTempChange = () => {
                 }">
                     <a-dropdown placement="bottom" arrow>
                         <a class="ant-dropdown-link" @click.prevent>
-                            {{ orderCalculation.client.total.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                            {{ model.client_sum ? model.client_sum.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
                         </a>
                         <template #overlay>
                             <a-menu>
@@ -325,11 +353,11 @@ const handleTempChange = () => {
                         fontSize: '11px',
                         color: '#404040'
                     }">
-                        Допрасходы: {{orderCalculation.client.expenses.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                        Допрасходы: {{clientExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                         <a-divider type="vertical" />
-                        Допуслуги: {{orderCalculation.client.service.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                        Допуслуги: {{additionalServiceTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                         <a-divider type="vertical" />
-                        Скидка: {{orderCalculation.client.discount.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                        Скидка: {{clientDiscountsTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                     </div>
                 </div>
             </div>
@@ -361,7 +389,7 @@ const handleTempChange = () => {
             }">
                 <a-dropdown placement="bottom" arrow>
                     <a class="ant-dropdown-link" @click.prevent>
-                        {{ orderCalculation.carrier.total.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                        {{ model.carrier_sum ? model.carrier_sum.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
                     </a>
                     <template #overlay>
                         <a-menu>
@@ -380,9 +408,9 @@ const handleTempChange = () => {
                             fontSize: '11px',
                             color: '#404040'
                         }">
-                    Допрасходы: {{orderCalculation.carrier.expenses.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                    Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                     <a-divider type="vertical" />
-                    Штрафы: {{orderCalculation.carrier.fine.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                    Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                 </div>
             </div>
         </a-col>
@@ -649,7 +677,7 @@ const handleTempChange = () => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update:model-value="orderCalculate"
+                        @update="orderCalculate"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="discount" tab="Скидки">
@@ -663,7 +691,7 @@ const handleTempChange = () => {
                         key-placeholder-text="Скидка"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update:model-value="orderCalculate"
+                        @update="orderCalculate"
                     />
                 </a-tab-pane>
             </a-tabs>
@@ -951,7 +979,7 @@ const handleTempChange = () => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update:model-value="orderCalculate"
+                        @update="orderCalculate"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="fines" tab="Штрафы">
@@ -965,7 +993,7 @@ const handleTempChange = () => {
                         key-placeholder-text="Штраф"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update:model-value="orderCalculate"
+                        @update="orderCalculate"
                     />
                 </a-tab-pane>
             </a-tabs>
@@ -974,7 +1002,7 @@ const handleTempChange = () => {
     <a-row :gutter="16" style="padding-top: 16px">
         <a-col :span="12">
             <AddressList
-                v-model="model.from_where"
+                v-model="model.from_locations"
                 title="Откуда"
                 add-button-text="Добавить адрес загрузки"
                 @change="orderCalculate"
@@ -982,7 +1010,7 @@ const handleTempChange = () => {
         </a-col>
         <a-col :span="12">
             <AddressList
-                v-model="model.to_where"
+                v-model="model.to_locations"
                 title="Куда"
                 add-button-text="Добавить адрес разгрузки"
                 @change="orderCalculate"

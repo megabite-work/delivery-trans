@@ -7,7 +7,6 @@ import {
 } from "@ant-design/icons-vue";
 
 const prop = defineProps({
-    modelValue: {type: Array, default: []},
     scroll: { type: Object, required: false },
     headerKeyText: { type: String, default: 'Ключ' },
     headerValueText: { type: String, default: 'Значение' },
@@ -18,8 +17,9 @@ const prop = defineProps({
     valueWidth: { type: Number, default: 150 },
     size: {type: String, default: 'small'}
 })
-const emit = defineEmits(['update:modelValue'])
 
+const model = defineModel({type: Array, default: []})
+const emit = defineEmits(["update"])
 
 const columns = [
     {key: 'k', title: prop.headerKeyText},
@@ -27,10 +27,9 @@ const columns = [
 ]
 
 const currentRowIdx = ref(-1)
-const rows = ref([])
 const addRow = () => {
     if (currentRowIdx.value >= 0) {applyRow(null)}
-    rows.value.unshift({ k: '', v: 0 })
+    model.value = [{ k: '', v: 0 }, ...model.value]
     editRow(0)
 }
 const tableRowFn = (record, idx) => ({ onClick: () => editRow(idx) })
@@ -38,13 +37,13 @@ const editRow = idx => currentRowIdx.value = idx
 const applyRow = (e) => {
     if (!!e) { e.stopPropagation() }
     currentRowIdx.value = -1
-    emit('update:modelValue', rows.value)
+    emit('update')
 }
 const deleteRow = (e, idx) => {
     e.stopPropagation()
     currentRowIdx.value = -1
-    delete rows.value[idx]
-    emit('update:modelValue', rows.value)
+    model.value.splice(idx, 1)
+    emit('update')
 }
 </script>
 
@@ -55,7 +54,7 @@ const deleteRow = (e, idx) => {
     <a-table
         :columns="columns"
         :size="size"
-        :data-source="rows"
+        :data-source="model"
         :pagination="false"
         :scroll="{scrollToFirstRowOnChange: true, ...scroll}"
         :row-class-name="() => 'cursor-pointer'"
@@ -66,14 +65,14 @@ const deleteRow = (e, idx) => {
             <template v-if="rec.index === currentRowIdx">
                 <template v-if="rec.column.key === 'k'">
                     <a-input
-                        v-model:value="rows[currentRowIdx].k"
+                        v-model:value="model[currentRowIdx].k"
                         :placeholder="keyPlaceholderText"
                     />
                 </template>
                 <template v-if="rec.column.key === 'v'">
                     <div style="display: flex">
                         <a-input-number
-                            v-model:value="rows[currentRowIdx].v"
+                            v-model:value="model[currentRowIdx].v"
                             :min="0"
                             :placeholder="valuePlaceholderText"
                         />

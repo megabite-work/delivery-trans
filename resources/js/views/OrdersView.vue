@@ -6,6 +6,20 @@ import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
 
+
+const columnsOrders = [
+    { title: '#', dataIndex: 'id' },
+    { title: 'Создана', dataIndex: 'created_at' },
+    { title: 'Дата поездки', dataIndex: 'date_first' },
+    { title: 'Время подачи', dataIndex: 'time_first' },
+    { title: 'Статус логиста', dataIndex: 'status_logist' },
+    { title: 'Статус менеджера', dataIndex: 'status_manager' },
+    { title: 'Заказчик', dataIndex: 'client' },
+    { title: 'Перевозчик', dataIndex: 'carrier' },
+    { title: '#', dataIndex: 'id' },
+
+]
+
 const ordersStore = useOrdersStore()
 const clientHeight = ref(document.documentElement.clientHeight)
 const currentOrder = reactive({ data:{ id: null }, modified: false })
@@ -17,10 +31,11 @@ const openMainDrawer = async (orderId = null) => {
     if (orderId !== null) {
         try {
             mainDrawer.isLoading = true
-            //currentOrder.data = await ordersStore.getOrder(orderId)
+            currentOrder.data = await ordersStore.getOrder(orderId)
         } catch (e) {
             mainDrawer.isOpen = false
             message.error('Ошибка загрузки')
+            console.log(e)
         } finally {
             mainDrawer.isLoading = false
         }
@@ -34,6 +49,42 @@ const closeMainDrawer = () => {
     mainDrawer.isOpen = false
     currentOrder.data = { id: null }
 }
+
+const saveOrder = async () => {
+    mainDrawer.isSaving = true
+    try {
+        if (currentOrder.data.id === null) {
+            currentOrder.data = await ordersStore.createOrder(currentOrder.data)
+            currentOrder.modified = false
+            message.success('Заказ создан')
+            return
+        }
+        currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
+        currentOrder.modified = false
+        mainDrawer.isSaving = false
+        closeMainDrawer()
+    } catch {
+        message.error('Ошибка. Не удалось записать заказ')
+    } finally {
+        mainDrawer.isSaving = false
+        await ordersStore.refreshDataList()
+    }
+}
+
+const deleteOrder = async () => {
+    if (currentOrder.data.id === null) {
+        return
+    }
+    try {
+        await ordersStore.deleteOrder(currentOrder.data.id)
+        message.success('Заказ успешно удален')
+        closeMainDrawer()
+        await ordersStore.refreshDataList()
+    } catch {
+        message.error('Ошибка. Не удалось удалить заказ')
+    }
+}
+
 
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
 const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
@@ -51,11 +102,32 @@ onBeforeUnmount(() => {
 <template>
     <Layout title="Заявки">
         <template #headerExtra><a-button type="primary" @click="() => openMainDrawer()">Новая заявка</a-button></template>
-
+        <a-table
+            :loading="ordersStore.listLoading"
+            :custom-row="tableRowFn"
+            :columns="columnsOrders"
+            :data-source="ordersStore.dataList"
+            :pagination="{
+                ...ordersStore.paginator,
+                showSizeChanger: true,
+                pageSizeOptions: ['15', '30', '50', '100'],
+                style: {marginRight: '10px'},
+                buildOptionText: size => `${size.value} / стр.`,
+                onChange: page => ordersStore.setPage(page),
+                onShowSizeChange: (page, size) => ordersStore.setPageSize(page, size)
+            }"
+            :scroll="{ y: clientHeight - 335 }"
+            :row-class-name="() => 'cursor-pointer'"
+            size="small"
+        >
+            <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'q'"></template>
+            </template>
+        </a-table>
         <drawer
             v-model:open="mainDrawer.isOpen"
-            @save="() => {console.log(currentOrder.data)}"
-            @delete="() => {}"
+            @save="saveOrder"
+            @delete="deleteOrder"
             @close="() => {mainDrawer.isOpen = false}"
             :width="900"
             :loading="mainDrawer.isLoading"
