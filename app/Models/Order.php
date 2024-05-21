@@ -9,6 +9,8 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $appends = ["margin_sum", "margin_percent"];
+
     protected $fillable = [
         "cargo_name",
         "cargo_weight",
@@ -83,4 +85,30 @@ class Order extends Model
     {
         return $this->belongsTo(CarCapacity::class, "car_capacity_id");
     }
+
+    public function getMarginSumAttribute()
+    {
+        $res = $this->client_sum - $this->carrier_sum;
+
+        if ($this->client_vat === 1 && $this->carrier_vat === 0) {
+            $res = ($this->client_sum / 1.2) - $this->carrier_sum;
+        } elseif ($this->client_vat === 1 && $this->carrier_vat === 2) {
+            $res = ($this->client_sum / 1.2) - ($this->carrier_sum * 1.12);
+        } elseif ($this->client_vat === 0 && $this->carrier_vat === 1) {
+            $res = ($this->client_sum * 1.1) - $this->carrier_sum;
+        } elseif ($this->client_vat === 2 && $this->carrier_vat === 1) {
+            $res = ($this->client_sum * 1.1) - $this->carrier_sum;
+        }
+
+        return $res;
+    }
+
+    public function getMarginPercentAttribute()
+    {
+        if ($this->client_sum == 0 || $this->getMarginSumAttribute() == 0 || $this->client_sum == null) {
+            return 0;
+        }
+        return  $this->getMarginSumAttribute() / $this->client_sum;
+    }
+
 }

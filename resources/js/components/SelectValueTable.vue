@@ -8,7 +8,6 @@ import {
 
 const model = defineModel("modelValue", {
     type: Array,
-    required: true,
     default: []
 })
 

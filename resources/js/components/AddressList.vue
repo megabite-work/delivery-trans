@@ -13,7 +13,6 @@ import Address from "./models/Address.vue";
 
 const model = defineModel("modelValue", {
     type: Array,
-    required: true,
     default: []
 })
 
@@ -70,7 +69,7 @@ const deleteAddress = () => {
             </a-button>
         </template>
     </a-card>
-    <a-list :data-source="model">
+    <a-list :data-source="isArray(model) ? model : []">
         <template #renderItem="item">
             <a-list-item>
                 <div style="width: 100%">

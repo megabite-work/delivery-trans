@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from "axios";
 import dayjs from "dayjs";
+import {clone} from "radash";
 
 export const useOrdersStore = defineStore('orders', () => {
     const err = ref(null)
@@ -84,17 +85,7 @@ export const useOrdersStore = defineStore('orders', () => {
     }
 
     function parseOrder(order) {
-        const res = {
-            ...order,
-            client_expenses: order.client_expenses ? JSON.parse(order.client_expenses) : undefined,
-            client_discounts: order.client_discounts ? JSON.parse(order.client_discounts) : undefined,
-            carrier_expenses: order.carrier_expenses ? JSON.parse(order.carrier_expenses) : undefined,
-            carrier_fines: order.carrier_fines ? JSON.parse(order.carrier_fines) : undefined,
-            from_locations: order.from_locations ? JSON.parse(order.from_locations) : undefined,
-            to_locations: order.to_locations? JSON.parse(order.to_locations) : undefined,
-            additional_service: order.additional_service ? JSON.parse(order.additional_service) : undefined,
-        }
-
+        const res = clone(order)
         if (res.from_locations) {
             res.from_locations = res.from_locations.map(item => {
                 return {

@@ -68,7 +68,8 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        return new DTApiCollection(Order::paginate($request['per_page']));
+        //return new DTApiCollection(Order::orderByDesc('id')->paginate($request['per_page']));
+        return OrderResource::collection(Order::orderByDesc('id')->paginate($request['per_page']));
     }
 
     /**

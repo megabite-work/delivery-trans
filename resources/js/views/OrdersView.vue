@@ -5,20 +5,64 @@ import {message} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-
+import dayjs from "dayjs";
 
 const columnsOrders = [
-    { title: '#', dataIndex: 'id' },
-    { title: 'Создана', dataIndex: 'created_at' },
-    { title: 'Дата поездки', dataIndex: 'date_first' },
-    { title: 'Время подачи', dataIndex: 'time_first' },
-    { title: 'Статус логиста', dataIndex: 'status_logist' },
-    { title: 'Статус менеджера', dataIndex: 'status_manager' },
-    { title: 'Заказчик', dataIndex: 'client' },
-    { title: 'Перевозчик', dataIndex: 'carrier' },
-    { title: '#', dataIndex: 'id' },
-
+    {
+        title: '#',
+        key: 'id',
+        width: 50,
+    },
+    {
+        title: 'Дата',
+        key: 'created_at'
+    },
+    {
+        title: 'Поездка',
+        children: [
+            { title: 'Дата', dataIndex: 'date_first' },
+            { title: 'Время', dataIndex: 'time_first' }
+        ]
+    },
+    {
+        title: 'Статус заявки',
+        children: [
+            { title: 'Логист', dataIndex: 'status_logist' },
+            { title: 'Менеджер', dataIndex: 'status_manager' }
+        ]
+    },
+    {
+        title: 'Заказчик',
+        key: 'client',
+        // children: [
+        //     { title: 'Заказчик', dataIndex: 'client' },
+        //     { title: 'Адрес подачи', dataIndex: 'address_first' },
+        // ]
+    },
+    {
+        title: 'Перевозчик',
+        key: 'carrier',
+        // children: [
+        //     { title: 'Перевозчик', dataIndex: 'carrier' },
+        //     { title: 'Водитель', dataIndex: 'driver' },
+        // ]
+    },
+    {
+        title: 'Авто',
+        key: 'vehicle',
+        // children: [
+        //     { title: 'Тип', key: 'vehicle_body_type' },
+        //     { title: 'Номер', key: 'vehicle_plate_number' },
+        // ]
+    },
+    { title: 'Вес груза', key: 'weight' },
+    { title: 'Сумма', key: 'client_sum' },
+    { title: 'Себестоимость', key: 'carrier_sum' },
+    { title: 'Маржа ₽', key: 'margin_sum' },
+    { title: 'Маржа %', key: 'margin_percent' },
 ]
+
+
 
 const ordersStore = useOrdersStore()
 const clientHeight = ref(document.documentElement.clientHeight)
@@ -120,8 +164,46 @@ onBeforeUnmount(() => {
             :row-class-name="() => 'cursor-pointer'"
             size="small"
         >
+            <template #headerCell="cell">
+                <div style="font-size: 12px; text-wrap: none; text-align: center">
+                    {{cell.title}}
+                </div>
+            </template>
             <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'id'">
+                    <div style="text-align: right; font-size: 12px">{{ record.id }}</div>
+                </template>
+                <template v-if="column.key === 'created_at' || column.key === 'updated_at'">
+                    <div style="font-size: 12px; text-align: right">
+                        {{ dayjs(record[column.key]).format('DD.MM.YY') }}
+                        {{ dayjs(record[column.key]).format('HH:mm') }}
+                    </div>
+                </template>
+                <template v-if="column.key === 'client'">
+                    <div style="text-align: right; font-size: 12px">{{ record.client ? record.client.name_short : '–' }}</div>
+                </template>
+                <template v-if="column.key === 'carrier'">
+                    <div style="text-align: right; font-size: 12px">{{ record.carrier ? record.carrier.name_short : '–' }}</div>
+                </template>
+                <template v-if="column.key === 'vehicle'">
+                    <div style="text-align: right; font-size: 12px">
+                        {{ record.vehicle_body_type }}<br v-if="record.vehicle_body_type"/>
+                        {{ record.carrier_car ? record.carrier_car.plate_number : '–'}}
+                    </div>
+                </template>
+                <template v-if="column.key === 'weight'">
+                    <div style="text-align: right; font-size: 12px">{{ record.cargo_weight / 1000 }} т.</div>
+                </template>
+
+                <template v-if="column.key === 'client_sum' || column.key === 'carrier_sum' || column.key === 'margin_sum'">
+                    <div style="text-align: right; font-size: 12px; white-space: nowrap ">{{ parseFloat(record[column.key]).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB', minimumFractionDigits: 0}) }}</div>
+                </template>
+                <template v-if="column.key === 'margin_percent'">
+                    <div style="text-align: right; font-size: 12px; white-space: nowrap ">{{ parseFloat(record[column.key]).toLocaleString('ru-RU', {style: 'percent', minimumFractionDigits: 0}) }}</div>
+                </template>
+
                 <template v-if="column.key === 'q'"></template>
+
             </template>
         </a-table>
         <drawer
