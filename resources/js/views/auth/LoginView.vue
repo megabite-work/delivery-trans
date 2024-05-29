@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import axios from 'axios';
 import {useAuthStore} from "../../stores/auth.js";
 import {message} from "ant-design-vue";
-import Logo from "../../components/icons/Logo.vue";
+// import Logo from "../../components/icons/Logo.vue";
 
 const authStore = useAuthStore()
 const router = useRouter()

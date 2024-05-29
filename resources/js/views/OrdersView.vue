@@ -56,10 +56,10 @@ const columnsOrders = [
         // ]
     },
     { title: 'Вес груза', key: 'weight' },
-    { title: 'Сумма', key: 'client_sum' },
-    { title: 'Себестоимость', key: 'carrier_sum' },
-    { title: 'Маржа ₽', key: 'margin_sum' },
-    { title: 'Маржа %', key: 'margin_percent' },
+    { title: 'Сумма', key: 'client_sum', fixed: 'right' },
+    { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right' },
+    { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right' },
+    { title: 'Маржа %', key: 'margin_percent', fixed: 'right' },
 ]
 
 
@@ -160,12 +160,12 @@ onBeforeUnmount(() => {
                 onChange: page => ordersStore.setPage(page),
                 onShowSizeChange: (page, size) => ordersStore.setPageSize(page, size)
             }"
-            :scroll="{ y: clientHeight - 335 }"
+            :scroll="{ y: clientHeight - 335, x: 1500 }"
             :row-class-name="() => 'cursor-pointer'"
             size="small"
         >
             <template #headerCell="cell">
-                <div style="font-size: 12px; text-wrap: none; text-align: center">
+                <div style="font-size: 12px; text-wrap: none; white-space: nowrap; text-align: center">
                     {{cell.title}}
                 </div>
             </template>
@@ -201,9 +201,6 @@ onBeforeUnmount(() => {
                 <template v-if="column.key === 'margin_percent'">
                     <div style="text-align: right; font-size: 12px; white-space: nowrap ">{{ parseFloat(record[column.key]).toLocaleString('ru-RU', {style: 'percent', minimumFractionDigits: 0}) }}</div>
                 </template>
-
-                <template v-if="column.key === 'q'"></template>
-
             </template>
         </a-table>
         <drawer
