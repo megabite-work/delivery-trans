@@ -8,22 +8,9 @@ import Order from "../components/models/Order.vue";
 import dayjs from "dayjs";
 
 const columnsOrders = [
-    {
-        title: '#',
-        key: 'id',
-        width: 50,
-    },
-    {
-        title: 'Дата',
-        key: 'created_at'
-    },
-    {
-        title: 'Поездка',
-        children: [
-            { title: 'Дата', dataIndex: 'date_first' },
-            { title: 'Время', dataIndex: 'time_first' }
-        ]
-    },
+    { title: '#', key: 'id', width: 50 },
+    { title: 'Дата', key: 'created_at' },
+    { title: 'Старт поездки', key: 'started_at' },
     {
         title: 'Статус заявки',
         children: [
@@ -173,11 +160,11 @@ onBeforeUnmount(() => {
                 <template v-if="column.key === 'id'">
                     <div style="text-align: right; font-size: 12px">{{ record.id }}</div>
                 </template>
-                <template v-if="column.key === 'created_at' || column.key === 'updated_at'">
-                    <div style="font-size: 12px; text-align: right">
-                        {{ dayjs(record[column.key]).format('DD.MM.YY') }}
-                        {{ dayjs(record[column.key]).format('HH:mm') }}
+                <template v-if="column.key === 'created_at' || column.key === 'updated_at' || column.key === 'started_at'">
+                    <div v-if="record[column.key]" style="font-size: 12px; text-align: right">
+                        {{ dayjs(record[column.key]).format('DD.MM.YY HH:mm') }}
                     </div>
+                    <div v-else style="font-size: 12px; text-align: center">–</div>
                 </template>
                 <template v-if="column.key === 'client'">
                     <div style="text-align: right; font-size: 12px">{{ record.client ? record.client.name_short : '–' }}</div>
@@ -186,7 +173,11 @@ onBeforeUnmount(() => {
                     <div style="text-align: right; font-size: 12px">{{ record.carrier ? record.carrier.name_short : '–' }}</div>
                 </template>
                 <template v-if="column.key === 'vehicle'">
-                    <div style="text-align: right; font-size: 12px">
+                    <div v-if="record.carrier_car && record.carrier_car.body_type" style="text-align: right; font-size: 12px">
+                        {{ record.carrier_car.body_type }}<br v-if="record.carrier_car.body_type"/>
+                        {{ record.carrier_car ? record.carrier_car.plate_number : '–'}}
+                    </div>
+                    <div v-else style="text-align: right; font-size: 12px">
                         {{ record.vehicle_body_type }}<br v-if="record.vehicle_body_type"/>
                         {{ record.carrier_car ? record.carrier_car.plate_number : '–'}}
                     </div>

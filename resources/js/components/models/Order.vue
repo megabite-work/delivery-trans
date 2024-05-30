@@ -1,7 +1,7 @@
 <script setup>
 import {ref, h, watch, computed} from "vue";
 import axios from "axios";
-import {debounce, isArray} from "radash";
+import {debounce, isArray, trim} from "radash";
 
 import {message} from "ant-design-vue";
 import {EditOutlined, ReloadOutlined} from '@ant-design/icons-vue';
@@ -64,9 +64,20 @@ const handleCargoNameSearch = debounce({delay: 500}, async (q) => {
     cargoNameOptions.value = await suggest.getCargoNameSuggest(q)
 })
 
-const carCapacitiesOptions = ref([])
+const carCapacitiesList = ref([])
+const carCapacitiesOptions = computed(() => {
+     let res = [...carCapacitiesList.value]
+     if (res.findIndex((el) => el.value === model.value.car_capacity_id) < 0 && model.value.car_capacity && model.value.car_capacity_id) {
+         res = [{
+             value: model.value.car_capacity.id,
+             label: `${model.value.car_capacity.tonnage}т. – ${model.value.car_capacity.volume}м³. – ${model.value.car_capacity.pallets_count}п.`,
+             ...model.value.car_capacity
+         }, ...res]
+     }
+     return res
+})
 const fetchCarCapacities = async () => {
-    carCapacitiesOptions.value = await suggest.getCarCapacities()
+    carCapacitiesList.value = await suggest.getCarCapacities()
 }
 
 const carBodyTypesOptions = ref([])
@@ -180,35 +191,77 @@ const fetchTConditionOptions = async () => {
     tConditionOptions.value = await suggest.getTConditions()
 }
 
-const clientOptions = ref([])
-const carrierOptions = ref([])
+const clientList = ref([])
+const carrierList = ref([])
 
 const handleClientSearch = debounce({delay: 500}, async q => {
-    clientOptions.value = await suggest.searchClient(q)
+    clientList.value = await suggest.searchClient(q)
 })
 const handleClientSearchFocus = async () => {
     if (!model.value.client_id) {
-        clientOptions.value = await suggest.searchClient('')
+        clientList.value = await suggest.searchClient('')
     }
 }
 
+const clientOptions = computed(() => {
+    let res = [...clientList.value]
+    if (res.findIndex((el) => el.value === model.value.client_id) < 0 && model.value.client && model.value.client_id) {
+        res = [{
+            value: model.value.client.id,
+            label: model.value.client.name_short,
+            inn: model.value.client.inn,
+            vat: model.value.client.vat,
+        }, ...res]
+    }
+    return res
+})
+
 const handleCarrierSearch = debounce({delay: 500}, async q => {
-    carrierOptions.value = await suggest.searchCarrier(q)
+    carrierList.value = await suggest.searchCarrier(q)
 })
 const handleCarrierSearchFocus = async () => {
     if (!model.value.carrier_id) {
-        carrierOptions.value = await suggest.searchCarrier('')
+        carrierList.value = await suggest.searchCarrier('')
     }
 }
 
-const driversOptions = ref([])
+const carrierOptions = computed(() => {
+    let res = [...carrierList.value]
+    if (res.findIndex((el) => el.value === model.value.carrier_id) < 0 && model.value.carrier && model.value.carrier_id) {
+        res = [{
+            value: model.value.carrier.id,
+            label: model.value.carrier.name_short,
+            inn: model.value.carrier.inn,
+            vat: model.value.carrier.vat,
+        }, ...res]
+    }
+    return res
+})
+
+const driversList = ref([])
 const fetchDriversByCarrier = async () => {
     if (!model.value.carrier_id) {
-        driversOptions.value = []
+        driversList.value = []
         return
     }
-    driversOptions.value = await suggest.getDriversByCarrier(model.value.carrier_id)
+    driversList.value = await suggest.getDriversByCarrier(model.value.carrier_id)
 }
+
+const driversOptions = computed(() => {
+    let res = [...driversList.value]
+    if (res.findIndex((el) => el.value === model.value.carrier_driver_id) < 0 && model.value.carrier_driver && model.value.carrier_driver_id) {
+        const name = trim(trim(model.value.carrier_driver.surname).concat(' ', trim(model.value.carrier_driver.name), ' ', trim(model.value.carrier_driver.patronymic)))
+        const label = !!model.value.carrier_driver.phone ? model.value.carrier_driver.phone : (!!model.value.carrier_driver.email ? model.value.carrier_driver.email : '')
+        res = [{
+            value: model.value.carrier_driver.id,
+            name,
+            label: label !== '' ? `${name} (${label})` : name,
+            phone: model.value.carrier_driver.phone,
+            disabled: !model.value.carrier_driver.is_active,
+        },...res]
+    }
+    return res
+})
 
 const handleCarrierChange = (e) => {
     const selectedCarrier = carrierOptions.value.find((el) => el.value === e)
@@ -216,10 +269,16 @@ const handleCarrierChange = (e) => {
     model.value.carrier_driver_id = undefined
     model.value.carrier_car_id = undefined
     model.value.carrier_trailer_id = undefined
-    carsOptions.value = []
-    trailerOptions.value = []
-    driversOptions.value = []
+    carsList.value = []
+    trailerList.value = []
+    driversList.value = []
 }
+
+const handleCarChange = () => {
+    model.value.carrier_trailer_id = undefined
+    trailerList.value = []
+}
+
 
 const handleClientChange = async (e) => {
     const selectedClient = clientOptions.value.find((el) => el.value === e)
@@ -232,26 +291,50 @@ const carTypes = {
     'TRACTOR': 'Тягач',
     'TRAILER': 'Прицеп',
 }
-const carsOptions = ref([])
-const trailerOptions = ref([])
+const carsList = ref([])
+const trailerList = ref([])
 
 const fetchCarsByCarrier = async () => {
     if (!model.value.carrier_id) {
-        carsOptions.value = []
+        carsList.value = []
         return
     }
     const cars = await suggest.getCarsByCarrier(model.value.carrier_id)
-    carsOptions.value = cars.filter(car => car.type !== 'TRAILER').map(car => ({ ...car, typeLabel: carsOptions[car.type] }))
+    carsList.value = cars.filter(car => car.type !== 'TRAILER').map(car => ({ ...car, typeLabel: carsList[car.type] }))
 }
+
+const carsOptions = computed(() => {
+    let res = [...carsList.value]
+    if (res.findIndex((el) => el.value === model.value.carrier_car_id) < 0 && model.value.carrier_car && model.value.carrier_car_id) {
+        res = [{
+            value: model.value.carrier_car.id,
+            label: `${model.value.carrier_car.name} – ${model.value.carrier_car.plate_number}`,
+            ...model.value.carrier_car,
+        }, ...res]
+    }
+    return res
+})
 
 const fetchTrailersByCarrier = async () => {
     if (!model.value.carrier_id) {
-        trailerOptions.value = []
+        trailerList.value = []
         return
     }
     const cars = await suggest.getCarsByCarrier(model.value.carrier_id)
-    trailerOptions.value = cars.filter(car => car.type === 'TRAILER').map(car => ({ ...car, typeLabel: carsOptions[car.type] }))
+    trailerList.value = cars.filter(car => car.type === 'TRAILER').map(car => ({ ...car, typeLabel: trailerList[car.type] }))
 }
+
+const trailerOptions = computed(() => {
+    let res = [...trailerList.value]
+    if (res.findIndex((el) => el.value === model.value.carrier_trailer_id) < 0 && model.value.carrier_trailer && model.value.carrier_trailer_id) {
+        res = [{
+            value: model.value.carrier_trailer.id,
+            label: `${model.value.carrier_trailer.name} – ${model.value.carrier_trailer.plate_number}`,
+            ...model.value.carrier_trailer,
+        }, ...res]
+    }
+    return res
+})
 
 const currentCarIsTractor = computed(() => {
     let res = false
@@ -765,6 +848,7 @@ const carrierFinesTotal = computed(() => {
                                 :style="{ width: '100%' }"
                                 @focus="fetchCarsByCarrier"
                                 :options="carsOptions"
+                                @change="handleCarChange"
                             >
                                 <template #option="car">
                                     <div style="display:flex; flex-direction: column">

@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
     use HasFactory;
 
-    protected $appends = ["margin_sum", "margin_percent"];
+    protected $appends = ["margin_sum", "margin_percent", "started_at"];
 
     protected $fillable = [
         "cargo_name",
@@ -109,6 +111,25 @@ class Order extends Model
             return 0;
         }
         return  $this->getMarginSumAttribute() / $this->client_sum;
+    }
+
+    public function getStartedAtAttribute()
+    {
+        $mt = null;
+        $locations = json_decode($this->from_locations) ?? [];
+        foreach ($locations as $from) {
+            if (property_exists($from, 'arrive_date') && property_exists($from, 'arrive_time')) {
+                $d = Date::parse($from->arrive_date, null);
+                $t = Date::parse($from->arrive_time[0], null);
+                $d->second = 0;
+                $d->hour = $t->hour;
+                $d->minute = $t->minute;
+                if ($mt === null || $d->lessThan($mt)) {
+                    $mt = $d;
+                }
+            }
+        }
+        return $mt;
     }
 
 }

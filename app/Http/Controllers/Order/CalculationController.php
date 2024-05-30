@@ -31,10 +31,10 @@ class CalculationController extends Controller
         $res["carrier"]["calculated"] = !$request->has('carrier_sum_calculated') || $request->boolean('carrier_sum_calculated');
 
         $hh = 0;
-        if ($request->has('from_locations') && $request->has('to_locations')) {
+        if ($request->has('from_locations') && $request->has('to_locations') && $request->get('from_locations') != null && $request->get('to_locations') != null) {
             $mt = null;
             $gt = null;
-            foreach ($request->get('from_locations', []) as $from) {
+            foreach ($request->get('from_locations') as $from) {
                 if (array_key_exists('arrive_date', $from) && array_key_exists('arrive_time', $from)) {
                     $d = Date::parse($from['arrive_date'], null);
                     $t = Date::parse($from['arrive_time'][0], null);
@@ -46,7 +46,7 @@ class CalculationController extends Controller
                     }
                 }
             }
-            foreach ($request->get('to_locations', []) as $to) {
+            foreach ($request->get('to_locations') as $to) {
                 if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to)) {
                     $d = Date::parse($to['arrive_date'], null);
                     $t = Date::parse($to['arrive_time'][0], null);
@@ -102,15 +102,15 @@ class CalculationController extends Controller
         }
 
         // Expenses
-        if($request->has('client_expenses')) {
-            foreach ($request->get('client_expenses', []) as $item) {
+        if($request->has('client_expenses') && $request->get('client_expenses') != null) {
+            foreach ($request->get('client_expenses') as $item) {
                 if (array_key_exists('v', $item)) {
                     $res["client"]["expenses"] += $item['v'];
                 }
             }
         }
-        if($request->has('carrier_expenses')) {
-            foreach ($request->get('carrier_expenses', []) as $item) {
+        if($request->has('carrier_expenses') && $request->get('carrier_expenses') != null) {
+            foreach ($request->get('carrier_expenses') as $item) {
                 if (array_key_exists('v', $item)) {
                     $res["carrier"]["expenses"] += $item['v'];
                 }
@@ -118,16 +118,16 @@ class CalculationController extends Controller
         }
 
         // Client discounts
-        if($request->has('client_discounts')) {
-            foreach ($request->get('client_discounts', []) as $item) {
+        if($request->has('client_discounts') && $request->get('client_discounts') != null ) {
+            foreach ($request->get('client_discounts') as $item) {
                 if (array_key_exists('v', $item)) {
                     $res["client"]["discount"] += $item['v'];
                 }
             }
         }
         // Additional services
-        if($request->has('additional_service')) {
-            foreach ($request->get('additional_service', []) as $item) {
+        if($request->has('additional_service') && $request->get('additional_service') != null ) {
+            foreach ($request->get('additional_service') as $item) {
                 if (array_key_exists('v', $item)) {
                     $res["client"]["service"] += $item['v'];
                 }
@@ -135,8 +135,8 @@ class CalculationController extends Controller
         }
 
         // Carrier fines
-        if($request->has('carrier_fines')) {
-            foreach ($request->get('carrier_fines', []) as $item) {
+        if($request->has('carrier_fines') && $request->get('carrier_fines') != null ) {
+            foreach ($request->get('carrier_fines') as $item) {
                 if (array_key_exists('v', $item)) {
                     $res["carrier"]["fine"] += $item['v'];
                 }

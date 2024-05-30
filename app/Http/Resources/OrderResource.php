@@ -61,6 +61,7 @@ class OrderResource extends JsonResource
             'additional_service' => json_decode($this->additional_service),
             'client_sum' => $this->client_sum,
             'carrier_sum' => $this->carrier_sum,
+            'started_at' => $this->started_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'client_sum_calculated' => $this->client_sum_calculated,
