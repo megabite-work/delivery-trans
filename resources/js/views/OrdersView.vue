@@ -7,7 +7,7 @@ import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
 import dayjs from "dayjs";
 
-const columnsOrders = [
+const columnsOrders = ref([
     { title: '#', key: 'id', width: 50 },
     { title: 'Дата', key: 'created_at' },
     { title: 'Старт поездки', key: 'started_at' },
@@ -18,36 +18,15 @@ const columnsOrders = [
             { title: 'Менеджер', dataIndex: 'status_manager' }
         ]
     },
-    {
-        title: 'Заказчик',
-        key: 'client',
-        // children: [
-        //     { title: 'Заказчик', dataIndex: 'client' },
-        //     { title: 'Адрес подачи', dataIndex: 'address_first' },
-        // ]
-    },
-    {
-        title: 'Перевозчик',
-        key: 'carrier',
-        // children: [
-        //     { title: 'Перевозчик', dataIndex: 'carrier' },
-        //     { title: 'Водитель', dataIndex: 'driver' },
-        // ]
-    },
-    {
-        title: 'Авто',
-        key: 'vehicle',
-        // children: [
-        //     { title: 'Тип', key: 'vehicle_body_type' },
-        //     { title: 'Номер', key: 'vehicle_plate_number' },
-        // ]
-    },
+    { title: 'Заказчик', key: 'client' },
+    { title: 'Перевозчик', key: 'carrier' },
+    { title: 'Авто', key: 'vehicle' },
     { title: 'Вес груза', key: 'weight' },
     { title: 'Сумма', key: 'client_sum', fixed: 'right' },
     { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right' },
     { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right' },
     { title: 'Маржа %', key: 'margin_percent', fixed: 'right' },
-]
+])
 
 
 
