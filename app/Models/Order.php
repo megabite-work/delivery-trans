@@ -5,13 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
     use HasFactory;
 
-    protected $appends = ["margin_sum", "margin_percent", "started_at"];
+    protected $appends = ["margin_sum", "margin_percent", "started_at", "status_manager", "status_logist"];
 
     protected $fillable = [
         "cargo_name",
@@ -88,6 +87,11 @@ class Order extends Model
         return $this->belongsTo(CarCapacity::class, "car_capacity_id");
     }
 
+    public function statuses()
+    {
+        return $this->hasMany(OrderStatus::class, "order_id");
+    }
+
     public function getMarginSumAttribute()
     {
         $res = $this->client_sum - $this->carrier_sum;
@@ -130,6 +134,15 @@ class Order extends Model
             }
         }
         return $mt;
+    }
+
+    public function getStatusManagerAttribute()
+    {
+        return $this->statuses->where("type", "MANAGER")->sortByDesc("created_at")->first();
+    }
+    public function getStatusLogistAttribute()
+    {
+        return $this->statuses->where("type", "LOGIST")->sortByDesc("created_at")->first();
     }
 
 }

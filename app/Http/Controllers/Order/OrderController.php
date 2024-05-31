@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers\Order;
 
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Enum;
+
+use App\Enums\LogistOrderStatus;
+use App\Enums\ManagerOrderStatus;
+use App\Enums\OrderStatusType;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\DTApiCollection;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use Illuminate\Http\Request;
+use App\Models\OrderStatus;
 
 const VALIDATE_RULES = [
     'cargo_name' => 'nullable|string',
@@ -68,7 +73,6 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        //return new DTApiCollection(Order::orderByDesc('id')->paginate($request['per_page']));
         return OrderResource::collection(Order::orderByDesc('id')->paginate($request['per_page']));
     }
 
@@ -109,5 +113,23 @@ class OrderController extends Controller
     {
         $order->delete();
         return response()->noContent();
+    }
+
+    public function setStatus(Request $request, Order $order) {
+        $data = $request->validate([
+            'type' => ['required', new Enum(OrderStatusType::class)],
+            'status' => [
+                'required',
+                new Enum(OrderStatusType::tryFrom($request->type) == OrderStatusType::MANAGER
+                    ? ManagerOrderStatus::class
+                    : LogistOrderStatus::class)
+            ],
+        ]);
+        $user = $request->user();
+        $data['user'] = $user->name;
+        $data['order_id'] = $order->id;
+
+        $status = OrderStatus::create($data);
+        return response()->json($status, 201);
     }
 }

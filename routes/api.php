@@ -35,21 +35,27 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    Route::post('orders/{order}/status', [OrderController::class, 'setStatus'])->name('orders.status');
 });
 
-Route::apiResources([
-    'clients' => ClientController::class,
-]);
+Route::apiResource('carriers', CarrierController::class);
+Route::apiResource('clients', ClientController::class);
+Route::apiResource('contacts', ContactController::class)->except(['index']);
+Route::apiResource('bank-accounts', BankAccountController::class)->except(['index']);
+Route::apiResource('cars', CarController::class)->except(['index']);
+Route::apiResource('drivers', DriverController::class)->except(['index']);
+Route::apiResource('additional-services', AdditionalServiceController::class);
+Route::apiResource('car_capacities', CarCapacityController::class);
+Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
+Route::apiResource('default-prices', DefaultPriceController::class);
+Route::apiResource('orders', OrderController::class);
+
 Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
 Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');
 
 Route::post('clients/{client_id}/price', [PriceController::class, 'storeForClient'])->name('client.price.store');
 Route::post('default-prices/{price_id}/price', [PriceController::class, 'storeForDefault'])->name('default.price.store');
 
-
-Route::apiResources([
-    'carriers' => CarrierController::class,
-]);
 Route::get('carriers/{carrier_id}/contacts', [ContactController::class, 'carrierContactsIndex'])->name('carrier.contacts.index');
 Route::get('carriers/{carrier_id}/bank-accounts', [BankAccountController::class, 'carrierBankAccountsIndex'])->name('carrier.bank-accounts.index');
 Route::get('carriers/{carrier_id}/cars', [CarController::class, 'carrierCarsIndex'])->name('carrier.cars.index');
@@ -66,12 +72,3 @@ Route::get('suggest/drivers-by-carrier', [DriverController::class, 'getDriversBy
 Route::get('suggest/cars-by-carrier', [CarController::class, 'getCarsByCarrierId'])->name('suggest.cars-by-carrier');
 Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 
-Route::apiResource('contacts', ContactController::class)->except(['index']);
-Route::apiResource('bank-accounts', BankAccountController::class)->except(['index']);
-Route::apiResource('cars', CarController::class)->except(['index']);
-Route::apiResource('drivers', DriverController::class)->except(['index']);
-Route::apiResource('additional-services', AdditionalServiceController::class);
-Route::apiResource('car_capacities', CarCapacityController::class);
-Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
-Route::apiResource('default-prices', DefaultPriceController::class);
-Route::apiResource('orders', OrderController::class);
