@@ -67,6 +67,9 @@ return new class extends Migration
             $table->decimal("carrier_sum")->default(0);
             $table->boolean('carrier_sum_calculated')->default(true);
             $table->string('carrier_sum_author')->nullable();
+
+            $table->string('created_by')->nullable();
+            $table->string('updated_by')->nullable();
             // Timestamps
             $table->timestamps();
         });

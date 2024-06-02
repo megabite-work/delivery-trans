@@ -82,7 +82,8 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate(VALIDATE_RULES);
-
+        $data["created_by"] = $request->user()->name;
+        $data["updated_by"] = $request->user()->name;
         $order = Order::create($data);
         $this->initOrderStatuses($order->id, $request->user()->name);
         return response()->json(new OrderResource($order), 201);
@@ -102,6 +103,7 @@ class OrderController extends Controller
     public function update(Request $request, Order $order)
     {
         $data = $request->validate(VALIDATE_RULES);
+        $data["updated_by"] = $request->user()->name;
         $order->update($data);
         if (count($order->statuses) == 0) {
             $this->initOrderStatuses($order->id, $request->user()->name);

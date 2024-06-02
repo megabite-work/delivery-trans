@@ -55,6 +55,8 @@ class Order extends Model
         "carrier_sum",
         "carrier_sum_calculated",
         "carrier_sum_author",
+        "created_by",
+        "updated_by",
     ];
 
     public function client()

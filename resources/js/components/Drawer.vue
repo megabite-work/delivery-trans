@@ -31,6 +31,7 @@ const open = defineModel('open')
         :title="loading ? 'Загрузка...' : title"
         :width="width"
         @close="$emit('close')"
+        :destroy-on-close="true"
     >
         <a-spin :spinning="loading" tip="Загрузка...">
             <slot />

@@ -1,10 +1,16 @@
 <script setup>
-import {ref, h, watch, computed} from "vue";
+import {ref, h, watch, computed, onMounted} from "vue";
 import axios from "axios";
 import {debounce, isArray, trim} from "radash";
 
 import {message} from "ant-design-vue";
-import {EditOutlined, ReloadOutlined, UserOutlined} from '@ant-design/icons-vue';
+import {
+    CheckCircleTwoTone,
+    CloseCircleTwoTone,
+    EditOutlined,
+    ReloadOutlined,
+    UserOutlined
+} from '@ant-design/icons-vue';
 import {useSuggests} from "../../stores/models/suggests.js";
 import {usePricesStore} from "../../stores/models/prices.js";
 import {useClientsStore} from "../../stores/models/clients.js";
@@ -368,6 +374,33 @@ const setOrderStatus = async (orderId, statusType, status) => {
     }
 }
 
+const clientPriceEditing = ref(false)
+const carrierPriceEditing = ref(false)
+
+const acceptCustomClientPrice = async () => {
+    model.value.client_sum_calculated = false
+    await orderCalculate()
+    clientPriceEditing.value = false
+}
+
+const resetCustomClientPrice = async () => {
+    model.value.client_sum_calculated = true
+    await orderCalculate()
+    clientPriceEditing.value = false
+}
+
+const acceptCustomCarrierPrice = async () => {
+    model.value.carrier_sum_calculated = false
+    await orderCalculate()
+    carrierPriceEditing.value = false
+}
+
+const resetCustomCarrierPrice = async () => {
+    model.value.carrier_sum_calculated = true
+    await orderCalculate()
+    carrierPriceEditing.value = false
+}
+
 const handleTempChange = () => {
     if (!model.value.vehicle_body_type) {
         model.value.vehicle_body_type = 'Рефрежератор'
@@ -400,6 +433,10 @@ const carrierExpensesTotal = computed(() => {
 
 const carrierFinesTotal = computed(() => {
     return getTotal(model.value.carrier_fines)
+})
+
+onMounted(async () => {
+    await orderCalculate()
 })
 
 </script>
@@ -460,22 +497,40 @@ const carrierFinesTotal = computed(() => {
                     fontWeight: '600',
                     color: '#27272a'
                 }">
-                    <a-dropdown placement="bottom" arrow>
-                        <a class="ant-dropdown-link" @click.prevent>
-                            {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
-                        </a>
-                        <template #overlay>
-                            <a-menu>
-                                <a-menu-item :icon="h(EditOutlined)">
-                                    Изменить сумму
-                                </a-menu-item>
-                                <a-menu-divider />
-                                <a-menu-item :icon="h(ReloadOutlined)">
-                                    Посчитать автоматически
-                                </a-menu-item>
-                            </a-menu>
-                        </template>
-                    </a-dropdown>
+                    <div v-if="!clientPriceEditing" style="display: flex">
+                        <a-dropdown placement="bottom" arrow>
+                            <a class="ant-dropdown-link" @click.prevent>
+                                <div style="display: flex;">
+                                    {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                                </div>
+                            </a>
+                            <template #overlay>
+                                <a-menu>
+                                    <a-menu-item :icon="h(EditOutlined)" @click="() => clientPriceEditing = true">
+                                        Изменить сумму
+                                    </a-menu-item>
+                                    <a-menu-divider />
+                                    <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomClientPrice">
+                                        Посчитать автоматически
+                                    </a-menu-item>
+                                </a-menu>
+                            </template>
+                        </a-dropdown>
+                        <div v-if="!orderCalculation.client.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
+                            {{ (orderCalculation.client.sum + orderCalculation.client.expenses + orderCalculation.client.discount + orderCalculation.client.service).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                        </div>
+                    </div>
+                    <div v-else style="display: flex; align-items: center">
+                        <a-input-number
+                            v-model:value="model.client_sum"
+                            :min="0"
+                            style="width: 200px"
+                        >
+                            <template #addonAfter>₽</template>
+                        </a-input-number>
+                        <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomClientPrice"/>
+                        <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomClientPrice"/>
+                    </div>
                     <div :style="{
                         fontWeight: '400',
                         fontSize: '11px',
@@ -540,22 +595,38 @@ const carrierFinesTotal = computed(() => {
                 fontWeight: '600',
                 color: '#27272a'
             }">
-                <a-dropdown placement="bottom" arrow>
-                    <a class="ant-dropdown-link" @click.prevent>
-                        {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
-                    </a>
-                    <template #overlay>
-                        <a-menu>
-                            <a-menu-item :icon="h(EditOutlined)">
-                                Изменить сумму
-                            </a-menu-item>
-                            <a-menu-divider />
-                            <a-menu-item :icon="h(ReloadOutlined)">
-                                Посчитать автоматически
-                            </a-menu-item>
-                        </a-menu>
-                    </template>
-                </a-dropdown>
+                <div v-if="!carrierPriceEditing" style="display: flex">
+                    <a-dropdown placement="bottom" arrow>
+                        <a class="ant-dropdown-link" @click.prevent>
+                            {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                        </a>
+                        <template #overlay>
+                            <a-menu>
+                                <a-menu-item :icon="h(EditOutlined)" @click="() => carrierPriceEditing = true">
+                                    Изменить сумму
+                                </a-menu-item>
+                                <a-menu-divider />
+                                <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomCarrierPrice">
+                                    Посчитать автоматически
+                                </a-menu-item>
+                            </a-menu>
+                        </template>
+                    </a-dropdown>
+                    <div v-if="!orderCalculation.carrier.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
+                        {{ (orderCalculation.carrier.sum + orderCalculation.carrier.expenses - orderCalculation.carrier.fine).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                    </div>
+                </div>
+                <div v-else style="display: flex; align-items: center">
+                    <a-input-number
+                        v-model:value="model.carrier_sum"
+                        :min="0"
+                        style="width: 200px"
+                    >
+                        <template #addonAfter>₽</template>
+                    </a-input-number>
+                    <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomCarrierPrice"/>
+                    <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomCarrierPrice"/>
+                </div>
                 <div :style="{
                             fontWeight: '400',
                             fontSize: '11px',
