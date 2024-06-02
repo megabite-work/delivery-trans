@@ -1,9 +1,24 @@
 <script setup>
+import {ref} from "vue";
+import {useSuggests} from "../../stores/models/suggests.js";
+import {debounce} from "radash";
 
 const prop = defineProps({
     modelValue: {type: Object, default: {}}
 })
 const emit = defineEmits(['update:modelValue'])
+const addressOptions = ref([])
+const suggests = useSuggests()
+
+const onAddressSelect = (val) => {
+    emit('update:modelValue', {
+        ...prop.modelValue, address: val
+    })
+}
+const onAddressSearch = debounce({delay: 500}, async (q) => {
+    const suggest = await suggests.addressSuggest(q)
+    addressOptions.value = suggest.map(el => ({value: el}))
+})
 
 </script>
 
@@ -11,12 +26,22 @@ const emit = defineEmits(['update:modelValue'])
 <a-form layout="vertical">
     <a-form-item label="Адрес">
         <a-space-compact size="large" block>
-                <a-input
-                    :value="modelValue.address"
-                    @change="(e) => emit('update:modelValue', {
-                        ...modelValue, address: e.target.value
-                    })"
-                />
+<!--                <a-input-->
+<!--                    :value="modelValue.address"-->
+<!--                    @change="(e) => emit('update:modelValue', {-->
+<!--                        ...modelValue, address: e.target.value-->
+<!--                    })"-->
+<!--                />-->
+            <a-auto-complete
+                :value="modelValue.address"
+                @change="(e) => emit('update:modelValue', {
+                    ...modelValue, address: e
+                })"
+                :options="addressOptions"
+                placeholder="Введите адрес"
+                @select="onAddressSelect"
+                @search="onAddressSearch"
+            />
             <a-button type="primary">
                 Карта
             </a-button>

@@ -1,5 +1,5 @@
 <script setup>
-import {onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
 
 import {message} from "ant-design-vue";
 
@@ -14,6 +14,8 @@ import {useClientsStore} from "../../stores/models/clients.js";
 import {useDriversStore} from "../../stores/models/drivers.js";
 import {useContactsStore} from "../../stores/models/contacts.js";
 import {useBankAccountsStore} from "../../stores/models/bankAccounts.js";
+import {useSuggests} from "../../stores/models/suggests.js";
+import {debounce} from "radash";
 
 
 const dateFormat = 'DD.MM.YYYY'
@@ -25,6 +27,7 @@ const driversStore = useDriversStore()
 const clientsStore = useClientsStore()
 const contactsStore = useContactsStore()
 const bankAccountsStore = useBankAccountsStore()
+const suggests = useSuggests()
 
 const clientHeight = ref(document.documentElement.clientHeight)
 
@@ -240,6 +243,35 @@ const deleteDriver = async () => {
     }
 }
 
+const firmList = ref([])
+
+const handleFirmSearch = debounce({delay: 500}, async q => {
+    if (q.length > 3) {
+        firmList.value = await suggests.firmSuggest(q)
+    }
+})
+
+const handleFirmChange = (e) => {
+    const firm = firmList.value.find(el => el.inn === e)
+    if (firm) {
+        model.value.type = firm.type
+        model.value.name_short = firm.name_short
+        model.value.name_full = firm.name_full
+        model.value.inn = firm.inn
+        model.value.ogrn = firm.ogrn
+        if (firm.type === 'LEGAL') {
+            model.value.kpp = firm.kpp
+        } else {
+            model.value.vat = 0
+        }
+    }
+}
+
+const firmOptions = computed(() => {
+    let res = [...firmList.value]
+    return res.map(el => ({value: el.inn, ...el}))
+})
+
 const currentMainTab = ref('info')
 const currentTab = ref('contacts')
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
@@ -298,11 +330,35 @@ watch(() => prop.errors, () => {
                 <a-row :gutter="16">
                     <a-col :span="model.type === 'LEGAL' ? 12 : 24">
                         <a-form-item label="ИНН" name="inn" :validate-status="err.inn ? 'error': undefined" :help="err.inn">
-                            <a-input
+<!--                            <a-input-->
+<!--                                v-model:value="model.inn"-->
+<!--                                placeholder="Введите ИНН перевозчика"-->
+<!--                                :maxlength="model.type === 'LEGAL' ? 10 : 12"-->
+<!--                            />-->
+                            <a-select
+                                show-search
                                 v-model:value="model.inn"
                                 placeholder="Введите ИНН перевозчика"
-                                :maxlength="model.type === 'LEGAL' ? 10 : 12"
-                            />
+                                :filter-option="false"
+                                :not-found-content="suggests.isLoading ? undefined : null"
+                                @search="handleFirmSearch"
+                                @change="handleFirmChange"
+                                :options="firmOptions"
+                            >
+                                <template #option="rec">
+                                    <div style="display: flex; justify-content: space-between; align-items: center">
+                                        <div>{{ rec.name_short }}</div>
+                                        <div style="font-size: 11px; font-weight: 500">
+                                            {{ rec.inn }}
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-if="suggests.isLoading" #notFoundContent>
+                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                        <a-spin size="small" />
+                                    </div>
+                                </template>
+                            </a-select>
                         </a-form-item>
                     </a-col>
                     <a-col v-if="model.type === 'LEGAL'" :span="12">

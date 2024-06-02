@@ -70,5 +70,8 @@ Route::get('suggest/client-search', [ClientController::class, 'searchSuggest'])-
 Route::get('suggest/carrier-search', [CarrierController::class, 'searchSuggest'])->name("suggest.carrier-search");
 Route::get('suggest/drivers-by-carrier', [DriverController::class, 'getDriversByCarrierID'])->name("suggest.drivers-by-carrier");
 Route::get('suggest/cars-by-carrier', [CarController::class, 'getCarsByCarrierId'])->name('suggest.cars-by-carrier');
+Route::get('suggest/firms', [SuggestController::class, 'firmSuggest'])->name("suggest.firms");
+Route::get('suggest/bank', [SuggestController::class, 'bankSuggest'])->name("suggest.bank");
+Route::get('suggest/address', [SuggestController::class, 'addressSuggest'])->name("suggest.address");
 Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 

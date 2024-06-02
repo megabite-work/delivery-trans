@@ -120,6 +120,42 @@ export const useSuggests = defineStore('suggests', () => {
         }
     }
 
+    const firmSuggest = async (q) => {
+        try {
+            isLoading.value = true
+            const {data} = await axios.get('api/suggest/firms', {params: { q }})
+            return data
+        } catch {
+            message.error('Ошибка загрузки списка')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const bankSuggest = async (q) => {
+        try {
+            isLoading.value = true
+            const {data} = await axios.get('api/suggest/bank', {params: { q }})
+            return data
+        } catch {
+            message.error('Ошибка загрузки списка')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    const addressSuggest = async (q) => {
+        try {
+            isLoading.value = true
+            const {data} = await axios.get('api/suggest/address', {params: { q }})
+            return data
+        } catch {
+            message.error('Ошибка загрузки списка')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     const getDriversByCarrier = async carrier_id => {
         try {
             isLoading.value = true
@@ -177,6 +213,7 @@ export const useSuggests = defineStore('suggests', () => {
     return {
         err, isLoading,
         getCargoNameSuggest, getTonnages, getCarBodyTypes, getTConditions, searchClient, searchCarrier,
-        getDriversByCarrier, getCarsByCarrier, getAdditionalServices, getCarCapacities,
+        getDriversByCarrier, getCarsByCarrier, getAdditionalServices, getCarCapacities, firmSuggest,
+        bankSuggest, addressSuggest
     }
 })
