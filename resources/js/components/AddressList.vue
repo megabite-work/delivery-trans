@@ -11,11 +11,7 @@ import {isArray} from "radash";
 import Drawer from "./Drawer.vue";
 import Address from "./models/Address.vue";
 
-const model = defineModel("modelValue", {
-    type: Array,
-    default: []
-})
-
+const model = defineModel( { type: Array, default: [] })
 const emit = defineEmits(["change"]);
 
 const props = defineProps({

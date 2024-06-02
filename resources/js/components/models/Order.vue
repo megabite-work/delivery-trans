@@ -4,21 +4,25 @@ import axios from "axios";
 import {debounce, isArray, trim} from "radash";
 
 import {message} from "ant-design-vue";
-import {EditOutlined, ReloadOutlined} from '@ant-design/icons-vue';
+import {EditOutlined, ReloadOutlined, UserOutlined} from '@ant-design/icons-vue';
 import {useSuggests} from "../../stores/models/suggests.js";
 import {usePricesStore} from "../../stores/models/prices.js";
 import {useClientsStore} from "../../stores/models/clients.js";
+import {managerOrderStatuses, logistOrderStatuses} from "../../helpers/index.js";
+import {useOrdersStore} from "../../stores/models/orders.js";
 
 import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
 import SelectValueTable from "../SelectValueTable.vue";
 
+const ordersStore = useOrdersStore()
 const suggest = useSuggests()
 const pricesStore = usePricesStore()
 const clientStore = useClientsStore()
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
 
+const isStatusLoading = ref(false);
 const cargoWeight = ref()
 watch(() => model.value.cargo_weight, () => {
     if (!!model.value.cargo_weight) {
@@ -346,6 +350,24 @@ const currentCarIsTractor = computed(() => {
     return res
 })
 
+const setOrderStatus = async (orderId, statusType, status) => {
+    try {
+        isStatusLoading.value = true
+        const res = await ordersStore.setOrderStatus(orderId, statusType, status)
+        if (res.type === 'MANAGER') {
+            model.value.status_manager = res
+        }
+        if (res.type === 'LOGIST') {
+            model.value.status_logist = res
+        }
+        await ordersStore.refreshDataList()
+    } catch {
+        message.error("Не удалось устаноывить статус заказа")
+    } finally {
+        isStatusLoading.value = false
+    }
+}
+
 const handleTempChange = () => {
     if (!model.value.vehicle_body_type) {
         model.value.vehicle_body_type = 'Рефрежератор'
@@ -390,24 +412,47 @@ const carrierFinesTotal = computed(() => {
 }">
     <a-row>
         <a-col :span="12" style="color: #737373">
-
             <div>
-                <div :style="{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                width: '50%'
-            }">
-                    <div :style="{
-                    width: '12px',
-                    height: '12px',
-                    backgroundColor: '#9ca3af',
-                    borderRadius: '8px'
-                }"></div>
-                    <div :style="{
-                    color: '#27272a',
-                    fontWeight: '600'
-                }">Новая</div>
+                <div>
+                    <a-dropdown trigger="click">
+                        <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
+                            <template v-if="model.status_manager">
+                                <a-tooltip>
+                                    <div style="display: flex; align-items: center; gap: 8px">
+                                        <div
+                                            v-if="model.status_manager"
+                                            :style="{backgroundColor: managerOrderStatuses[model.status_manager.status].color}"
+                                            style="width: 12px; height: 12px; border-radius: 8px"
+                                        />
+                                        {{ managerOrderStatuses[model.status_manager.status].label }}
+                                        <a-button v-if="isStatusLoading" type="text" shape="circle" loading/>
+                                    </div>
+
+                                    <template #title>
+                                        <UserOutlined />&nbsp;&nbsp;{{ model.status_manager.user }}
+                                    </template>
+                                </a-tooltip>
+                            </template>
+                            <template v-else>–</template>
+                        </div>
+                        <template v-if="model.status_manager" #overlay>
+                            <a-menu>
+                                <template v-for="(v, key) in managerOrderStatuses">
+                                    <a-menu-item v-if="key !== model.status_manager.status" @click="() => setOrderStatus(model.id, 'MANAGER', key)">
+                                        <div style="display: flex; flex-direction: row; align-items: center">
+                                            <div :style="{
+                                            width: '12px',
+                                            height: '12px',
+                                            backgroundColor: v.color,
+                                            borderRadius: '8px'
+                                            }"></div>
+                                            <div style="padding-left: 8px">{{ v.label }}</div>
+                                        </div>
+                                    </a-menu-item>
+                                </template>
+                            </a-menu>
+                        </template>
+                    </a-dropdown>
                 </div>
                 К оплате заказчику:
                 <div :style="{
@@ -417,7 +462,7 @@ const carrierFinesTotal = computed(() => {
                 }">
                     <a-dropdown placement="bottom" arrow>
                         <a class="ant-dropdown-link" @click.prevent>
-                            {{ model.client_sum ? model.client_sum.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                            {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
                         </a>
                         <template #overlay>
                             <a-menu>
@@ -448,21 +493,46 @@ const carrierFinesTotal = computed(() => {
 
         </a-col>
         <a-col :span="12" style="color: #737373">
-            <div :style="{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px'
-                }">
-                <div :style="{
-                        width: '12px',
-                        height: '12px',
-                        backgroundColor: '#9ca3af',
-                        borderRadius: '8px'
-                    }"></div>
-                <div :style="{
-                        color: '#27272a',
-                        fontWeight: '600'
-                    }">Новая</div>
+            <div>
+                <a-dropdown trigger="click">
+                    <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
+                        <template v-if="model.status_logist">
+                            <a-tooltip>
+                                <div style="display: flex; align-items: center; gap: 8px">
+                                    <div
+                                        v-if="model.status_logist"
+                                        :style="{backgroundColor: logistOrderStatuses[model.status_logist.status].color}"
+                                        style="width: 12px; height: 12px; border-radius: 8px"
+                                    />
+                                    {{ logistOrderStatuses[model.status_logist.status].label }}
+                                    <a-button v-if="isStatusLoading" type="text" shape="circle" loading/>
+                                </div>
+
+                                <template #title>
+                                    <UserOutlined />&nbsp;&nbsp;{{ model.status_logist.user }}
+                                </template>
+                            </a-tooltip>
+                        </template>
+                        <template v-else>–</template>
+                    </div>
+                    <template v-if="model.status_logist" #overlay>
+                        <a-menu>
+                            <template v-for="(v, key) in logistOrderStatuses">
+                                <a-menu-item v-if="key !== model.status_logist.status" @click="() => setOrderStatus(model.id, 'LOGIST', key)">
+                                    <div style="display: flex; flex-direction: row; align-items: center">
+                                        <div :style="{
+                                            width: '12px',
+                                            height: '12px',
+                                            backgroundColor: v.color,
+                                            borderRadius: '8px'
+                                            }"></div>
+                                        <div style="padding-left: 8px">{{ v.label }}</div>
+                                    </div>
+                                </a-menu-item>
+                            </template>
+                        </a-menu>
+                    </template>
+                </a-dropdown>
             </div>
             К оплате перевозчику:
             <div :style="{
@@ -472,7 +542,7 @@ const carrierFinesTotal = computed(() => {
             }">
                 <a-dropdown placement="bottom" arrow>
                     <a class="ant-dropdown-link" @click.prevent>
-                        {{ model.carrier_sum ? model.carrier_sum.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                        {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
                     </a>
                     <template #overlay>
                         <a-menu>

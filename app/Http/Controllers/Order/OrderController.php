@@ -84,6 +84,7 @@ class OrderController extends Controller
         $data = $request->validate(VALIDATE_RULES);
 
         $order = Order::create($data);
+        $this->initOrderStatuses($order->id, $request->user()->name);
         return response()->json(new OrderResource($order), 201);
     }
 
@@ -102,7 +103,9 @@ class OrderController extends Controller
     {
         $data = $request->validate(VALIDATE_RULES);
         $order->update($data);
-
+        if (count($order->statuses) == 0) {
+            $this->initOrderStatuses($order->id, $request->user()->name);
+        }
         return response()->json(new OrderResource($order));
     }
 
@@ -131,5 +134,23 @@ class OrderController extends Controller
 
         $status = OrderStatus::create($data);
         return response()->json($status, 201);
+    }
+
+    private function initOrderStatuses($orderId, $userName) {
+        $ms = [
+            'order_id' => $orderId,
+            'type' => OrderStatusType::MANAGER,
+            'user' => $userName,
+            'status' => ManagerOrderStatus::CREATED,
+        ];
+        OrderStatus::create($ms);
+        $ls = [
+            'order_id' => $orderId,
+            'type' => OrderStatusType::LOGIST,
+            'user' => $userName,
+            'status' => LogistOrderStatus::CREATED,
+        ];
+        OrderStatus::create($ls);
+
     }
 }

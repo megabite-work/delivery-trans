@@ -75,6 +75,6 @@ class OrderResource extends JsonResource
             'margin_percent' => $this->marginPercent,
         ];
 
-        return $res;
+        return array_filter($res, fn($v) => !is_null($v) && $v !== '');
     }
 }

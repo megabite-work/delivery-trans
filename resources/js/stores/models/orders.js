@@ -132,9 +132,24 @@ export const useOrdersStore = defineStore('orders', () => {
         }
     }
 
+    async function setOrderStatus(orderId, statusType, status) {
+        try {
+            const {data} = await axios.post(`api/orders/${orderId}/status`, {
+                type: statusType,
+                status
+            })
+            return data
+        } catch (e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
     return {
         err, paginator, dataList, setPage, setPageSize, listLoading,
         refreshDataList,
-        createOrder, storeOrder, deleteOrder, getOrder,
+        createOrder, storeOrder, deleteOrder, getOrder, setOrderStatus
     }
 })

@@ -6,6 +6,7 @@ import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
 import dayjs from "dayjs";
+import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
 
 const columnsOrders = ref([
     { title: '#', key: 'id', width: 50 },
@@ -14,8 +15,8 @@ const columnsOrders = ref([
     {
         title: 'Статус заявки',
         children: [
-            { title: 'Логист', dataIndex: 'status_logist' },
-            { title: 'Менеджер', dataIndex: 'status_manager' }
+            { title: 'Менеджер', key: 'status_manager' },
+            { title: 'Логист', key: 'status_logist' }
         ]
     },
     { title: 'Заказчик', key: 'client' },
@@ -34,6 +35,8 @@ const ordersStore = useOrdersStore()
 const clientHeight = ref(document.documentElement.clientHeight)
 const currentOrder = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+const listLoading = ref(false)
+
 const openMainDrawer = async (orderId = null) => {
     currentOrder.data = { id: null }
     currentOrder.modified = false
@@ -95,6 +98,17 @@ const deleteOrder = async () => {
     }
 }
 
+const setOrderStatus = async (orderId, statusType, status) => {
+    try {
+        listLoading.value = true
+        await ordersStore.setOrderStatus(orderId, statusType, status)
+        await ordersStore.refreshDataList()
+    } catch {
+        message.error("Не удалось устаноывить статус заказа")
+    } finally {
+        listLoading.value = false
+    }
+}
 
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
 const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
@@ -113,7 +127,7 @@ onBeforeUnmount(() => {
     <Layout title="Заявки">
         <template #headerExtra><a-button type="primary" @click="() => openMainDrawer()">Новая заявка</a-button></template>
         <a-table
-            :loading="ordersStore.listLoading"
+            :loading="ordersStore.listLoading || listLoading"
             :custom-row="tableRowFn"
             :columns="columnsOrders"
             :data-source="ordersStore.dataList"
@@ -143,6 +157,66 @@ onBeforeUnmount(() => {
                     <div v-if="record[column.key]" style="font-size: 12px; text-align: right">
                         {{ dayjs(record[column.key]).format('DD.MM.YY HH:mm') }}
                     </div>
+                    <div v-else style="font-size: 12px; text-align: center">–</div>
+                </template>
+                <template v-if="column.key === 'status_logist'">
+                    <a-dropdown v-if="record.status_logist" :trigger="['contextmenu']">
+                        <div
+                            style="font-size: 12px; border-radius: 4px; text-align: center; padding: 3px 3px"
+                            :style="{
+                            color: logistOrderStatuses[record.status_logist.status].color,
+                            backgroundColor: logistOrderStatuses[record.status_logist.status].backgroundColor,
+                        }">
+                            {{ logistOrderStatuses[record.status_logist.status].label }}
+                        </div>
+                        <template #overlay>
+                            <a-menu>
+                                <template v-for="(v, key) in logistOrderStatuses">
+                                    <a-menu-item v-if="key !== record.status_logist.status" @click="() => setOrderStatus(record.id, 'LOGIST', key)">
+                                        <div style="display: flex; flex-direction: row; align-items: center">
+                                            <div :style="{
+                                            width: '12px',
+                                            height: '12px',
+                                            backgroundColor: v.color,
+                                            borderRadius: '8px'
+                                            }"></div>
+                                            <div style="padding-left: 8px">{{ v.label }}</div>
+                                        </div>
+                                    </a-menu-item>
+                                </template>
+                            </a-menu>
+                        </template>
+                    </a-dropdown>
+                    <div v-else style="font-size: 12px; text-align: center">–</div>
+                </template>
+                <template v-if="column.key === 'status_manager'">
+                    <a-dropdown v-if="record.status_manager" :trigger="['contextmenu']">
+                        <div
+                            style="font-size: 12px; border-radius: 4px; text-align: center; padding: 3px 3px"
+                            :style="{
+                            color: managerOrderStatuses[record.status_manager.status].color,
+                            backgroundColor: managerOrderStatuses[record.status_manager.status].backgroundColor,
+                        }">
+                            {{ managerOrderStatuses[record.status_manager.status].label }}
+                        </div>
+                        <template #overlay>
+                            <a-menu>
+                                <template v-for="(v, key) in managerOrderStatuses">
+                                    <a-menu-item v-if="key !== record.status_manager.status" @click="() => setOrderStatus(record.id, 'MANAGER', key)">
+                                        <div style="display: flex; flex-direction: row; align-items: center">
+                                            <div :style="{
+                                            width: '12px',
+                                            height: '12px',
+                                            backgroundColor: v.color,
+                                            borderRadius: '8px'
+                                            }"></div>
+                                            <div style="padding-left: 8px">{{ v.label }}</div>
+                                        </div>
+                                    </a-menu-item>
+                                </template>
+                            </a-menu>
+                        </template>
+                    </a-dropdown>
                     <div v-else style="font-size: 12px; text-align: center">–</div>
                 </template>
                 <template v-if="column.key === 'client'">
