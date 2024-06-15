@@ -9,9 +9,9 @@ import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
 
 const columnsOrders = ref([
-    { title: '#', key: 'id', width: 50 },
-    { title: 'Дата', key: 'created_at' },
-    { title: 'Старт поездки', key: 'started_at' },
+    { title: '#', key: 'id', width: 50, sorter: true, defaultSortOrder: 'descend' },
+    { title: 'Дата', key: 'created_at', sorter: true },
+    { title: 'Старт поездки', key: 'started_at', sorter: true },
     {
         title: 'Статус заявки',
         children: [
@@ -22,11 +22,11 @@ const columnsOrders = ref([
     { title: 'Заказчик', key: 'client' },
     { title: 'Перевозчик', key: 'carrier' },
     { title: 'Авто', key: 'vehicle' },
-    { title: 'Вес груза', key: 'weight' },
-    { title: 'Сумма', key: 'client_sum', fixed: 'right' },
-    { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right' },
-    { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right' },
-    { title: 'Маржа %', key: 'margin_percent', fixed: 'right' },
+    { title: 'Вес груза', key: 'weight', sorter: true },
+    { title: 'Сумма', key: 'client_sum', fixed: 'right', sorter: true },
+    { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right', sorter: true },
+    { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right', sorter: true },
+    { title: 'Маржа %', key: 'margin_percent', fixed: 'right', sorter: true },
 ])
 
 
@@ -110,6 +110,10 @@ const setOrderStatus = async (orderId, statusType, status) => {
     }
 }
 
+const handleTableChange = async (pag, filters, sorter) => {
+    await ordersStore.setSorter(sorter.column ? sorter.column.key : undefined, sorter.order)
+}
+
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
 const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
 
@@ -142,6 +146,7 @@ onBeforeUnmount(() => {
             }"
             :scroll="{ y: clientHeight - 335, x: 1500 }"
             :row-class-name="() => 'cursor-pointer'"
+            @change="handleTableChange"
             size="small"
         >
             <template #headerCell="cell">

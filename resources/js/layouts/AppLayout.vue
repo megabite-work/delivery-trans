@@ -25,10 +25,10 @@ const logout = async () => {
 }
 
 const routes = [
-    {
-        key: 'dashboard',
-        label: 'Dashboard',
-    },
+    // {
+    //     key: 'dashboard',
+    //     label: 'Dashboard',
+    // },
     {
         key: 'orders',
         label: 'Заявки',

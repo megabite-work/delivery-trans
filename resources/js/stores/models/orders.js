@@ -9,13 +9,26 @@ export const useOrdersStore = defineStore('orders', () => {
     const listLoading = ref(false)
 
     const dataList = ref([])
-
-
     const paginator = ref({
         pageSize: localStorage.getItem('ordersTable__ordersPerPage') ?? 15,
         current: 1,
         total: 0,
     })
+    const sorter = ref({
+        columnKey: localStorage.getItem('orders_table__sorterColumnKey'),
+        order: localStorage.getItem('orders_table__sorterOrder'),
+    })
+
+    async function setSorter (key = undefined, order = undefined) {
+        sorter.value = {
+            columnKey: key,
+            order: order
+        }
+        localStorage.setItem('orders_table__sorterColumnKey', key)
+        localStorage.setItem('orders_table__sorterOrder', order)
+        await refreshDataList()
+    }
+
     async function setPage(page) {
         paginator.value.current = page
         await refreshDataList()
@@ -31,7 +44,12 @@ export const useOrdersStore = defineStore('orders', () => {
         try {
             listLoading.value = true
             const res = await axios.get('api/orders', {
-                params: { page: paginator.value.current, per_page: paginator.value.pageSize }
+                params: {
+                    page: paginator.value.current,
+                    per_page: paginator.value.pageSize,
+                    sorter_key: sorter.value.columnKey,
+                    sorter_order: sorter.value.order,
+                }
             })
             dataList.value = res.data.data
             paginator.value.pageSize = res.data.meta.per_page
@@ -148,7 +166,7 @@ export const useOrdersStore = defineStore('orders', () => {
     }
 
     return {
-        err, paginator, dataList, setPage, setPageSize, listLoading,
+        err, paginator, dataList, setPage, setPageSize, setSorter, listLoading,
         refreshDataList,
         createOrder, storeOrder, deleteOrder, getOrder, setOrderStatus
     }

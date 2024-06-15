@@ -4,7 +4,7 @@ import NProgress from 'nprogress';
 NProgress.configure({ showSpinner: false });
 
 const router = createRouter({
-    history: createWebHistory(import.meta.env.BASE_URL),
+    history: createWebHistory(),
     routes: [
         {
             path: '/login',
@@ -12,14 +12,15 @@ const router = createRouter({
             meta: { requiresAuth: false },
             component: () => import('../views/auth/LoginView.vue')
         },
-        {
-            path: '/',
-            name: 'dashboard',
-            meta: { requiresAuth: true },
-            component: () => import('../views/DashboardView.vue')
-        },
+        // {
+        //     path: '/',
+        //     name: 'dashboard',
+        //     meta: { requiresAuth: true },
+        //     component: () => import('../views/DashboardView.vue')
+        // },
         {
             path: '/orders',
+            alias: '/',
             name: 'orders',
             meta: { requiresAuth: true },
             component: () => import('../views/OrdersView.vue')
