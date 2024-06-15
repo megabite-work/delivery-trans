@@ -2,10 +2,21 @@
 
 namespace App\Http;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
+use Illuminate\Routing\Router;
 
 class Kernel extends HttpKernel
 {
+
+    public function __construct(Application $app, Router $router)
+    {
+        if (file_exists('/run/secrets/.env.production')) {
+            $app->useEnvironmentPath('/run/secrets');
+            $app->loadEnvironmentFrom('.env.production');
+        }
+        parent::__construct($app, $router);
+    }
     /**
      * The application's global HTTP middleware stack.
      *
