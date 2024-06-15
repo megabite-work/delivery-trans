@@ -27,6 +27,6 @@ LABEL authors="Delivery Trans"
 
 WORKDIR /var/www/html
 
-COPY --chown=www-data:www-data --exclude=./resources --exclude=*.config.js --exclude=package.json --exclude=composer.json --exclude=composer.lock . /var/www/html/.
+COPY --chown=www-data:www-data --exclude=./resources/js --exclude=*.config.js --exclude=package.json --exclude=composer.json --exclude=composer.lock . /var/www/html/.
 COPY --chown=www-data:www-data --from=backend /app/vendor /var/www/html/vendor
 COPY --chown=www-data:www-data --from=frontend /app/public/build /var/www/html/public/build
