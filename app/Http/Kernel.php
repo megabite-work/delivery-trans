@@ -8,7 +8,6 @@ use Illuminate\Routing\Router;
 
 class Kernel extends HttpKernel
 {
-
     public function __construct(Application $app, Router $router)
     {
         if (file_exists('/run/secrets/.env.production')) {
