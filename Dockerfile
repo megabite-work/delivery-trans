@@ -26,7 +26,6 @@ FROM serversideup/php:8.3-fpm-nginx-alpine-v3.0.0
 LABEL authors="Delivery Trans"
 
 WORKDIR /var/www/html
-ENV PHP_OPCACHE_ENABLE 1
 
 COPY --chown=www-data:www-data --exclude=./resources --exclude=*.config.js --exclude=package.json --exclude=composer.json --exclude=composer.lock . /var/www/html/.
 COPY --chown=www-data:www-data --from=backend /app/vendor /var/www/html/vendor
