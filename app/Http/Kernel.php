@@ -13,7 +13,7 @@ class Kernel extends HttpKernel
     {
         if (file_exists('/run/secrets/.env.production')) {
             $app->useEnvironmentPath('/run/secrets');
-            $app->loadEnvironmentFrom('.env.production');
+            $app->loadEnvironmentFrom('/run/secrets/.env.production');
         }
         parent::__construct($app, $router);
     }
