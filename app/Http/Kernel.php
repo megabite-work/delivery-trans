@@ -5,20 +5,15 @@ namespace App\Http;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Facades\Log;
 
 class Kernel extends HttpKernel
 {
 
     public function __construct(Application $app, Router $router)
     {
-        Log::info("Kernel started");
         if (file_exists('/run/secrets/.env.production')) {
-            Log::info(".env.production exists");
             $app->useEnvironmentPath('/run/secrets');
             $app->loadEnvironmentFrom('.env.production');
-            Log::info($app->environmentPath());
-            Log::info($app->environmentFilePath());
         }
         parent::__construct($app, $router);
     }
