@@ -19,6 +19,7 @@ use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
+use App\Http\Controllers\SysInfo;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function (){
     });
     Route::post('orders/{order}/status', [OrderController::class, 'setStatus'])->name('orders.status');
 });
+
+Route::get('sysinfo', [SysInfo::class, 'getInfo']);
 
 Route::apiResource('carriers', CarrierController::class);
 Route::apiResource('clients', ClientController::class);
