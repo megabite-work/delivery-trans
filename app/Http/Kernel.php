@@ -13,7 +13,7 @@ class Kernel extends HttpKernel
     public function __construct(Application $app, Router $router)
     {
         if (file_exists('/run/secrets/.env.production')) {
-            Log::info('/run/secrets/.env.production exists');
+            Log::info('/run/secrets/.env.production exists!');
             $app->useEnvironmentPath('/run/secrets');
             $app->loadEnvironmentFrom('.env.production');
         }
