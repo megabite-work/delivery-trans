@@ -32,7 +32,7 @@ RUN mkdir --parents ~/.postgresql && \
 
 WORKDIR /var/www/html
 ENV PHP_OPCACHE_ENABLE 1
-#ENV AUTORUN_ENABLED true
+ENV AUTORUN_ENABLED true
 
 COPY --chown=www-data:www-data --exclude=./resources/js --exclude=*.config.js --exclude=package.json --exclude=composer.json --exclude=composer.lock . /var/www/html/.
 COPY --chown=www-data:www-data --from=backend /app/vendor /var/www/html/vendor

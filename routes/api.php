@@ -39,8 +39,6 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('orders/{order}/status', [OrderController::class, 'setStatus'])->name('orders.status');
 });
 
-Route::get('sysinfo', [SysInfo::class, 'getInfo']);
-
 Route::apiResource('carriers', CarrierController::class);
 Route::apiResource('clients', ClientController::class);
 Route::apiResource('contacts', ContactController::class)->except(['index']);
