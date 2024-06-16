@@ -25,6 +25,13 @@ RUN npm i && npm run build
 FROM serversideup/php:8.3-fpm-nginx-alpine-v3.0.0
 LABEL authors="Delivery Trans"
 
+RUN apt-get update && \
+    apt-get install wget postgresql-client --yes && \
+    mkdir --parents ~/.postgresql && \
+    wget "https://storage.yandexcloud.net/cloud-certs/CA.pem" \
+         --output-document ~/.postgresql/root.crt && \
+    chmod 0600 ~/.postgresql/root.crt
+
 WORKDIR /var/www/html
 ENV PHP_OPCACHE_ENABLE 1
 ENV AUTORUN_ENABLED true
