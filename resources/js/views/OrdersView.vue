@@ -22,11 +22,11 @@ const columnsOrders = ref([
     { title: 'Заказчик', key: 'client' },
     { title: 'Перевозчик', key: 'carrier' },
     { title: 'Авто', key: 'vehicle' },
-    { title: 'Вес груза', key: 'weight', sorter: true },
-    { title: 'Сумма', key: 'client_sum', fixed: 'right', sorter: true },
-    { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right', sorter: true },
-    { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right', sorter: true },
-    { title: 'Маржа %', key: 'margin_percent', fixed: 'right', sorter: true },
+    { title: 'Вес груза', key: 'weight'},
+    { title: 'Сумма', key: 'client_sum', fixed: 'right'},
+    { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right'},
+    { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right'},
+    { title: 'Маржа %', key: 'margin_percent', fixed: 'right'},
 ])
 
 

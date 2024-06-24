@@ -4,14 +4,15 @@ namespace App\Http\Controllers\Order;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
+use Illuminate\Support\Facades\DB;
 
 use App\Enums\LogistOrderStatus;
 use App\Enums\ManagerOrderStatus;
 use App\Enums\OrderStatusType;
-use App\Http\Controllers\Controller;
-use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\OrderStatus;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\OrderResource;
 
 const VALIDATE_RULES = [
     'cargo_name' => 'nullable|string',
@@ -73,7 +74,46 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        return OrderResource::collection(Order::orderByDesc('id')->paginate($request['per_page']));
+        $ordersTotal = Order::count();
+        $perPage = $request->get('per_page', 15);
+        $page = $request->get('page', 1);
+        $orderExp = '';
+
+        if ($request->has('sorter_key') && in_array($request->get('sorter_key'), ['id', 'created_at', 'started_at'])) {
+            $sk = match ($request->get('sorter_key')) {
+                'started_at' => "arrive.arrive_time",
+                default => "orders." . $request->get('sorter_key'),
+            };
+            $orderExp = 'order by '. $sk . ($request->has('sorter_order') && $request->get('sorter_order') == 'descend' ? ' desc ' : ' ');
+        }
+
+        $idsQuery = <<<SQL
+            select orders.id from orders
+                left join (SELECT o.id as id, min(obj ->> 'arrive_date') as arrive_time
+                    FROM orders o,
+                         json_array_elements(o.from_locations::json) obj
+                    group by o.id) arrive on orders.id = arrive.id $orderExp limit :per_page offset :offset;
+        SQL;
+
+        $query = DB::select($idsQuery, ['per_page' => $perPage, 'offset' => $perPage * ($page - 1)]);
+
+        $ids = collect($query)->pluck('id')->all();
+        $orders = Order::findMany($ids);
+        $ordersRes = collect([]);
+
+        foreach ($ids as $id) {
+            $ordersRes = $ordersRes->push($orders->find($id));
+        }
+
+        return [
+            'ids' => $ids,
+            'data' => OrderResource::collection($ordersRes),
+            'meta' => [
+                'total' => $ordersTotal,
+                'current_page' => $page,
+                'per_page' => $perPage,
+            ],
+        ];
     }
 
     /**
