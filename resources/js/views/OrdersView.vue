@@ -1,10 +1,12 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import {onBeforeUnmount, onMounted, reactive, ref} from "vue";
+import {onBeforeUnmount, onMounted, reactive, ref, h} from "vue";
 import {message} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
+import {FilterOutlined, SearchOutlined} from "@ant-design/icons-vue";
+
 import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
 
@@ -36,6 +38,7 @@ const clientHeight = ref(document.documentElement.clientHeight)
 const currentOrder = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 const listLoading = ref(false)
+const filterOpen = ref(false)
 
 const openMainDrawer = async (orderId = null) => {
     currentOrder.data = { id: null }
@@ -129,7 +132,72 @@ onBeforeUnmount(() => {
 
 <template>
     <Layout title="Заявки">
-        <template #headerExtra><a-button type="primary" @click="() => openMainDrawer()">Новая заявка</a-button></template>
+        <template #headerExtra>
+            <a-badge :dot="ordersStore.filter.isFiltered">
+                <a-button :type="filterOpen ? 'primary' : 'dashed'" :icon="h(FilterOutlined)" @click="() => filterOpen = !filterOpen">Фильтры</a-button>
+            </a-badge>
+            <a-button type="primary" @click="() => openMainDrawer()">Новая заявка</a-button>
+        </template>
+        <div v-if="filterOpen" style="padding: 20px 24px; background-color: #fafafa; border-bottom: 1px solid #f0f0f0">
+            <a-form layout="inline">
+                <div style="display: flex; flex-direction: column; gap: 16px">
+                    <div style="display: flex; margin-left: 47px">
+                        <a-form-item label="Номер">
+                            <a-input-number min="1" v-model:value="ordersStore.filter.id" placeholder="#"/>
+                        </a-form-item>
+                        <search-outlined style="margin-right: 10px"/><a-input v-model:value="ordersStore.filter.text" placeholder="Поисковая строка" />
+                    </div>
+                    <div style="margin-left: 46px">
+                        <a-form-item label="Статус">
+                            <a-space>
+                                <a-select style="width: 240px" placeholder="Статус менеджера" v-model:value="ordersStore.filter.status_manager" :allow-clear="true">
+                                    <a-select-option :value="idx" v-for="(mStatus, idx) in managerOrderStatuses" :key="idx">
+                                        <div style="display: flex; flex-direction: row; align-items: center">
+                                            <div :style="{
+                                                width: '12px',
+                                                height: '12px',
+                                                backgroundColor: mStatus.color,
+                                                borderRadius: '8px',
+                                                marginRight: '8px'
+                                                }"></div>
+                                            {{mStatus.label}}
+                                        </div>
+                                    </a-select-option>
+                                </a-select>
+                                <a-select style="width: 240px" placeholder="Статус логиста" v-model:value="ordersStore.filter.status_logist" :allow-clear="true">
+                                    <a-select-option :value="idx" v-for="(lStatus, idx) in logistOrderStatuses" :key="idx">
+                                        <div style="display: flex; flex-direction: row; align-items: center">
+                                            <div :style="{
+                                                width: '12px',
+                                                height: '12px',
+                                                backgroundColor: lStatus.color,
+                                                borderRadius: '8px',
+                                                marginRight: '8px'
+                                                }"></div>
+                                            {{lStatus.label}}
+                                        </div>
+                                    </a-select-option>
+                                </a-select>
+                            </a-space>
+                        </a-form-item>
+                    </div>
+                    <div style="display: flex; margin-left: 10px">
+                        <a-form-item label="Дата заявки">
+                            <a-range-picker v-model:value="ordersStore.filter.date" style="width: 300px" />
+                        </a-form-item>
+                    </div>
+                    <div>
+                        <a-form-item label="Дата поездки">
+                            <a-range-picker v-model:value="ordersStore.filter.arrive_date" style="width: 300px" />
+                        </a-form-item>
+                    </div>
+                    <div style="display: flex; gap: 8px; justify-content: right">
+                        <a-button @click="ordersStore.resetFilter">Сбросить фильтр</a-button>
+                        <a-button type="primary" @click="ordersStore.applyFilter">Применить</a-button>
+                    </div>
+                </div>
+            </a-form>
+        </div>
         <a-table
             :loading="ordersStore.listLoading || listLoading"
             :custom-row="tableRowFn"

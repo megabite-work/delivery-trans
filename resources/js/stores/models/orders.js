@@ -18,6 +18,20 @@ export const useOrdersStore = defineStore('orders', () => {
         columnKey: localStorage.getItem('orders_table__sorterColumnKey'),
         order: localStorage.getItem('orders_table__sorterOrder'),
     })
+    const filter = ref({isFiltered: false})
+
+    const applyFilter = async () => {
+        filter.value.isFiltered = true
+        await refreshDataList()
+    }
+
+    const resetFilter = async () => {
+        filter.value = {isFiltered: false}
+        paginator.value.current = 1
+        await refreshDataList()
+    }
+
+
 
     async function setSorter (key = undefined, order = undefined) {
         sorter.value = {
@@ -49,12 +63,13 @@ export const useOrdersStore = defineStore('orders', () => {
                     per_page: paginator.value.pageSize,
                     sorter_key: sorter.value.columnKey,
                     sorter_order: sorter.value.order,
+                    filter: filter.value.isFiltered ? filter.value : undefined
                 }
             })
             dataList.value = res.data.data
-            paginator.value.pageSize = res.data.meta.per_page
-            paginator.value.current = res.data.meta.current_page
-            paginator.value.total = res.data.meta.total
+            paginator.value.pageSize = parseInt(res.data.meta.per_page)
+            paginator.value.current = parseInt(res.data.meta.current_page)
+            paginator.value.total = parseInt(res.data.meta.total)
         } catch (e) {
             paginator.value = {
                 current: 1,
@@ -168,6 +183,6 @@ export const useOrdersStore = defineStore('orders', () => {
     return {
         err, paginator, dataList, setPage, setPageSize, setSorter, listLoading,
         refreshDataList,
-        createOrder, storeOrder, deleteOrder, getOrder, setOrderStatus
+        createOrder, storeOrder, deleteOrder, getOrder, setOrderStatus, filter, applyFilter, resetFilter
     }
 })

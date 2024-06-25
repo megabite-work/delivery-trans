@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Order;
 
+use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Date;
 
 use App\Enums\LogistOrderStatus;
 use App\Enums\ManagerOrderStatus;
@@ -78,6 +80,67 @@ class OrderController extends Controller
         $perPage = $request->get('per_page', 15);
         $page = $request->get('page', 1);
         $orderExp = '';
+        $joinExp = '';
+        $whereExp = 'where 1 = 1';
+
+        $params = ['per_page' => $perPage, 'offset' => $perPage * ($page - 1)];
+
+        if ($request->has('filter')) {
+            $f = $request->get('filter');
+            if (array_key_exists("id", $f)) {
+                $whereExp .= " and orders.id = :id";
+                $params['id'] = $f['id'];
+            }
+            if (array_key_exists("date", $f)) {
+                $d1 = Date::parse($f["date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
+                $d2 = Date::parse($f["date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                $whereExp .= " and orders.created_at >= :date1 and orders.created_at <= :date2";
+                $params['date1'] = $d1;
+                $params['date2'] = $d2;
+            }
+            if (array_key_exists("arrive_date", $f)) {
+                $d1 = Date::parse($f["arrive_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
+                $d2 = Date::parse($f["arrive_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                $whereExp .= " and arrive.arrive_time >= :arrive_date1 and arrive.arrive_time <= :arrive_date2";
+                $params['arrive_date1'] = $d1;
+                $params['arrive_date2'] = $d2;
+            }
+            if (array_key_exists("status_manager", $f)) {
+                $joinExp .= <<<EOD
+                    left join (select distinct on (os.order_id) os.order_id, os.status, os.created_at
+                    from order_statuses os
+                    where type = 'MANAGER'
+                    order by os.order_id, os.created_at desc) ms on orders.id = ms.order_id
+                EOD;
+                $whereExp .= " and ms.status = :status_manager";
+                $params['status_manager'] = $f["status_manager"];
+            }
+            if (array_key_exists("status_logist", $f)) {
+                $joinExp .= <<<EOD
+                    left join (select distinct on (os.order_id) os.order_id, os.status, os.created_at
+                    from order_statuses os
+                    where type = 'LOGIST'
+                    order by os.order_id, os.created_at desc) ls on orders.id = ls.order_id
+                EOD;
+                $whereExp .= " and ls.status = :status_logist";
+                $params['status_logist'] = $f["status_logist"];
+            }
+            if (array_key_exists("text", $f)) {
+                $joinExp .= <<<EOD
+                    left join clients client on orders.client_id = client.id
+                    left join carriers carrier on orders.carrier_id = carrier.id
+                    left join cars car on orders.carrier_car_id = car.id
+                    left join cars trailer on orders.carrier_trailer_id = trailer.id
+                EOD;
+                $whereExp .= <<<EOD
+                    and (client.inn ilike :text or client.name_full ilike :text or client.name_short ilike :text or
+                    carrier.inn ilike :text or carrier.name_full ilike :text or carrier.name_short ilike :text or
+                    car.name ilike :text or car.plate_number ilike :text or
+                    trailer.name ilike :text or trailer.plate_number ilike :text)
+                EOD;
+                $params["text"] = '%'.$f["text"].'%';
+            }
+        }
 
         if ($request->has('sorter_key') && in_array($request->get('sorter_key'), ['id', 'created_at', 'started_at'])) {
             $sk = match ($request->get('sorter_key')) {
@@ -89,13 +152,13 @@ class OrderController extends Controller
 
         $idsQuery = <<<SQL
             select orders.id from orders
-                left join (SELECT o.id as id, min(obj ->> 'arrive_date') as arrive_time
+                left join (SELECT o.id as id, min(obj ->> 'arrive_date')::date as arrive_time
                     FROM orders o,
                          json_array_elements(o.from_locations::json) obj
-                    group by o.id) arrive on orders.id = arrive.id $orderExp limit :per_page offset :offset;
+                    group by o.id) arrive on orders.id = arrive.id  $joinExp  $whereExp  $orderExp limit :per_page offset :offset;
         SQL;
 
-        $query = DB::select($idsQuery, ['per_page' => $perPage, 'offset' => $perPage * ($page - 1)]);
+        $query = DB::select($idsQuery, $params);
 
         $ids = collect($query)->pluck('id')->all();
         $orders = Order::findMany($ids);
