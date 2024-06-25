@@ -34,12 +34,12 @@ const routes = [
         label: 'Заявки',
     },
     {
-        key: 'carriers',
-        label: 'Перевозчики',
-    },
-    {
         key: 'clients',
         label: 'Заказчики',
+    },
+    {
+        key: 'carriers',
+        label: 'Перевозчики',
     },
 ]
 
