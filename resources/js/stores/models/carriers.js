@@ -12,6 +12,23 @@ export const useCarriersStore = defineStore('carriers', () => {
         total: 0,
     })
 
+    const filter = ref('')
+
+    const applyFilter = async () => {
+        if (filter.value.trim() === '') {
+            await resetFilter()
+            return
+        }
+        paginator.value.current = 1
+        await refreshDataList()
+    }
+
+    const resetFilter = async () => {
+        filter.value = ''
+        paginator.value.current = 1
+        await refreshDataList()
+    }
+
     async function setPage(page) {
         paginator.value.current = page
         await refreshDataList()
@@ -30,7 +47,11 @@ export const useCarriersStore = defineStore('carriers', () => {
         try {
             listLoading.value = true
             const res = await axios.get('api/carriers', {
-                params: { page: paginator.value.current, per_page: paginator.value.pageSize }
+                params: {
+                    page: paginator.value.current,
+                    per_page: paginator.value.pageSize,
+                    filter: filter.value,
+                }
             })
             dataList.value = res.data.data
             paginator.value.pageSize = res.data.meta.per_page
@@ -97,5 +118,6 @@ export const useCarriersStore = defineStore('carriers', () => {
     return {
         err, paginator, dataList, setPage, setPageSize, listLoading, refreshDataList,
         getCarrier, createCarrier, storeCarrier, deleteCarrier,
+        filter, applyFilter, resetFilter,
     }
 })

@@ -22,6 +22,7 @@ export const useOrdersStore = defineStore('orders', () => {
 
     const applyFilter = async () => {
         filter.value.isFiltered = true
+        paginator.value.current = 1
         await refreshDataList()
     }
 

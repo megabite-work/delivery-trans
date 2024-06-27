@@ -15,7 +15,13 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        return new DTApiCollection(Client::paginate($request['per_page']));
+        return new DTApiCollection(
+            Client::where('name_short', 'ilike', '%'.$request->get('filter', '').'%')
+                ->orWhere('name_full', 'ilike', '%'.$request->get('filter', '').'%')
+                ->orWhere('inn', 'ilike', '%'.$request->get('filter', '').'%')
+                ->orWhere('kpp', 'ilike', '%'.$request->get('filter', '').'%')
+                ->paginate($request['per_page'])
+        );
     }
 
     public function store(Request $request)

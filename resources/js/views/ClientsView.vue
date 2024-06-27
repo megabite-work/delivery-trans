@@ -97,7 +97,17 @@ onBeforeUnmount(() => {
 
 <template>
     <Layout title="Заказчики">
-        <template #headerExtra><a-button type="primary" @click="() => openMainDrawer()">Новый заказчик</a-button></template>
+        <template #headerExtra>
+            <a-input-search
+                v-model:value="clientsStore.filter"
+                placeholder="Поиск по заказчикам"
+                style="width: 400px"
+                :allow-clear="true"
+                @search="clientsStore.applyFilter()"
+            />
+            <a-divider type="vertical" />
+            <a-button type="primary" @click="() => openMainDrawer()">Новый заказчик</a-button>
+        </template>
         <a-table
             :loading="clientsStore.listLoading"
             :custom-row="tableRowFn"
