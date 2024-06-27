@@ -18,7 +18,13 @@ class CarrierController extends Controller
      */
     public function index(Request $request)
     {
-        return new DTApiCollection(Carrier::paginate($request['per_page']));
+        return new DTApiCollection(
+            Carrier::where('name_short', 'ilike', '%'.$request->get('filter', '').'%')
+                ->orWhere('name_full', 'ilike', '%'.$request->get('filter', '').'%')
+                ->orWhere('inn', 'ilike', '%'.$request->get('filter', '').'%')
+                ->orWhere('kpp', 'ilike', '%'.$request->get('filter', '').'%')
+                ->paginate($request['per_page'])
+        );
     }
 
     /**
