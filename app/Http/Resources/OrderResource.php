@@ -73,6 +73,8 @@ class OrderResource extends JsonResource
             'carrier_sum_author' => $this->carrier_sum_author,
             'margin_sum' => $this->marginSum,
             'margin_percent' => $this->marginPercent,
+            'registry_id' => $this->registry_id,
+            'registry' => OrderRegistryResource::make($this->registry),
         ];
 
         return array_filter($res, fn($v) => !is_null($v) && $v !== '');

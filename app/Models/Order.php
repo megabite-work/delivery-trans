@@ -55,6 +55,7 @@ class Order extends Model
         "carrier_sum",
         "carrier_sum_calculated",
         "carrier_sum_author",
+        "registry_id",
         "created_by",
         "updated_by",
     ];
@@ -92,6 +93,11 @@ class Order extends Model
     public function statuses()
     {
         return $this->hasMany(OrderStatus::class, "order_id");
+    }
+
+    public function registry()
+    {
+        return $this->belongsTo(Registry::class, "registry_id");
     }
 
     public function getMarginSumAttribute()

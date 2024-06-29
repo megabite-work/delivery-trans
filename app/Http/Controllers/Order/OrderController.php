@@ -169,7 +169,6 @@ class OrderController extends Controller
         }
 
         return [
-            'ids' => $ids,
             'data' => OrderResource::collection($ordersRes),
             'meta' => [
                 'total' => $ordersTotal,

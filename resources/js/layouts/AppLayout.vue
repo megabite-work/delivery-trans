@@ -1,5 +1,5 @@
 <script setup>
-import {defineProps, ref, watch} from 'vue';
+import { ref, watch} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from "../stores/auth.js";
 

@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, onBeforeUnmount, ref, reactive} from 'vue';
+import {onMounted, onBeforeUnmount, ref, reactive, computed} from 'vue';
 import { message } from "ant-design-vue";
 
 import { useClientsStore } from "../stores/models/clients.js";
@@ -7,17 +7,95 @@ import Layout from '../layouts/AppLayout.vue';
 import Drawer from "../components/Drawer.vue";
 import Client from "../components/models/Client.vue";
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
+import {managerOrderStatuses, logistOrderStatuses, decl} from "../helpers/index.js";
+
+import dayjs from "dayjs";
 
 const columnsClients = [
     { key: 'type', width: 50 },
     { title: 'ИНН', dataIndex: 'inn', width: 150 },
     { title: 'Наименование', dataIndex: 'name_short', width: '100%' },
+    { title: 'Заказов', key: 'orders_count', width: 150},
 ];
 
+const columnsRegitries = [
+    { key: 'id', title: '#' },
+    { key: 'date', title: 'Дата реестра' },
+    { key: 'orders_count', title: 'Заказов'},
+    { key: 'status', title: 'Стaтус' },
+    { key: 'client_sum', title: 'Сумма, ₽' },
+    { key: 'client_paid', title: 'Оплачено, ₽' },
+    { key: 'client_vat', title: 'НДС' },
+];
+
+const columnsOrders = [
+    { key: 'id', title: '#' },
+    { key: 'created_at', title: 'Дата заказа' },
+    { key: 'status_manager', title: 'Статус менеджер' },
+    { key: 'status_logist', title: 'Статус логист' },
+    { key: 'client_sum', title: 'Сумма заказа' },
+    { key: 'client_vat', title: 'НДС' },
+];
+
+const vatArr = ['Без НДС', 'НДС', 'Нал'];
 const clientsStore = useClientsStore()
 const clientHeight = ref(document.documentElement.clientHeight)
 const currentClient = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+const registrySelectionState = ref({})
+
+const clientHasSelectedOrders = computed(() => (clientId => registrySelectionState.value[clientId] && registrySelectionState.value[clientId].length > 0))
+const clientSelectedRowKeys = computed(() => (clientId => {
+    if (registrySelectionState.value[clientId]) {
+        return registrySelectionState.value[clientId]
+    }
+    return []
+}))
+const onClientOrderSelectChange = (clientId, selectedRowKeys) => {
+    registrySelectionState.value[clientId] = selectedRowKeys
+};
+
+const clientsList = computed(() => {
+    return clientsStore.dataList.map(client => ({ ...client, key: client.id}))
+})
+
+const registriesList = computed(() => (clientId => {
+    const c = clientsList.value.find(clientRecord => clientRecord.id === clientId)
+    if (c) {
+        return [
+            {
+                key: 0,
+                id: 0,
+                client_id: clientId,
+                status: 'Без реестра',
+                orders_count: c.orders.filter(orderRecord => orderRecord.registry_id === null).length,
+                client_sum: c.orders.reduce((acc, cur) => acc + cur.registry_id === null ? 0 : cur.client_sum, 0),
+                orders: c.orders.filter(orderRecord => orderRecord.registry_id === null)
+            },
+            ...c.registries.map(clientRecord => ({
+                ...clientRecord,
+                key: clientRecord.id,
+                date: dayjs(clientRecord.date).format('DD.MM.YYYY'),
+                orders_count: clientRecord.orders.length,
+                client_sum: parseFloat(clientRecord.client_sum),
+                client_paid: parseFloat(clientRecord.client_paid),
+            }))
+        ]
+    }
+    return [];
+}))
+
+const registryOrdersList = computed(() => (registry => {
+    if (registry) {
+        return registry.orders.map(o => ({
+            ...o,
+            key: o.id,
+            created_at: dayjs(o.created_at).format('DD.MM.YYYY HH:mm'),
+            client_sum: parseFloat(o.client_sum),
+        }))
+    }
+    return null
+}))
 
 const openMainDrawer = async (clientId = null) => {
     currentClient.data = { id: null }
@@ -112,7 +190,7 @@ onBeforeUnmount(() => {
             :loading="clientsStore.listLoading"
             :custom-row="tableRowFn"
             :columns="columnsClients"
-            :data-source="clientsStore.dataList"
+            :data-source="clientsList"
             :pagination="{
                 ...clientsStore.paginator,
                 showSizeChanger: true,
@@ -136,7 +214,121 @@ onBeforeUnmount(() => {
                             <BuildingOfficeIcon v-else-if="record.type === 'LEGAL'" />
                         </a-tooltip>
                     </div>
-
+                </template>
+                <template v-if="column.key === 'orders_count'">
+                    {{ record.orders.length === 0 ? '–' : record.orders.length}}
+                </template>
+            </template>
+            <template #expandedRowRender="{ record }">
+                <template v-if="record.orders && record.orders.length > 0">
+                    <a-table :columns="columnsRegitries" :data-source="registriesList(record.id)" :pagination="false" size="small">
+                        <template #bodyCell="{ column, record }">
+                            <template v-if="column.key === 'id'">
+                                <template v-if="record.id !== 0">
+                                    {{ record.id }}
+                                </template>
+                            </template>
+                            <template v-if="column.key === 'date'">
+                                <template v-if="record.id !== 0">
+                                    {{ record.date }}
+                                </template>
+                                <template v-else>
+                                    Заказы без реестра
+                                </template>
+                            </template>
+                            <template v-if="column.key === 'orders_count'">
+                                {{ record.orders_count }}
+                            </template>
+                            <template v-if="column.key === 'status'">
+                                <template v-if="record.client_sum > 0 && record.client_paid === 0">
+                                    <a-badge status="error" />
+                                    Не оплачен
+                                </template>
+                                <template v-else-if="record.client_sum > 0 && record.client_sum === record.client_paid">
+                                    <a-badge status="success" />
+                                    Оплачен
+                                </template>
+                                <template v-else-if="record.client_sum > 0 && record.client_sum > record.client_paid">
+                                    <a-badge status="warning" />
+                                    Частично оплачен
+                                </template>
+                                <template v-else-if="record.client_sum > 0 && record.client_sum < record.client_paid">
+                                    <a-badge color="blue" />
+                                    Переплата
+                                </template>
+                                <template v-else>
+                                    <a-badge status="default" />
+                                    Нет статуса
+                                </template>
+                            </template>
+                            <template v-if="column.key === 'client_sum'">
+                                {{ parseFloat(record.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                            </template>
+                            <template v-if="column.key === 'client_paid'">
+                                <template v-if="record.id !== 0">
+                                    {{ parseFloat(record.client_paid).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                                </template>
+                                <template v-else>–</template>
+                            </template>
+                            <template v-if="column.key === 'client_vat'">
+                                <template v-if="record.id !== 0">
+                                    {{ vatArr[record.vat] }}
+                                </template>
+                                <template v-else>–</template>
+                            </template>
+                        </template>
+                        <template #expandedRowRender="{ record }">
+                            <template v-if="record.orders && record.orders.length > 0">
+                                <div style="padding: 0 40px 25px;">
+                                    <div v-if="record.id === 0" style="margin-bottom: 16px">
+                                        <a-button
+                                            type="primary"
+                                            :disabled="!clientHasSelectedOrders(record.client_id)"
+                                            :loading="false"
+                                            @click="() => {}"
+                                        >
+                                            Создать реестр
+                                        </a-button>
+                                        <span style="margin-left: 8px">
+                                            <template v-if="clientHasSelectedOrders(record.client_id)">
+                                              {{ `${decl(clientSelectedRowKeys(record.client_id).length, ['Вабран', 'Вабрано', 'Вабрано'])} ${clientSelectedRowKeys(record.client_id).length} ${decl(clientSelectedRowKeys(record.client_id).length, ['заказ', 'заказа', 'заказов'])}` }}
+                                            </template>
+                                        </span>
+                                    </div>
+                                    <a-table
+                                        size="small"
+                                        :columns="columnsOrders"
+                                        :data-source="registryOrdersList(record)"
+                                        :pagination="false"
+                                        :row-selection="record.id === 0 ? { selectedRowKeys: clientSelectedRowKeys(record.client_id), onChange: v => onClientOrderSelectChange(record.client_id, v) } : undefined"
+                                    >
+                                        <template #bodyCell="{ column, record }">
+                                            <template v-if="column.key === 'client_sum'">
+                                                {{ parseFloat(record.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                                            </template>
+                                            <template v-else-if="column.key === 'status_manager'">
+                                                <a-badge :color="managerOrderStatuses[record.status_manager.status].color" />
+                                                {{ managerOrderStatuses[record.status_manager.status].label }}
+                                            </template>
+                                            <template v-else-if="column.key === 'status_logist'">
+                                                <a-badge :color="logistOrderStatuses[record.status_logist.status].color" />
+                                                {{ logistOrderStatuses[record.status_logist.status].label }}
+                                            </template>
+                                            <template v-else-if="column.key === 'client_vat'">
+                                                {{ vatArr[record.client_vat] }}
+                                            </template>
+                                            <template v-else>
+                                                {{ record[column.key] }}
+                                            </template>
+                                        </template>
+                                    </a-table>
+                                </div>
+                            </template>
+                        </template>
+                    </a-table>
+                </template>
+                <template v-else>
+                    У клиента нет заказов
                 </template>
             </template>
         </a-table>

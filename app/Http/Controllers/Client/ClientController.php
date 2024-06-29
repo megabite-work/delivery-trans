@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Client;
 
-use App\Http\Resources\DTApiCollection;
 use App\Models\Client;
 use App\Enums\ClientType;
 use Illuminate\Http\Request;
@@ -15,7 +14,7 @@ class ClientController extends Controller
 {
     public function index(Request $request)
     {
-        return new DTApiCollection(
+        return ClientResource::collection(
             Client::where('name_short', 'ilike', '%'.$request->get('filter', '').'%')
                 ->orWhere('name_full', 'ilike', '%'.$request->get('filter', '').'%')
                 ->orWhere('inn', 'ilike', '%'.$request->get('filter', '').'%')
