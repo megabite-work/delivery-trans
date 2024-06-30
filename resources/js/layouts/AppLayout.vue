@@ -47,7 +47,27 @@ const optRoutes = [
     {
         key: 'prices',
         label: 'Прайс-листы'
-    }
+    },
+    {
+        key: 'body-types',
+        label: 'Типы кузовов'
+    },
+    {
+        key: 'car-capacities',
+        label: 'Вместительность авто'
+    },
+    {
+        key: 'tconditions',
+        label: 'Температурные условия'
+    },
+    {
+        key: 'tonnages',
+        label: 'Тоннаж'
+    },
+    {
+        key: 'users',
+        label: 'Пользователи'
+    },
 ]
 
 </script>

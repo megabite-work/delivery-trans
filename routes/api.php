@@ -35,6 +35,9 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('drivers', DriverController::class)->except(['index']);
     Route::apiResource('additional-services', AdditionalServiceController::class);
     Route::apiResource('car_capacities', CarCapacityController::class);
+    Route::apiResource('car-body-types', CarBodyTypeController::class)->except(['show', 'update']);
+    Route::apiResource('tconditions', TConditionsController::class)->except(['show', 'update']);
+    Route::apiResource('tonnages', TonnageController::class)->except(['show', 'update']);
     Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
     Route::apiResource('default-prices', DefaultPriceController::class);
     Route::apiResource('orders', OrderController::class);
