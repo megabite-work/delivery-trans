@@ -21,18 +21,6 @@ use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
-use App\Http\Controllers\SysInfo;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
 
 Route::middleware('auth:sanctum')->group(function (){
     Route::get('/user', function (Request $request) {
