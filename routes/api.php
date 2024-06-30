@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\Registry\RegistryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
     Route::apiResource('default-prices', DefaultPriceController::class);
     Route::apiResource('orders', OrderController::class);
+    Route::apiResource('registries', RegistryController::class)->except(['index']);
 
     Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
     Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');

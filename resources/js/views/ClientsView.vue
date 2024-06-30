@@ -1,15 +1,18 @@
 <script setup>
 import {onMounted, onBeforeUnmount, ref, reactive, computed} from 'vue';
 import { message } from "ant-design-vue";
+import dayjs from "dayjs";
 
 import { useClientsStore } from "../stores/models/clients.js";
+import { useRegistriesStore } from "../stores/models/registries.js";
 import Layout from '../layouts/AppLayout.vue';
 import Drawer from "../components/Drawer.vue";
 import Client from "../components/models/Client.vue";
+import Registry from "../components/models/Registry.vue";
+
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
 import {managerOrderStatuses, logistOrderStatuses, decl} from "../helpers/index.js";
 
-import dayjs from "dayjs";
 
 const columnsClients = [
     { key: 'type', width: 50 },
@@ -38,10 +41,16 @@ const columnsOrders = [
 ];
 
 const vatArr = ['Без НДС', 'НДС', 'Нал'];
+
 const clientsStore = useClientsStore()
+const registriesStore = useRegistriesStore()
+
 const clientHeight = ref(document.documentElement.clientHeight)
 const currentClient = reactive({ data:{ id: null }, modified: false })
+const currentRegistry = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+const registryDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+
 const registrySelectionState = ref({})
 
 const clientHasSelectedOrders = computed(() => (clientId => registrySelectionState.value[clientId] && registrySelectionState.value[clientId].length > 0))
@@ -50,6 +59,18 @@ const clientSelectedRowKeys = computed(() => (clientId => {
         return registrySelectionState.value[clientId]
     }
     return []
+}))
+const clientSelectedRowsSum = computed(() => (clientId => {
+    return (registrySelectionState.value[clientId] ?? []).reduce((acc, cur) => {
+        const c = clientsList.value.find(clientRecord => clientRecord.id === clientId)
+        if (c) {
+            const o = c.orders.find((order) => order.id === cur)
+            if (o) {
+                return acc + parseFloat(o.client_sum)
+            }
+        }
+        return acc
+    }, 0);
 }))
 const onClientOrderSelectChange = (clientId, selectedRowKeys) => {
     registrySelectionState.value[clientId] = selectedRowKeys
@@ -62,16 +83,7 @@ const clientsList = computed(() => {
 const registriesList = computed(() => (clientId => {
     const c = clientsList.value.find(clientRecord => clientRecord.id === clientId)
     if (c) {
-        return [
-            {
-                key: 0,
-                id: 0,
-                client_id: clientId,
-                status: 'Без реестра',
-                orders_count: c.orders.filter(orderRecord => orderRecord.registry_id === null).length,
-                client_sum: c.orders.reduce((acc, cur) => acc + cur.registry_id === null ? 0 : cur.client_sum, 0),
-                orders: c.orders.filter(orderRecord => orderRecord.registry_id === null)
-            },
+        const res = [
             ...c.registries.map(clientRecord => ({
                 ...clientRecord,
                 key: clientRecord.id,
@@ -81,6 +93,18 @@ const registriesList = computed(() => (clientId => {
                 client_paid: parseFloat(clientRecord.client_paid),
             }))
         ]
+        if (c.orders.filter(orderRecord => orderRecord.registry_id === null).length > 0) {
+            res.unshift({
+                key: 0,
+                id: 0,
+                client_id: clientId,
+                status: 'Без реестра',
+                orders_count: c.orders.filter(orderRecord => orderRecord.registry_id === null).length,
+                client_sum: c.orders.reduce((acc, cur) => acc + cur.registry_id === null ? 0 : cur.client_sum, 0),
+                orders: c.orders.filter(orderRecord => orderRecord.registry_id === null)
+            })
+        }
+        return res
     }
     return [];
 }))
@@ -122,6 +146,48 @@ const closeMainDrawer = () => {
     currentClient.data = { id: null }
 }
 
+const openRegistryDrawer = async (registryId = null, clientId = null) => {
+    if (registryId === null && clientId !== null) {
+        const c = clientsList.value.find(clientRecord => clientRecord.id === clientId)
+        const ro = (registrySelectionState.value[clientId] ?? []).map(oid => {
+            if (c) {
+                const o = c.orders.find((order) => order.id === oid)
+                if (o) {
+                    return o
+                }
+            }
+        });
+        currentRegistry.data = {
+            id: null,
+            client_id: clientId,
+            date: dayjs(),
+            orders: ro,
+            vat: c.vat,
+            order_ids: registrySelectionState.value[clientId],
+            client_sum: clientSelectedRowsSum.value(clientId),
+        }
+        currentRegistry.modified = false
+        registryDrawer.isOpen = true
+    }
+    if (registryId !== null) {
+        try {
+            registryDrawer.isLoading = true
+            registryDrawer.isOpen = true
+            currentRegistry.data = await registriesStore.getRegistry(registryId)
+        } catch (e) {
+            registryDrawer.isOpen = false
+            message.error('Ошибка загрузки')
+        } finally {
+            registryDrawer.isLoading = false
+        }
+    }
+}
+
+const closeRegistryDrawer = () => {
+    registryDrawer.isOpen = false
+    currentRegistry.data = { id: null }
+}
+
 const saveClient = async () => {
     mainDrawer.isSaving = true
     try {
@@ -144,6 +210,30 @@ const saveClient = async () => {
     }
 }
 
+const saveRegistry = async () => {
+    console.log(currentRegistry.data)
+    registryDrawer.isSaving = true
+    try {
+        if (currentRegistry.data.id === null) {
+            currentRegistry.data  = await registriesStore.createRegistry(currentRegistry.data)
+            currentRegistry.modified = false
+            closeRegistryDrawer()
+            message.success('Реестр создан')
+            return
+        }
+        currentRegistry.data = await registriesStore.storeRegistry(currentRegistry.data)
+        currentRegistry.modified = false
+        message.success('Изменения записаны')
+        registriesStore.isSaving = false
+        closeRegistryDrawer()
+    } catch (e) {
+        message.error(`Ошибка. Не удалось ${currentClient.data.id === null ? 'создать' : 'сохранить'} реестр`)
+    } finally {
+        registryDrawer.isSaving = false
+        await clientsStore.refreshDataList()
+    }
+}
+
 const deleteClient = async () => {
     if (currentClient.data.id === null) {
         return
@@ -158,9 +248,24 @@ const deleteClient = async () => {
     }
 }
 
+const deleteRegistry = async () => {
+    if (currentRegistry.data.id === null) {
+        return
+    }
+    try {
+        await registriesStore.deleteRegistry(currentRegistry.data.id)
+        message.success('Реестр успешно удален')
+        await clientsStore.refreshDataList()
+        closeRegistryDrawer()
+    } catch (e) {
+        message.error('Ошибка. Не удалось удалить реестр')
+    }
+}
+
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
 
 const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
+const registryTableRowFn = record => ({ onClick: () => {if (record.id > 0) {openRegistryDrawer(record.id)}}})
 
 onMounted(() => {
     clientsStore.refreshDataList()
@@ -221,7 +326,13 @@ onBeforeUnmount(() => {
             </template>
             <template #expandedRowRender="{ record }">
                 <template v-if="record.orders && record.orders.length > 0">
-                    <a-table :columns="columnsRegitries" :data-source="registriesList(record.id)" :pagination="false" size="small">
+                    <a-table
+                        :columns="columnsRegitries"
+                        :data-source="registriesList(record.id)"
+                        :pagination="false"
+                        :custom-row="registryTableRowFn"
+                        :row-class-name="() => 'cursor-pointer'"
+                        size="small">
                         <template #bodyCell="{ column, record }">
                             <template v-if="column.key === 'id'">
                                 <template v-if="record.id !== 0">
@@ -279,22 +390,7 @@ onBeforeUnmount(() => {
                         </template>
                         <template #expandedRowRender="{ record }">
                             <template v-if="record.orders && record.orders.length > 0">
-                                <div style="padding: 0 40px 25px;">
-                                    <div v-if="record.id === 0" style="margin-bottom: 16px">
-                                        <a-button
-                                            type="primary"
-                                            :disabled="!clientHasSelectedOrders(record.client_id)"
-                                            :loading="false"
-                                            @click="() => {}"
-                                        >
-                                            Создать реестр
-                                        </a-button>
-                                        <span style="margin-left: 8px">
-                                            <template v-if="clientHasSelectedOrders(record.client_id)">
-                                              {{ `${decl(clientSelectedRowKeys(record.client_id).length, ['Вабран', 'Вабрано', 'Вабрано'])} ${clientSelectedRowKeys(record.client_id).length} ${decl(clientSelectedRowKeys(record.client_id).length, ['заказ', 'заказа', 'заказов'])}` }}
-                                            </template>
-                                        </span>
-                                    </div>
+                                <div :style="{ paddingTop: record.id === 0 ? '8px' : '0' }">
                                     <a-table
                                         size="small"
                                         :columns="columnsOrders"
@@ -322,6 +418,25 @@ onBeforeUnmount(() => {
                                             </template>
                                         </template>
                                     </a-table>
+                                    <div v-if="record.id === 0" style="margin-top: 30px; margin-left: 32px; margin-bottom: 8px; display: flex; align-items: center;">
+                                        <a-button
+                                            type="primary"
+                                            :disabled="!clientHasSelectedOrders(record.client_id)"
+                                            :loading="false"
+                                            @click="() => openRegistryDrawer(null, record.client_id)"
+                                        >
+                                            Создать реестр
+                                        </a-button>
+                                        <span style="margin-left: 8px">
+                                            <template v-if="clientHasSelectedOrders(record.client_id)">
+                                              {{ `${decl(clientSelectedRowKeys(record.client_id).length, ['Вабран', 'Вабрано', 'Вабрано'])} ${clientSelectedRowKeys(record.client_id).length} ${decl(clientSelectedRowKeys(record.client_id).length, ['заказ', 'заказа', 'заказов'])}` }}
+                                                {{ `на сумму ${clientSelectedRowsSum(record.client_id).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}` }}
+                                            </template>
+                                            <template v-else>
+                                                Ничего не выбрано
+                                            </template>
+                                        </span>
+                                    </div>
                                 </div>
                             </template>
                         </template>
@@ -351,6 +466,28 @@ onBeforeUnmount(() => {
                 v-model="currentClient.data"
                 :loading="mainDrawer.isLoading"
                 :errors="clientsStore.clientErr?.errors"
+            />
+        </drawer>
+
+        <drawer
+            v-model:open="registryDrawer.isOpen"
+            @save="saveRegistry"
+            @delete="deleteRegistry"
+            @close="() => {registryDrawer.isOpen = false}"
+            :width="736"
+            :loading="registryDrawer.isLoading"
+            :saving="registryDrawer.isSaving"
+            :ok-loading="registryDrawer.isSaving"
+            :title="`${currentRegistry.data.id === null ? 'Новый реестр' : `Реестр #${currentRegistry.data.id}`}${currentRegistry.modified ? '*' : ''}`"
+            ok-text="Сохранить и закрыть"
+            :need-delete="currentRegistry.data.id !== null"
+            need-deletion-confirm-text="Вы уверены? Реестр будет удален!"
+            delete-text="Удалить"
+        >
+            <Registry
+                v-model="currentRegistry.data"
+                :loading="registryDrawer.isLoading"
+                :errors="registriesStore.err?.errors"
             />
         </drawer>
     </Layout>
