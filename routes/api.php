@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\Registry\RegistryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,18 +21,6 @@ use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
-use App\Http\Controllers\SysInfo;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
 
 Route::middleware('auth:sanctum')->group(function (){
     Route::get('/user', function (Request $request) {
@@ -45,9 +35,13 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('drivers', DriverController::class)->except(['index']);
     Route::apiResource('additional-services', AdditionalServiceController::class);
     Route::apiResource('car_capacities', CarCapacityController::class);
+    Route::apiResource('car-body-types', CarBodyTypeController::class)->except(['show', 'update']);
+    Route::apiResource('tconditions', TConditionsController::class)->except(['show', 'update']);
+    Route::apiResource('tonnages', TonnageController::class)->except(['show', 'update']);
     Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
     Route::apiResource('default-prices', DefaultPriceController::class);
     Route::apiResource('orders', OrderController::class);
+    Route::apiResource('registries', RegistryController::class)->except(['index']);
 
     Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
     Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');

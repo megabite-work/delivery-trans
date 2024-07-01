@@ -35,3 +35,8 @@ export const logistOrderStatuses = {
 export function setAll(obj, val) {
     Object.keys(obj).forEach(key => obj[key] = val)
 }
+
+export function decl(val, titles) {
+    const cases = [2, 0, 1, 1, 1, 2];
+    return titles[(val % 100 > 4 && val % 100 < 20) ? 2 : cases[(val % 10 < 5) ? val % 10 : 5]];
+}

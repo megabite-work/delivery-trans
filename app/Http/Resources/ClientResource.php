@@ -27,6 +27,8 @@ class ClientResource extends JsonResource
             'contacts' => ContactResource::collection($this->contacts),
             'bank_accounts' => BankAccountResource::collection($this->bankAccounts),
             'prices' => PriceResource::collection($this->prices),
+            'orders' => ClientRegistryOrderResource::collection($this->orders),
+            'registries' => ClientRegistryResource::collection($this->registries),
         ];
     }
 }

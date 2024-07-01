@@ -43,6 +43,36 @@ const router = createRouter({
             meta: { requiresAuth: true },
             component: () => import('../views/PricesView.vue')
         },
+        {
+            path: '/body-types',
+            name: 'body-types',
+            meta: { requiresAuth: true },
+            component: () => import('../views/BodyTypesView.vue')
+        },
+        {
+            path: '/car-capacities',
+            name: 'car-capacities',
+            meta: { requiresAuth: true },
+            component: () => import('../views/CarCapacitiesView.vue')
+        },
+        {
+            path: '/tconditions',
+            name: 'tconditions',
+            meta: { requiresAuth: true },
+            component: () => import('../views/TConditionsView.vue')
+        },
+        {
+            path: '/tonnages',
+            name: 'tonnages',
+            meta: { requiresAuth: true },
+            component: () => import('../views/TonnagesView.vue')
+        },
+        {
+            path: '/users',
+            name: 'users',
+            meta: { requiresAuth: true },
+            component: () => import('../views/UsersView.vue')
+        },
     ]
 })
 router.beforeResolve((to, from, next) => {
