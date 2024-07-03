@@ -34,6 +34,11 @@ class Client extends Model
         return $this->morphMany(Price::class, 'owner');
     }
 
+    public function additionalServicesPrices()
+    {
+        return $this->morphMany(AdditionalService::class, 'owner');
+    }
+
     public function registries()
     {
         return $this->hasMany(Registry::class, 'client_id');

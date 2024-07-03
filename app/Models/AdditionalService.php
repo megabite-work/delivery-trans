@@ -12,7 +12,14 @@ class AdditionalService extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        "owner_type",
+        "owner_id",
         "name",
         "price",
     ];
+
+    public function owner()
+    {
+        return $this->morphTo();
+    }
 }

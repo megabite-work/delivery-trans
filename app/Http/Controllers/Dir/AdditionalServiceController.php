@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers\Dir;
 
+use Illuminate\Http\Request;
+
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DTApiResource;
+use App\Models\Client;
+use App\Models\DefaultPrice;
 use App\Models\AdditionalService;
-use Illuminate\Http\Request;
 
 class AdditionalServiceController extends Controller
 {
@@ -20,16 +23,33 @@ class AdditionalServiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function storeForClient(Request $request)
     {
         $data = $request->validate([
+            'client_id' => 'required|exists:App\Models\Client,id',
             "name" => "string|required",
             "price" => "decimal:2|nullable",
         ]);
+        $data["owner_type"] = Client::class;
+        $data["owner_id"] = $data["client_id"];
+
         $service = AdditionalService::create($data);
         return response()->json(new DTApiResource($service), 201);
     }
 
+    public function storeForDefault(Request $request)
+    {
+        $data = $request->validate([
+            'price_id' => 'required|exists:App\Models\DefaultPrice,id',
+            "name" => "string|required",
+            "price" => "decimal:2|nullable",
+        ]);
+        $data["owner_type"] = DefaultPrice::class;
+        $data["owner_id"] = $data["client_id"];
+
+        $service = AdditionalService::create($data);
+        return response()->json(new DTApiResource($service), 201);
+    }
     /**
      * Display the specified resource.
      */

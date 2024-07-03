@@ -8,6 +8,7 @@ import Price from "../components/Price.vue";
 import {usePricesStore} from "../stores/models/prices.js";
 import {UnorderedListOutlined} from "@ant-design/icons-vue";
 import {message} from "ant-design-vue";
+import AdditionalServicesEditorTable from "../components/AdditionalServicesEditorTable.vue";
 
 const pricesStore = usePricesStore()
 
@@ -142,14 +143,23 @@ onBeforeUnmount(() => {
                     <a-switch v-model:checked="currentPrice.data.is_default" />
                 </a-form-item>
             </a-form>
-            <Price
-                v-if="currentPrice.data.id !== null"
-                :prices="currentPrice.data.prices"
-                @price-change="reloadDefaultPrice"
-                :owner-id="currentPrice.data.id"
-                :loading="priceLoading"
-                :is-default-price="true"
-            />
+            <template v-if="currentPrice.data.id !== null">
+                <Price
+                    :prices="currentPrice.data.prices"
+                    @price-change="reloadDefaultPrice"
+                    :owner-id="currentPrice.data.id"
+                    :loading="priceLoading"
+                    :is-default-price="true"
+                />
+                <a-divider orientation="left">Цены на допуслуги</a-divider>
+                <AdditionalServicesEditorTable
+                    v-model="currentPrice.data.additional_services"
+                    :fetcher="() => []"
+                    @edit="(e) => {console.log('edit', e)}"
+                    @add="(e) => {console.log('add', e)}"
+                    @delete="(e) => {console.log('delete', e)}"
+                />
+            </template>
             <a-alert v-if="currentPrice.data.id === null && !mainDrawer.isLoading"
                      description="Редактирование цен доступно после сохранения нового прайса."
                      type="info"
