@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('suggest/bank', [SuggestController::class, 'bankSuggest'])->name("suggest.bank");
     Route::get('suggest/address', [SuggestController::class, 'addressSuggest'])->name("suggest.address");
     Route::get('suggest/additional-services/name', [AdditionalServiceController::class, 'nameSuggest'])->name("suggest.additional-services.name");
+    Route::get('suggest/additional-services/price', [AdditionalServiceController::class, 'priceSuggest'])->name("suggest.additional-services.price");
     Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 });
 

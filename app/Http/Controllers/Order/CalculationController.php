@@ -130,7 +130,7 @@ class CalculationController extends Controller
         if($request->has('additional_service') && $request->get('additional_service') != null ) {
             foreach ($request->get('additional_service') as $item) {
                 if (array_key_exists('v', $item)) {
-                    $res["client"]["service"] += $item['v'];
+                    $res["client"]["service"] += $item['v'] * ($item['c'] ?: 1);
                 }
             }
         }
