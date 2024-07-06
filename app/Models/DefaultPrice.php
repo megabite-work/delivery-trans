@@ -16,4 +16,9 @@ class DefaultPrice extends Model
     {
         return $this->morphMany(Price::class, 'owner');
     }
+
+    public function additionalServicesPrices()
+    {
+        return $this->morphMany(AdditionalService::class, 'owner');
+    }
 }

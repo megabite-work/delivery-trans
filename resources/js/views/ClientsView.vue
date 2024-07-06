@@ -452,7 +452,7 @@ onBeforeUnmount(() => {
             @save="saveClient"
             @delete="deleteClient"
             @close="() => {mainDrawer.isOpen = false}"
-            :width="736"
+            :width="800"
             :loading="mainDrawer.isLoading"
             :saving="mainDrawer.isSaving"
             :ok-loading="mainDrawer.isSaving"

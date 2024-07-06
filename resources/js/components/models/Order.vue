@@ -19,7 +19,7 @@ import {useOrdersStore} from "../../stores/models/orders.js";
 
 import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
-import SelectValueTable from "../SelectValueTable.vue";
+import SelectValueTableWithCnt from "../SelectValueTableWithCnt.vue";
 
 const ordersStore = useOrdersStore()
 const suggest = useSuggests()
@@ -1243,9 +1243,10 @@ onMounted(async () => {
         </a-col>
     </a-row>
     <a-divider orientation="left">Дополнительные услуги</a-divider>
-    <SelectValueTable
+    <SelectValueTableWithCnt
         v-model="model.additional_service"
         header-key-text="Услуга"
+        header-count-text="Кол-во"
         header-value-text="Сумма"
         add-button-text="Добавить допуслугу"
         key-placeholder-text="Выберите допуслугу"

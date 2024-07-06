@@ -6,11 +6,13 @@ import Drawer from "../Drawer.vue";
 import BankAccount from "./BankAccount.vue";
 import Contact from "./Contact.vue";
 import Price from "../Price.vue";
+import {usePricesStore} from "../../stores/models/prices.js";
 import {useClientsStore} from "../../stores/models/clients.js";
 import {useContactsStore} from "../../stores/models/contacts.js";
 import {useBankAccountsStore} from "../../stores/models/bankAccounts.js";
 import {useSuggests} from "../../stores/models/suggests.js";
 import {debounce} from "radash";
+import AdditionalServicesEditorTable from "../AdditionalServicesEditorTable.vue";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
@@ -18,6 +20,7 @@ const prop = defineProps({ loading: { type: Boolean, default: false }, errors: {
 const clientsStore = useClientsStore()
 const contactsStore = useContactsStore()
 const bankAccountsStore = useBankAccountsStore()
+const pricesStore = usePricesStore()
 const suggests = useSuggests()
 
 const clientHeight = ref(document.documentElement.clientHeight)
@@ -175,6 +178,12 @@ const firmOptions = computed(() => {
     return res.map(el => ({value: el.inn, ...el}))
 })
 
+const addAdditionalService = async e => {
+    const res = await pricesStore.createAdditionalServiceClient(model.value.id, e)
+    if (model.value.additional_services[0]) {
+        model.value.additional_services[0] = res
+    }
+}
 
 const currentTab = ref('contacts')
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
@@ -407,6 +416,13 @@ watch(() => prop.errors, () => {
                 @price-change="reloadClientPrice"
                 :owner-id="model.id"
                 :loading="priceLoading"
+            />
+            <a-divider orientation="left">Цены на допуслуги</a-divider>
+            <AdditionalServicesEditorTable
+                v-model="model.additional_services"
+                @edit="e => pricesStore.storeAdditionalService(e)"
+                @add="e => addAdditionalService(e)"
+                @delete="id => pricesStore.deleteAdditionalService(id)"
             />
         </a-tab-pane>
 

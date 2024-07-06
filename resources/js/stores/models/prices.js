@@ -135,11 +135,60 @@ export const usePricesStore = defineStore('prices', () => {
         }
     }
 
+    async function createAdditionalServiceClient(clientId, svc) {
+        try {
+            const { data } = await axios.post(`/api/clients/${clientId}/additional-service`, svc)
+            return data
+        } catch(e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
+    async function createAdditionalServiceDefault(priceId, price) {
+        try {
+            const { data } = await axios.post(`/api/default-prices/${priceId}/additional-service`, price)
+            return data
+        } catch(e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
+    async function storeAdditionalService(svc) {
+        try {
+            const { data } = await axios.put(`api/additional-services/${svc.id}`, svc)
+            return data
+        } catch(e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
+    async function deleteAdditionalService(asId) {
+        try {
+            await axios.delete(`api/additional-services/${asId}`)
+        } catch (e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
     return {
         err, listLoading, dataList,
         createPriceForClient, storePrice, deletePrice, getPriceById, refreshDataList,
         getDefaultPriceById, createPriceForDefault,
         getDefaultPrices, createDefaultPrice, storeDefaultPrice, deleteDefaultPrice,
+        createAdditionalServiceClient, createAdditionalServiceDefault,
+        storeAdditionalService, deleteAdditionalService,
     }
 
 })
