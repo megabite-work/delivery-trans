@@ -4,11 +4,11 @@ import {onBeforeUnmount, onMounted, reactive, ref} from "vue";
 import Layout from '../layouts/AppLayout.vue';
 import Drawer from "../components/Drawer.vue";
 import Price from "../components/Price.vue";
+import AdditionalServicesEditorTable from "../components/AdditionalServicesEditorTable.vue";
 
 import {usePricesStore} from "../stores/models/prices.js";
 import {UnorderedListOutlined} from "@ant-design/icons-vue";
 import {message} from "ant-design-vue";
-import AdditionalServicesEditorTable from "../components/AdditionalServicesEditorTable.vue";
 
 const pricesStore = usePricesStore()
 
@@ -83,6 +83,13 @@ const deleteDefaultPrice = async () => {
     }
 }
 
+const addAdditionalService = async e => {
+    const res = await pricesStore.createAdditionalServiceDefault(currentPrice.data.id, e)
+    if (currentPrice.data.additional_services[0]) {
+        currentPrice.data.additional_services[0] = res
+    }
+}
+
 const clientHeight = ref(document.documentElement.clientHeight)
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
 const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
@@ -154,10 +161,9 @@ onBeforeUnmount(() => {
                 <a-divider orientation="left">Цены на допуслуги</a-divider>
                 <AdditionalServicesEditorTable
                     v-model="currentPrice.data.additional_services"
-                    :fetcher="() => []"
-                    @edit="(e) => {console.log('edit', e)}"
-                    @add="(e) => {console.log('add', e)}"
-                    @delete="(e) => {console.log('delete', e)}"
+                    @edit="e => pricesStore.storeAdditionalService(e)"
+                    @add="e => addAdditionalService(e)"
+                    @delete="id => pricesStore.deleteAdditionalService(id)"
                 />
             </template>
             <a-alert v-if="currentPrice.data.id === null && !mainDrawer.isLoading"

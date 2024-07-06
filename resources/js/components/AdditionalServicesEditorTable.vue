@@ -5,6 +5,7 @@ import {
     CloseCircleTwoTone,
     PlusCircleOutlined,
 } from "@ant-design/icons-vue";
+import axios from "axios";
 
 const model = defineModel("modelValue", {
     type: Array,
@@ -14,7 +15,6 @@ const model = defineModel("modelValue", {
 const emit = defineEmits(["edit", "add", "delete"]);
 
 const prop = defineProps({
-    fetcher: {type: Function, default: () => []},
     size: {type: String, default: 'small'}
 })
 
@@ -31,9 +31,8 @@ const handleSearch = async (q = '') => {
     optionsList.value = []
     try {
         loading.value = true
-        if (currentRowIdx >= 0) {
-            optionsList.value = await prop.fetcher(q)
-        }
+        const { data } = await axios.get('api/suggest/additional-services/name', {params: {q}})
+        optionsList.value = data.map(el => ({value: el}))
     } finally {
         loading.value = false
     }
@@ -85,6 +84,9 @@ const deleteRow = (e, idx) => {
         :key="currentRowIdx"
     >
         <template #bodyCell="rec">
+            <template v-if="rec.column.key === 'id'">
+                {{ rec.record.id ?? '' }}
+            </template>
             <template v-if="rec.index === currentRowIdx">
                 <template v-if="rec.column.key === 'name'">
                     <a-auto-complete

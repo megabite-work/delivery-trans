@@ -149,7 +149,7 @@ export const usePricesStore = defineStore('prices', () => {
 
     async function createAdditionalServiceDefault(priceId, price) {
         try {
-            const { data } = await axios.post(`/api/default-prices/${priceId}/price`, price)
+            const { data } = await axios.post(`/api/default-prices/${priceId}/additional-service`, price)
             return data
         } catch(e) {
             if (e.response) {
@@ -161,7 +161,7 @@ export const usePricesStore = defineStore('prices', () => {
 
     async function storeAdditionalService(svc) {
         try {
-            const { data } = await axios.put(`api/additional-service/${svc.id}`, svc)
+            const { data } = await axios.put(`api/additional-services/${svc.id}`, svc)
             return data
         } catch(e) {
             if (e.response) {
@@ -173,7 +173,7 @@ export const usePricesStore = defineStore('prices', () => {
 
     async function deleteAdditionalService(asId) {
         try {
-            await axios.delete(`api/additional-service/${asId}`)
+            await axios.delete(`api/additional-services/${asId}`)
         } catch (e) {
             if (e.response) {
                 err.value = e.response.data

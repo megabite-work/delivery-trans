@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('tconditions', TConditionsController::class)->except(['show', 'update']);
     Route::apiResource('tonnages', TonnageController::class)->except(['show', 'update']);
     Route::apiResource('prices', PriceController::class)->except(['index', 'store']);
+    Route::apiResource('additional-services', AdditionalServiceController::class)->except(['index', 'store']);
     Route::apiResource('default-prices', DefaultPriceController::class);
     Route::apiResource('orders', OrderController::class);
     Route::apiResource('registries', RegistryController::class)->except(['index']);
@@ -47,7 +48,9 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');
 
     Route::post('clients/{client_id}/price', [PriceController::class, 'storeForClient'])->name('client.price.store');
+    Route::post('clients/{client_id}/additional-service', [AdditionalServiceController::class, 'storeForClient'])->name('client.price.store');
     Route::post('default-prices/{price_id}/price', [PriceController::class, 'storeForDefault'])->name('default.price.store');
+    Route::post('default-prices/{price_id}/additional-service', [AdditionalServiceController::class, 'storeForDefault'])->name('default.price.additional-service.store');
 
     Route::get('carriers/{carrier_id}/contacts', [ContactController::class, 'carrierContactsIndex'])->name('carrier.contacts.index');
     Route::get('carriers/{carrier_id}/bank-accounts', [BankAccountController::class, 'carrierBankAccountsIndex'])->name('carrier.bank-accounts.index');
@@ -66,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('suggest/firms', [SuggestController::class, 'firmSuggest'])->name("suggest.firms");
     Route::get('suggest/bank', [SuggestController::class, 'bankSuggest'])->name("suggest.bank");
     Route::get('suggest/address', [SuggestController::class, 'addressSuggest'])->name("suggest.address");
+    Route::get('suggest/additional-services/name', [AdditionalServiceController::class, 'nameSuggest'])->name("suggest.additional-services.name");
     Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 });
 

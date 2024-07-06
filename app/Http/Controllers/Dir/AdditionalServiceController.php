@@ -9,6 +9,7 @@ use App\Http\Resources\DTApiResource;
 use App\Models\Client;
 use App\Models\DefaultPrice;
 use App\Models\AdditionalService;
+use Illuminate\Support\Facades\DB;
 
 class AdditionalServiceController extends Controller
 {
@@ -20,6 +21,17 @@ class AdditionalServiceController extends Controller
         return response()->json(AdditionalService::all());
     }
 
+    public function nameSuggest(Request $request)
+    {
+        $q = <<<SQL
+            select distinct name from additional_services where name ilike :name
+        SQL;
+
+        $params['name'] = '%'.$request->get('q', '').'%';
+        $query = DB::select($q, $params);
+        return collect($query)->pluck('name')->all();
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -28,7 +40,7 @@ class AdditionalServiceController extends Controller
         $data = $request->validate([
             'client_id' => 'required|exists:App\Models\Client,id',
             "name" => "string|required",
-            "price" => "decimal:2|nullable",
+            "price" => "numeric|nullable",
         ]);
         $data["owner_type"] = Client::class;
         $data["owner_id"] = $data["client_id"];
@@ -40,13 +52,11 @@ class AdditionalServiceController extends Controller
     public function storeForDefault(Request $request)
     {
         $data = $request->validate([
-            'price_id' => 'required|exists:App\Models\DefaultPrice,id',
-            "name" => "string|required",
-            "price" => "decimal:2|nullable",
+            'name' => 'string|required',
+            'price' => 'numeric|nullable',
         ]);
         $data["owner_type"] = DefaultPrice::class;
-        $data["owner_id"] = $data["client_id"];
-
+        $data["owner_id"] = $request["price_id"];
         $service = AdditionalService::create($data);
         return response()->json(new DTApiResource($service), 201);
     }
@@ -61,22 +71,22 @@ class AdditionalServiceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, AdditionalService $service)
+    public function update(Request $request, AdditionalService $additional_service)
     {
         $data = $request->validate([
             "name" => "string|required",
-            "price" => "decimal:2|nullable",
+            "price" => "numeric:2|nullable",
         ]);
-        $service->update($data);
-        return response()->json(new DTApiResource($service));
+        $additional_service->update($data);
+        return response()->json(new DTApiResource($additional_service));
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(AdditionalService $service)
+    public function destroy(AdditionalService $additional_service)
     {
-        $service->delete();
+        $additional_service->delete();
         return response()->noContent();
     }
 }
