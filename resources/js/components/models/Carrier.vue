@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onBeforeUnmount, onMounted, reactive, ref, watch} from "vue";
+import {computed, onBeforeUnmount, onMounted, reactive, ref, watch, h} from "vue";
 
 import {message} from "ant-design-vue";
 
@@ -16,7 +16,8 @@ import {useContactsStore} from "../../stores/models/contacts.js";
 import {useBankAccountsStore} from "../../stores/models/bankAccounts.js";
 import {useSuggests} from "../../stores/models/suggests.js";
 import {debounce} from "radash";
-
+import {CloudDownloadOutlined} from "@ant-design/icons-vue";
+import axios from "axios";
 
 const dateFormat = 'DD.MM.YYYY'
 const model = defineModel()
@@ -272,6 +273,32 @@ const firmOptions = computed(() => {
     return res.map(el => ({value: el.inn, ...el}))
 })
 
+const isContactsImporting = ref(false)
+const importContacts = async () => {
+    if (model.value.inn.length !== 10 && model.value.inn.length !== 12) {
+        message.info('В карточке указан некоректный ИНН')
+        return
+    }
+    try {
+        isContactsImporting.value = true
+        const { data } = await axios.get('api/suggest/contacts-by-inn', {
+            params: { inn: model.value.inn }
+        })
+        for (const el of data.contacts) {
+            await contactsStore.createContact({
+                ...el,
+                owner_id: model.value.id,
+                owner_type: 'App\\Models\\Carrier'
+            })
+        }
+        model.value.contacts = await contactsStore.getContacts(model.value.id, 'carriers')
+    } catch {
+        message.error("При импорте контактов произошла ошиюбка")
+    } finally {
+        isContactsImporting.value = false
+    }
+}
+
 const currentMainTab = ref('info')
 const currentTab = ref('contacts')
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
@@ -479,8 +506,16 @@ watch(() => prop.errors, () => {
                     </a-table>
                 </a-tab-pane>
                 <template v-if="model.id !== null" #rightExtra>
-                    <a-button v-if="currentTab === 'contacts'" @click="() => openContactDrawer()">Новый контакт</a-button>
-                    <a-button v-if="currentTab === 'accounts'" @click="() => openAccountDrawer()">Новый счет</a-button>
+                    <template v-if="currentTab === 'contacts'">
+                        <template v-if="model.inn && (model.inn.length === 10 || model.inn.length === 12)">
+                            <a-button type="dashed" :icon="h(CloudDownloadOutlined)" @click="importContacts" :loading="isContactsImporting">Загрузить</a-button>
+                            <a-divider type="vertical"/>
+                        </template>
+                        <a-button @click="() => openContactDrawer()">Новый контакт</a-button>
+                    </template>
+                    <template v-if="currentTab === 'accounts'">
+                        <a-button @click="() => openAccountDrawer()">Новый счет</a-button>
+                    </template>
                 </template>
             </a-tabs>
             <a-alert v-if="model.id === null && !loading"
