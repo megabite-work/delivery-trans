@@ -32,7 +32,7 @@ class CalculationController extends Controller
         $res["carrier"]["calculated"] = !$request->has('carrier_sum_calculated') || $request->boolean('carrier_sum_calculated');
 
         $hh = 0;
-        if ($request->has('from_locations') && $request->has('to_locations') && $request->get('from_locations') != null && $request->get('to_locations') != null) {
+        if ($request->has('from_locations') && $request->get('from_locations') != null && (($request->has('to_locations') && $request->get('to_locations') != null) || $request->get('ended_at'))) {
             $mt = null;
             $gt = null;
             foreach ($request->get('from_locations') as $from) {
@@ -47,15 +47,19 @@ class CalculationController extends Controller
                     }
                 }
             }
-            foreach ($request->get('to_locations') as $to) {
-                if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to)) {
-                    $d = Date::parse($to['arrive_date'], null);
-                    $t = Date::parse($to['arrive_time'][0], null);
-                    $d->second = 0;
-                    $d->hour = $t->hour;
-                    $d->minute = $t->minute;
-                    if ($gt === null || $d->greaterThan($gt)) {
-                        $gt = $d;
+            if($request->has('ended_at') && $request->get('ended_at') != null) {
+                $gt = Date::parse($request->get('ended_at'), null);
+            } else {
+                foreach ($request->get('to_locations') as $to) {
+                    if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to)) {
+                        $d = Date::parse($to['arrive_date'], null);
+                        $t = Date::parse($to['arrive_time'][0], null);
+                        $d->second = 0;
+                        $d->hour = $t->hour;
+                        $d->minute = $t->minute;
+                        if ($gt === null || $d->greaterThan($gt)) {
+                            $gt = $d;
+                        }
                     }
                 }
             }
@@ -72,14 +76,13 @@ class CalculationController extends Controller
         if ($request->has('client_tariff_hourly')) {
             $hh_client = $hh;
             if ($request->has('client_tariff_min_hours')) {
-                $res["client"]["sum"] += $request->float('client_tariff_hourly') * $request->float('client_tariff_min_hours');
-                $hh_client = $hh_client - $request->float('client_tariff_min_hours');
+                $hh_client = max($hh_client, $request->float('client_tariff_min_hours'));
+                $res["client"]["sum"] += $request->float('client_tariff_hourly') * $hh_client;
             }
+            $res["order"]["client_hours"] = $hh_client;
             if ($request->has('client_tariff_hours_for_coming')) {
                 $res["client"]["sum"] += $request->float('client_tariff_hourly') * $request->float('client_tariff_hours_for_coming');
-            }
-            if ($hh_client > 0) {
-                $res["client"]["sum"] += $request->float('client_tariff_hourly') * $hh_client;
+                $res["order"]["client_hours"] += $request->float('client_tariff_hours_for_coming');
             }
         }
 
@@ -91,14 +94,13 @@ class CalculationController extends Controller
         if ($request->has('carrier_tariff_hourly')) {
             $hh_carrier = $hh;
             if ($request->has('carrier_tariff_min_hours')) {
-                $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $request->float('carrier_tariff_min_hours');
-                $hh_carrier = $hh_carrier - $request->float('carrier_tariff_min_hours');
+                $hh_carrier = max($hh_carrier, $request->float('carrier_tariff_min_hours'));
+                $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $hh_carrier;
             }
+            $res["order"]["carrier_hours"] = $hh_client;
             if ($request->has('carrier_tariff_hours_for_coming')) {
                 $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $request->float('carrier_tariff_hours_for_coming');
-            }
-            if ($hh_carrier > 0) {
-                $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $hh_carrier;
+                $res["order"]["carrier_hours"] += $request->float('carrier_tariff_hours_for_coming');
             }
         }
 
@@ -130,7 +132,7 @@ class CalculationController extends Controller
         if($request->has('additional_service') && $request->get('additional_service') != null ) {
             foreach ($request->get('additional_service') as $item) {
                 if (array_key_exists('v', $item)) {
-                    $res["client"]["service"] += $item['v'] * ($item['c'] ?: 1);
+                    $res["client"]["service"] += $item['v'] * (key_exists('c', $item) ? $item['c'] : 1);
                 }
             }
         }

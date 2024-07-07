@@ -1,5 +1,5 @@
 <script setup>
-import {ref, h, watch, computed, onMounted} from "vue";
+import {ref, h, watch, computed} from "vue";
 import axios from "axios";
 import {debounce, isArray, trim} from "radash";
 
@@ -14,12 +14,13 @@ import {
 import {useSuggests} from "../../stores/models/suggests.js";
 import {usePricesStore} from "../../stores/models/prices.js";
 import {useClientsStore} from "../../stores/models/clients.js";
-import {managerOrderStatuses, logistOrderStatuses} from "../../helpers/index.js";
+import {managerOrderStatuses, logistOrderStatuses, decl} from "../../helpers/index.js";
 import {useOrdersStore} from "../../stores/models/orders.js";
 
 import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
 import SelectValueTableWithCnt from "../SelectValueTableWithCnt.vue";
+import dayjs from "dayjs";
 
 const ordersStore = useOrdersStore()
 const suggest = useSuggests()
@@ -185,12 +186,14 @@ const orderCalculation = ref({
     client: {sum: 0, expenses: 0, discount: 0, service: 0, total: 0, calculated: true},
     carrier: {sum: 0, expenses: 0, fine: 0, total: 0, calculated: true}
 })
-const orderCalculate = debounce({delay: 500}, async () => {
+const orderCalculate = debounce({delay: 500}, async (drill = false) => {
     try {
         const { data } = await axios.post('/api/calculate', model.value)
         orderCalculation.value = data
-        model.value.client_sum = orderCalculation.value.client.total
-        model.value.carrier_sum = orderCalculation.value.carrier.total
+        if(!drill) {
+            model.value.client_sum = orderCalculation.value.client.total
+            model.value.carrier_sum = orderCalculation.value.carrier.total
+        }
     } catch {
         message.error('Ошибка при подсчете цены заказа')
     }
@@ -435,8 +438,10 @@ const carrierFinesTotal = computed(() => {
     return getTotal(model.value.carrier_fines)
 })
 
-onMounted(async () => {
-    await orderCalculate()
+watch(() => prop.loading, async (v) => {
+    if (!v) {
+        await orderCalculate(true)
+    }
 })
 
 </script>
@@ -491,7 +496,7 @@ onMounted(async () => {
                         </template>
                     </a-dropdown>
                 </div>
-                К оплате заказчику:
+                К оплате заказчику<template v-if="orderCalculation.order && orderCalculation.order.client_hours"> за {{orderCalculation.order.client_hours}} {{decl(orderCalculation.order.client_hours, ['час', 'часа', 'часов'])}}</template>:
                 <div :style="{
                     fontSize: '24px',
                     fontWeight: '600',
@@ -589,7 +594,7 @@ onMounted(async () => {
                     </template>
                 </a-dropdown>
             </div>
-            К оплате перевозчику:
+            К оплате перевозчику<template v-if="orderCalculation.order && orderCalculation.order.carrier_hours"> за {{orderCalculation.order.carrier_hours}} {{decl(orderCalculation.order.carrier_hours, ['час', 'часа', 'часов'])}}</template>:
             <div :style="{
                 fontSize: '24px',
                 fontWeight: '600',
@@ -1074,6 +1079,14 @@ onMounted(async () => {
                                     />
                                 </a-col>
                             </a-row>
+                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Время завершения заказа</a-divider>
+                            <a-date-picker
+                                v-model:value="model.ended_at"
+                                format="DD.MM.YYYY HH:mm"
+                                :show-time="{ defaultValue: dayjs('00:00', 'HH:mm') }"
+                                style="width: 100%"
+                                @change="orderCalculate"
+                            />
                         </template>
                     </a-space>
                 </a-tab-pane>

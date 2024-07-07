@@ -67,6 +67,8 @@ const VALIDATE_RULES = [
     'client_sum_calculated' => 'nullable|boolean',
     'carrier_sum' => 'nullable|numeric',
     'carrier_sum_calculated' => 'nullable|boolean',
+
+    'ended_at' => 'nullable|date',
 ];
 
 class OrderController extends Controller

@@ -1,9 +1,14 @@
 <script setup>
 import {reactive, watch} from "vue";
+import {useIMask} from "vue-imask";
 
 const model = defineModel()
 const prop = defineProps({ errors: { type: Object, default: null } })
 const err = reactive({type: null, value: null, note: null})
+
+const { el } = useIMask({
+    mask: '+{7}(000)000-00-00'
+});
 
 watch(() => prop.errors, () => {
     Object.keys(err).forEach((key) => {
@@ -97,7 +102,16 @@ const contactTypes = {
             </a-select>
         </a-form-item>
         <a-form-item label="Значение" name="value" :validate-status="err.value ? 'error': undefined" :help="err.value">
+            <input
+                v-if="model.type === 'PHONE'"
+                v-model="model.value"
+                type="text"
+                ref="el"
+                class="dt-input"
+                :placeholder="`Введите ${contactTypes[model.type] ? contactTypes[model.type] : contactTypes['OTHER']}`"
+            />
             <a-textarea
+                v-else
                 v-model:value="model.value"
                 :placeholder="`Введите ${contactTypes[model.type] ? contactTypes[model.type] : contactTypes['OTHER']}`"
                 :auto-size="true"
@@ -113,5 +127,39 @@ const contactTypes = {
 </template>
 
 <style scoped>
-
+.dt-input {
+    padding: 4px 11px;
+    color: rgba(0, 0, 0, 0.88);
+    font-size: 14px;
+    width: 100%;
+    min-width: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d9d9d9;
+    border-radius: 6px;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+    text-overflow: ellipsis;
+}
+.dt-input:hover {
+    border-color: #4096ff;
+    border-inline-end-width: 1px;
+}
+.dt-input:active {
+    border-color: #4096ff;
+    box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+    border-inline-end-width: 1px;
+    outline: 0;
+}
+.dt-input:focus {
+    border-color: #4096ff;
+    box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+    border-inline-end-width: 1px;
+    outline: 0;
+}
+.dt-input::placeholder {
+    color: rgb(191, 191, 191);
+    font-weight: 400;
+}
 </style>

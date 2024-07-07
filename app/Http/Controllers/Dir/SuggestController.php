@@ -25,6 +25,75 @@ class SuggestController extends Controller
         return response()->json($res);
     }
 
+    public function fetchContactInfoByINN(Request $request)
+    {
+        $data = $request->validate([
+            'inn' => 'required|digits_between:10,12'
+        ]);
+
+        if (strlen($data['inn']) === 11) {
+            return response()->json(["code" => 400, "message" => "Invalid inn.", "errors" => ["inn" => ["Invalid inn."]]], 400);
+        }
+        $info = DaDataCompany::id($data['inn']);
+
+        if (count($info["suggestions"]) == 0) {
+            return response()->json(["code" => 404, "message" => "Not found.", "errors" => ["inn" => ["inn not found."]]], 400);
+        }
+        $d = $info["suggestions"][0]["data"];
+        $type = $d["type"];
+
+        $contacts =[];
+
+        if (key_exists("address", $d) && $d["address"] != null) {
+            $contacts[] = [
+                "type" => "ADDRESS",
+                "value" => $d["address"]["unrestricted_value"],
+                "note" => $type == "LEGAL" ? "Юридический адрес" : "Адрес регистрации"
+            ];
+            if ($type == "LEGAL") {
+                $contacts[] = [
+                    "type" => "ADDRESS",
+                    "value" => $d["address"]["unrestricted_value"],
+                    "note" => "Фактический адрес"
+                ];
+            }
+        }
+        if ($type == "LEGAL" && key_exists("management", $d) && $d["management"] != null) {
+            $contacts[] = [
+                "type" => "PERSON",
+                "value" => $d["management"]["name"],
+                "note" => $d["management"]["post"]
+            ];
+        }
+
+        if (key_exists("phones", $d) && $d["phones"] != null) {
+            foreach ($d["phones"] as $phone) {
+                $contacts[] = [
+                    "type" => "PHONE",
+                    "value" => $phone["value"],
+                    "note" => $phone["data"]["type"]?:'',
+                ];
+            }
+        }
+
+        if (key_exists("emails", $d) && $d["emails"] != null) {
+            foreach ($d["emails"] as $email) {
+                $contacts[] = [
+                    "type" => "PHONE",
+                    "value" => $email["value"],
+                    "note" => $email["data"]["type"]?:'',
+                ];
+            }
+        }
+
+        return [
+            "name" => $d["name"]["short_with_opf"],
+            "status" => $d["state"]["status"],
+            "type" => $d["type"],
+            "contacts" => $contacts,
+        ];
+    }
+
     public function firmSuggest(Request $request)
     {
         $data = $request->validate([

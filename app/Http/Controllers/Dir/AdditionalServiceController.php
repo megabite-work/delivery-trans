@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Dir;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
+use App\Models\Client;
+use App\Models\AdditionalService;
+use App\Models\DefaultPrice;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DTApiResource;
-use App\Models\Client;
-use App\Models\DefaultPrice;
-use App\Models\AdditionalService;
-use Illuminate\Support\Facades\DB;
 
 class AdditionalServiceController extends Controller
 {

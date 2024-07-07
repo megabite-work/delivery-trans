@@ -14,6 +14,7 @@ class Driver extends Model
         "surname",
         "name",
         "patronymic",
+        "inn",
         "birthday",
         "citizenship",
         "passport_number",
