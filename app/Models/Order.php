@@ -58,6 +58,7 @@ class Order extends Model
         "registry_id",
         "created_by",
         "updated_by",
+        "ended_at",
     ];
 
     public function client()

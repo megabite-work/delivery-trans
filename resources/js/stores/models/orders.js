@@ -120,6 +120,9 @@ export const useOrdersStore = defineStore('orders', () => {
 
     function parseOrder(order) {
         const res = clone(order)
+        if (res.ended_at) {
+            res.ended_at = dayjs(res.ended_at)
+        }
         if (res.from_locations) {
             res.from_locations = res.from_locations.map(item => {
                 return {

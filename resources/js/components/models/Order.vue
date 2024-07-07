@@ -20,6 +20,7 @@ import {useOrdersStore} from "../../stores/models/orders.js";
 import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
 import SelectValueTableWithCnt from "../SelectValueTableWithCnt.vue";
+import dayjs from "dayjs";
 
 const ordersStore = useOrdersStore()
 const suggest = useSuggests()
@@ -1074,6 +1075,14 @@ onMounted(async () => {
                                     />
                                 </a-col>
                             </a-row>
+                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Время завершения заказа</a-divider>
+                            <a-date-picker
+                                v-model:value="model.ended_at"
+                                format="DD.MM.YYYY HH:mm"
+                                :show-time="{ defaultValue: dayjs('00:00', 'HH:mm') }"
+                                style="width: 100%"
+                                @change="orderCalculate"
+                            />
                         </template>
                     </a-space>
                 </a-tab-pane>

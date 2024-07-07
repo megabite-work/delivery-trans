@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Date;
 
 class OrderResource extends JsonResource
 {
@@ -67,6 +68,7 @@ class OrderResource extends JsonResource
             'started_at' => $this->started_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'ended_at' => $this->ended_at == null ? null : Date::parse($this->ended_at)->timezone("Europe/Moscow"),
             'client_sum_calculated' => $this->client_sum_calculated,
             'carrier_sum_calculated' => $this->carrier_sum_calculated,
             'client_sum_author' => $this->client_sum_author,
