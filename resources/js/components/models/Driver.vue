@@ -57,6 +57,13 @@ const err = reactive({})
     <a-form-item label="Отчество" name="patronymic">
         <a-input v-model:value="model.patronymic" placeholder="Отчество водителя" />
     </a-form-item>
+    <a-form-item label="ИНН водителя" name="inn">
+        <a-input
+            v-model:value="model.inn"
+            placeholder="Введите ИНН водителя"
+            :maxlength="12"
+        />
+    </a-form-item>
     <a-form-item label="Дата рождения" name="birthday">
         <DatePicker
             v-model="model.birthday"
