@@ -3,10 +3,13 @@ import {reactive, ref} from "vue";
 import axios from "axios";
 import {message} from "ant-design-vue";
 import DatePicker from "../DatePicker.vue";
-
+import { useIMask } from "vue-imask";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
+const { el } = useIMask({
+    mask: '+{7}(000)000-00-00'
+});
 
 const citizenshipOptionsList = ref([])
 const citizenshipOptionsLoading = ref(false)
@@ -21,7 +24,6 @@ const getCitizenshipOptionsList = async () => {
         citizenshipOptionsLoading.value = false
     }
 }
-
 
 const err = reactive({})
 // watch(() => prop.errors, () => {
@@ -65,7 +67,13 @@ const err = reactive({})
     <a-row :gutter="16">
         <a-col :span="12">
             <a-form-item label="Номер телефона" name="phone">
-                <a-input placeholder="Номер телефона" v-model:value="model.phone" />
+                <input
+                     v-model="model.phone"
+                    type="text"
+                    ref="el"
+                    class="dt-input"
+                    placeholder="Номер телефона"
+                />
             </a-form-item>
         </a-col>
         <a-col :span="12">
@@ -136,5 +144,39 @@ const err = reactive({})
 </template>
 
 <style scoped>
-
+.dt-input {
+    padding: 4px 11px;
+    color: rgba(0, 0, 0, 0.88);
+    font-size: 14px;
+    width: 100%;
+    min-width: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #d9d9d9;
+    border-radius: 6px;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+    text-overflow: ellipsis;
+}
+.dt-input:hover {
+    border-color: #4096ff;
+    border-inline-end-width: 1px;
+}
+.dt-input:active {
+    border-color: #4096ff;
+    box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+    border-inline-end-width: 1px;
+    outline: 0;
+}
+.dt-input:focus {
+    border-color: #4096ff;
+    box-shadow: 0 0 0 2px rgba(5, 145, 255, 0.1);
+    border-inline-end-width: 1px;
+    outline: 0;
+}
+.dt-input::placeholder {
+    color: rgb(191, 191, 191);
+    font-weight: 400;
+}
 </style>

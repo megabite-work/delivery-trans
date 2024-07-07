@@ -53,9 +53,9 @@ const columnsVehicles = [
 ]
 
 const columnsDrivers = [
-    { key: 'name', title: 'ФИО', width: '100%' },
-    { title: 'Телефон', dataIndex: 'phone' },
-    { title: 'Почта', dataIndex: 'email' },
+    { key: 'name', title: 'ФИО' },
+    { title: 'Телефон', dataIndex: 'phone', width: '150px' },
+    { title: 'Почта', dataIndex: 'email', width: '250px' },
 ]
 
 const contactDrawer = reactive({ isOpen: false, isSaving: false })
@@ -555,7 +555,7 @@ watch(() => prop.errors, () => {
         delete-text=""
         ok-text="Сохранить и закрыть"
         need-deletion-confirm-text="Вы уверены? Контакт будет удален!"
-        :title="currentAccount.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
+        :title="currentContact.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
         :width="500"
     >
         <Contact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />

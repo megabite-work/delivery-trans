@@ -19,7 +19,6 @@ export const useDriversStore = defineStore('drivers', () => {
     }
 
     async function storeDriver(driver) {
-        console.log(driver)
         try {
             const { data } = await axios.put(`api/drivers/${driver.id}`, driver)
             return data
