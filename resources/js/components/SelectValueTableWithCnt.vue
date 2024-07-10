@@ -70,7 +70,7 @@ const addRow = () => {
 }
 const tableRowFn = (record, idx) => ({ onClick: () => editRow(idx) })
 const editRow = idx => {
-    if (!model.value[idx].c) {
+    if (model.value[idx] && !model.value[idx].hasOwnProperty('c')) {
         model.value[idx].c = 1
     }
     currentRowIdx.value = idx
