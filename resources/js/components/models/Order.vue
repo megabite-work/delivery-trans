@@ -40,16 +40,19 @@ watch(() => model.value.cargo_weight, () => {
 })
 const handleCargoWeightChange = async v => {
     model.value.cargo_weight = v * (weightSegmentsValue.value === 'т' ? 1000 : 1)
-    await syncCargoWeightWithCap(model.value.cargo_weight / 1000)
+    await syncCargoWeightWithCap(model.value.cargo_weight / 1000, model.value.cargo_pallets_count)
 }
 
-const syncCargoWeightWithCap = debounce({delay: 500}, async (tonnage) => {
-    if (carCapacitiesOptions.value.length === 0) {
-        await fetchCarCapacities()
-    }
-    const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= tonnage)
+const handlePalletsChange = async () => {
+    await syncCargoWeightWithCap(model.value.cargo_weight / 1000, model.value.cargo_pallets_count)
+}
+
+const syncCargoWeightWithCap = debounce({delay: 500}, async (tonnage, pallets) => {
+    await fetchCarCapacities()
+    const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= tonnage && (!model.value.cargo_in_pallets || el.pallets_count >= pallets))
     if (o) {
         model.value.car_capacity_id = o.id
+        await orderCalculate()
     }
 })
 
@@ -693,12 +696,13 @@ watch(() => prop.loading, async (v) => {
             </a-space>
             <a-space>
                 <a-form-item label="Паллеты" style="width: 172px">
-                    <a-checkbox v-model:checked="model.cargo_in_pallets">Груз на паллетах</a-checkbox>
+                    <a-checkbox v-model:checked="model.cargo_in_pallets" @change="handlePalletsChange">Груз на паллетах</a-checkbox>
                 </a-form-item>
                 <a-form-item v-if="!!model.cargo_in_pallets" label="Количество палет">
                     <a-input-number
                         v-model:value="model.cargo_pallets_count"
                         placeholder="Количество палет"
+                        @change="handlePalletsChange"
                         style="width: 100%"
                         :min="0"
                     />
