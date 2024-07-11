@@ -279,15 +279,24 @@ const driversOptions = computed(() => {
     return res
 })
 
-const handleCarrierChange = (e) => {
+const handleCarrierChange = async (e) => {
     const selectedCarrier = carrierOptions.value.find((el) => el.value === e)
     model.value.carrier_vat = selectedCarrier.vat
-    model.value.carrier_driver_id = undefined
-    model.value.carrier_car_id = undefined
-    model.value.carrier_trailer_id = undefined
-    carsList.value = []
-    trailerList.value = []
-    driversList.value = []
+    await fetchDriversByCarrier()
+    await fetchCarsByCarrier()
+    const lastCar = await suggest.getLastOrderCarrierCar(e)
+    if (lastCar === null) {
+        model.value.carrier_driver_id = undefined
+        model.value.carrier_car_id = undefined
+        model.value.carrier_trailer_id = undefined
+        carsList.value = []
+        trailerList.value = []
+        driversList.value = []
+        return
+    }
+    model.value.carrier_car_id = lastCar.carrier_car_id
+    model.value.carrier_trailer_id = lastCar.carrier_trailer_id
+    model.value.carrier_driver_id = lastCar.carrier_driver_id
 }
 
 const handleCarChange = () => {

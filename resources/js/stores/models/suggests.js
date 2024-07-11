@@ -210,10 +210,25 @@ export const useSuggests = defineStore('suggests', () => {
         }
     }
 
+    const getLastOrderCarrierCar = async (carrier_id, capacity_id) => {
+        try {
+            isLoading.value = true
+            const res = await axios.get('/api/suggest/order-carrier-car', {params: { carrier_id, capacity_id }})
+            if (res.status === 204) {
+                return null
+            }
+            return res.data
+        } catch {
+            message.error("Ошибка получения последнего заказа")
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     return {
         err, isLoading,
         getCargoNameSuggest, getTonnages, getCarBodyTypes, getTConditions, searchClient, searchCarrier,
         getDriversByCarrier, getCarsByCarrier, getAdditionalServices, getCarCapacities, firmSuggest,
-        bankSuggest, addressSuggest
+        bankSuggest, addressSuggest, getLastOrderCarrierCar
     }
 })

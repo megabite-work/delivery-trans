@@ -257,6 +257,31 @@ class OrderController extends Controller
             'status' => LogistOrderStatus::CREATED,
         ];
         OrderStatus::create($ls);
+    }
 
+    public function getLastOrderCarrierCars(Request $request)
+    {
+        $data = $request->validate([
+            "carrier_id" => "required|numeric|exists:carriers,id",
+            "capacity_id" => "nullable|numeric|exists:car_capacities,id",
+        ]);
+
+        $cap_id_query = "and car_capacity_id = :capacity_id";
+        if (!key_exists('capacity_id', $data)) {
+            $cap_id_query = "";
+        }
+        $query = <<<SQL
+            select id, car_capacity_id, carrier_car_id, carrier_trailer_id, carrier_driver_id
+            from orders
+            where carrier_id = :carrier_id
+              and orders.carrier_car_id is not null $cap_id_query
+            order by id desc limit 1;
+        SQL;
+
+        $query = DB::select($query, $data);
+        if (count($query)>0) {
+            return response()->json($query[0]);
+        }
+        return response()->noContent();
     }
 }
