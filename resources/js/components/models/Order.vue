@@ -468,7 +468,21 @@ const carrierFinesTotal = computed(() => {
     return getTotal(model.value.carrier_fines)
 })
 
+const needMKADSync = ref(false)
+
+const handleMKADrateBlur = () => {
+    needMKADSync.value = !(model.value.client_tariff_mkad_rate > 0 && model.value.carrier_tariff_mkad_rate > 0)
+}
+
+const syncMKADRate = (v) => {
+    if (needMKADSync.value) {
+        model.value.client_tariff_mkad_rate = v
+        model.value.carrier_tariff_mkad_rate = v
+    }
+}
+
 watch(() => prop.loading, async (v) => {
+    needMKADSync.value = !(model.value.client_tariff_mkad_rate > 0 && model.value.carrier_tariff_mkad_rate > 0)
     if (!v) {
         await orderCalculate(true)
     }
@@ -916,7 +930,8 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
-                                    @change="orderCalculate"
+                                    @change="(e) => { syncMKADRate(e); orderCalculate() }"
+                                    @blur="handleMKADrateBlur"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">км.</div>
@@ -1233,7 +1248,8 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
-                                    @change="orderCalculate"
+                                    @change="(e) => { syncMKADRate(e); orderCalculate() }"
+                                    @blur="handleMKADrateBlur"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">км.</div>
