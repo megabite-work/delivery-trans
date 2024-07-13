@@ -140,56 +140,76 @@ onBeforeUnmount(() => {
             <a-button type="primary" @click="() => openMainDrawer()">Новая заявка</a-button>
         </template>
         <div v-if="filterOpen" style="padding: 20px 24px; background-color: #fafafa; border-bottom: 1px solid #f0f0f0">
-            <a-form layout="inline">
-                <div style="display: flex; flex-direction: column; gap: 16px">
-                    <div style="display: flex; margin-left: 47px">
+            <a-form layout="inline" style="width: 600px">
+                <div style="display: flex; flex-direction: column; gap: 16px; width: 100%">
+                    <div style="display: flex; width: 100%">
                         <a-form-item label="Номер">
                             <a-input-number min="1" v-model:value="ordersStore.filter.id" placeholder="#"/>
                         </a-form-item>
-                        <search-outlined style="margin-right: 10px"/><a-input v-model:value="ordersStore.filter.text" placeholder="Поисковая строка" />
+                        <a-form-item :colon="false">
+                            <template #label>
+                                <search-outlined />
+                            </template>
+                            <a-input v-model:value="ordersStore.filter.text" placeholder="Поисковая строка" style="width: 100%"/>
+                        </a-form-item>
                     </div>
-                    <div style="margin-left: 46px">
-                        <a-form-item label="Статус">
-                            <a-space>
-                                <a-select style="width: 240px" placeholder="Статус менеджера" v-model:value="ordersStore.filter.status_manager" :allow-clear="true">
-                                    <a-select-option :value="idx" v-for="(mStatus, idx) in managerOrderStatuses" :key="idx">
-                                        <div style="display: flex; flex-direction: row; align-items: center">
-                                            <div :style="{
+                    <div>
+                        <a-form-item label="Дата заявки">
+                            <a-range-picker v-model:value="ordersStore.filter.date" style="width: 100%" />
+                        </a-form-item>
+                    </div>
+                    <a-divider style="margin: 0"/>
+                    <div>
+                        <a-form-item label="Статус менеджера">
+                            <a-select style="width: 100%" placeholder="Статус менеджера" v-model:value="ordersStore.filter.status_manager" :allow-clear="true">
+                                <a-select-option :value="idx" v-for="(mStatus, idx) in managerOrderStatuses" :key="idx">
+                                    <div style="display: flex; flex-direction: row; align-items: center">
+                                        <div :style="{
                                                 width: '12px',
                                                 height: '12px',
                                                 backgroundColor: mStatus.color,
                                                 borderRadius: '8px',
                                                 marginRight: '8px'
                                                 }"></div>
-                                            {{mStatus.label}}
-                                        </div>
-                                    </a-select-option>
-                                </a-select>
-                                <a-select style="width: 240px" placeholder="Статус логиста" v-model:value="ordersStore.filter.status_logist" :allow-clear="true">
-                                    <a-select-option :value="idx" v-for="(lStatus, idx) in logistOrderStatuses" :key="idx">
-                                        <div style="display: flex; flex-direction: row; align-items: center">
-                                            <div :style="{
-                                                width: '12px',
-                                                height: '12px',
-                                                backgroundColor: lStatus.color,
-                                                borderRadius: '8px',
-                                                marginRight: '8px'
-                                                }"></div>
-                                            {{lStatus.label}}
-                                        </div>
-                                    </a-select-option>
-                                </a-select>
-                            </a-space>
-                        </a-form-item>
-                    </div>
-                    <div style="display: flex; margin-left: 10px">
-                        <a-form-item label="Дата заявки">
-                            <a-range-picker v-model:value="ordersStore.filter.date" style="width: 300px" />
+                                        {{mStatus.label}}
+                                    </div>
+                                </a-select-option>
+                            </a-select>
                         </a-form-item>
                     </div>
                     <div>
+                        <a-form-item label="Дата статуса менеджера">
+                            <a-range-picker v-model:value="ordersStore.filter.status_manager_date" style="width: 100%" />
+                        </a-form-item>
+                    </div>
+                    <a-divider style="margin: 0"/>
+                    <div>
+                        <a-form-item label="Статус логиста">
+                            <a-select style="width: 100%" placeholder="Статус логиста" v-model:value="ordersStore.filter.status_logist" :allow-clear="true">
+                                <a-select-option :value="idx" v-for="(lStatus, idx) in logistOrderStatuses" :key="idx">
+                                    <div style="display: flex; flex-direction: row; align-items: center">
+                                        <div :style="{
+                                            width: '12px',
+                                            height: '12px',
+                                            backgroundColor: lStatus.color,
+                                            borderRadius: '8px',
+                                            marginRight: '8px'
+                                            }"></div>
+                                        {{lStatus.label}}
+                                    </div>
+                                </a-select-option>
+                            </a-select>
+                        </a-form-item>
+                    </div>
+                    <div>
+                        <a-form-item label="Дата статуса логиста">
+                            <a-range-picker v-model:value="ordersStore.filter.status_logist_date" style="width: 100%" />
+                        </a-form-item>
+                    </div>
+                    <a-divider style="margin: 0"/>
+                    <div>
                         <a-form-item label="Дата поездки">
-                            <a-range-picker v-model:value="ordersStore.filter.arrive_date" style="width: 300px" />
+                            <a-range-picker v-model:value="ordersStore.filter.arrive_date" style="width: 100%" />
                         </a-form-item>
                     </div>
                     <div style="display: flex; gap: 8px; justify-content: right">

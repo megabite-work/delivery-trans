@@ -107,25 +107,43 @@ class OrderController extends Controller
                 $params['arrive_date1'] = $d1;
                 $params['arrive_date2'] = $d2;
             }
-            if (array_key_exists("status_manager", $f)) {
+            if (array_key_exists("status_manager", $f) || array_key_exists("status_manager_date", $f)) {
                 $joinExp .= <<<EOD
                     left join (select distinct on (os.order_id) os.order_id, os.status, os.created_at
                     from order_statuses os
                     where type = 'MANAGER'
                     order by os.order_id, os.created_at desc) ms on orders.id = ms.order_id
                 EOD;
-                $whereExp .= " and ms.status = :status_manager";
-                $params['status_manager'] = $f["status_manager"];
+                if(array_key_exists("status_manager", $f)) {
+                    $whereExp .= " and ms.status = :status_manager";
+                    $params['status_manager'] = $f["status_manager"];
+                }
+                if (array_key_exists("status_manager_date", $f)) {
+                    $d1 = Date::parse($f["status_manager_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $d2 = Date::parse($f["status_manager_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $whereExp .=" and ms.created_at >= :status_manager_date1 and ms.created_at <= :status_manager_date2";
+                    $params['status_manager_date1'] = $d1;
+                    $params['status_manager_date2'] = $d2;
+                }
             }
-            if (array_key_exists("status_logist", $f)) {
+            if (array_key_exists("status_logist", $f) || array_key_exists("status_logist_date", $f)) {
                 $joinExp .= <<<EOD
                     left join (select distinct on (os.order_id) os.order_id, os.status, os.created_at
                     from order_statuses os
                     where type = 'LOGIST'
                     order by os.order_id, os.created_at desc) ls on orders.id = ls.order_id
                 EOD;
-                $whereExp .= " and ls.status = :status_logist";
-                $params['status_logist'] = $f["status_logist"];
+                if (array_key_exists("status_logist", $f)) {
+                    $whereExp .= " and ls.status = :status_logist";
+                    $params['status_logist'] = $f["status_logist"];
+                }
+                if (array_key_exists("status_logist_date", $f)) {
+                    $d1 = Date::parse($f["status_logist_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $d2 = Date::parse($f["status_logist_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $whereExp .=" and ls.created_at >= :status_logist_date1 and ls.created_at <= :status_logist_date2";
+                    $params['status_logist_date1'] = $d1;
+                    $params['status_logist_date2'] = $d2;
+                }
             }
             if (array_key_exists("text", $f)) {
                 $joinExp .= <<<EOD
