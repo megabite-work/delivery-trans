@@ -337,7 +337,16 @@ const carsOptions = computed(() => {
             ...model.value.carrier_car,
         }, ...res]
     }
-    return res
+    const currentCap = carCapacitiesOptions.value.find((el) => el.id === model.value.car_capacity_id)
+    return res.filter(
+        car => car.type === 'TRACTOR'
+            || !currentCap
+            || (!!currentCap
+                && (parseFloat(car.tonnage) >= parseFloat(currentCap.tonnage))
+                && (!model.value.cargo_in_pallets || parseFloat(currentCap.pallets_count) <= parseFloat(car.pallets_count))
+            )
+            || car.id === model.value.carrier_car_id
+    )
 })
 
 const fetchTrailersByCarrier = async () => {
@@ -358,7 +367,16 @@ const trailerOptions = computed(() => {
             ...model.value.carrier_trailer,
         }, ...res]
     }
-    return res
+
+    const currentCap = carCapacitiesOptions.value.find((el) => el.id === model.value.car_capacity_id)
+    return res.filter(
+        car => !currentCap
+            || (!!currentCap
+                && (parseFloat(car.tonnage) >= parseFloat(currentCap.tonnage))
+                && (!model.value.cargo_in_pallets || parseFloat(currentCap.pallets_count) <= parseFloat(car.pallets_count))
+            )
+            || car.id === model.value.carrier_car_id
+    )
 })
 
 const currentCarIsTractor = computed(() => {
@@ -1028,6 +1046,9 @@ watch(() => prop.loading, async (v) => {
                                             <template v-if="!!car.volume">
                                                 <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
                                             </template>
+                                            <template v-if="!!car.pallets_count">
+                                                <a-divider type="vertical" />{{ car.pallets_count }} п
+                                            </template>
                                         </div>
                                     </div>
                                 </template>
@@ -1064,6 +1085,9 @@ watch(() => prop.loading, async (v) => {
                                                 </template>
                                                 <template v-if="!!car.volume">
                                                     <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
+                                                </template>
+                                                <template v-if="!!car.pallets_count">
+                                                    <a-divider type="vertical" />{{ car.pallets_count }} п
                                                 </template>
                                             </div>
                                         </div>
