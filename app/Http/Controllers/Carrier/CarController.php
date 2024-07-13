@@ -83,7 +83,7 @@ class CarController extends Controller
     public function getCarsByCarrierId(Request $request)
     {
         $cars = DB::table("cars")
-            ->select("id", "name", "body_type", "plate_number", "type", "tonnage", "volume", "loading_rear", "loading_lateral", "loading_upper")
+            ->select("id", "name", "body_type", "plate_number", "type", "tonnage", "volume", "loading_rear", "loading_lateral", "loading_upper", "pallets_count")
             ->where("carrier_id", $request['carrier_id'])
             ->get();
 

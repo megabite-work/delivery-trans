@@ -40,16 +40,19 @@ watch(() => model.value.cargo_weight, () => {
 })
 const handleCargoWeightChange = async v => {
     model.value.cargo_weight = v * (weightSegmentsValue.value === 'т' ? 1000 : 1)
-    await syncCargoWeightWithCap(model.value.cargo_weight / 1000)
+    await syncCargoWeightWithCap(model.value.cargo_weight / 1000, model.value.cargo_pallets_count)
 }
 
-const syncCargoWeightWithCap = debounce({delay: 500}, async (tonnage) => {
-    if (carCapacitiesOptions.value.length === 0) {
-        await fetchCarCapacities()
-    }
-    const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= tonnage)
+const handlePalletsChange = async () => {
+    await syncCargoWeightWithCap(model.value.cargo_weight / 1000, model.value.cargo_pallets_count)
+}
+
+const syncCargoWeightWithCap = debounce({delay: 500}, async (tonnage, pallets) => {
+    await fetchCarCapacities()
+    const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= tonnage && (!model.value.cargo_in_pallets || el.pallets_count >= pallets))
     if (o) {
         model.value.car_capacity_id = o.id
+        await orderCalculate()
     }
 })
 
@@ -276,15 +279,24 @@ const driversOptions = computed(() => {
     return res
 })
 
-const handleCarrierChange = (e) => {
+const handleCarrierChange = async (e) => {
     const selectedCarrier = carrierOptions.value.find((el) => el.value === e)
     model.value.carrier_vat = selectedCarrier.vat
-    model.value.carrier_driver_id = undefined
-    model.value.carrier_car_id = undefined
-    model.value.carrier_trailer_id = undefined
-    carsList.value = []
-    trailerList.value = []
-    driversList.value = []
+    await fetchDriversByCarrier()
+    await fetchCarsByCarrier()
+    const lastCar = await suggest.getLastOrderCarrierCar(e)
+    if (lastCar === null) {
+        model.value.carrier_driver_id = undefined
+        model.value.carrier_car_id = undefined
+        model.value.carrier_trailer_id = undefined
+        carsList.value = []
+        trailerList.value = []
+        driversList.value = []
+        return
+    }
+    model.value.carrier_car_id = lastCar.carrier_car_id
+    model.value.carrier_trailer_id = lastCar.carrier_trailer_id
+    model.value.carrier_driver_id = lastCar.carrier_driver_id
 }
 
 const handleCarChange = () => {
@@ -325,7 +337,16 @@ const carsOptions = computed(() => {
             ...model.value.carrier_car,
         }, ...res]
     }
-    return res
+    const currentCap = carCapacitiesOptions.value.find((el) => el.id === model.value.car_capacity_id)
+    return res.filter(
+        car => car.type === 'TRACTOR'
+            || !currentCap
+            || (!!currentCap
+                && (parseFloat(car.tonnage) >= parseFloat(currentCap.tonnage))
+                && (!model.value.cargo_in_pallets || parseFloat(currentCap.pallets_count) <= parseFloat(car.pallets_count))
+            )
+            || car.id === model.value.carrier_car_id
+    )
 })
 
 const fetchTrailersByCarrier = async () => {
@@ -346,7 +367,16 @@ const trailerOptions = computed(() => {
             ...model.value.carrier_trailer,
         }, ...res]
     }
-    return res
+
+    const currentCap = carCapacitiesOptions.value.find((el) => el.id === model.value.car_capacity_id)
+    return res.filter(
+        car => !currentCap
+            || (!!currentCap
+                && (parseFloat(car.tonnage) >= parseFloat(currentCap.tonnage))
+                && (!model.value.cargo_in_pallets || parseFloat(currentCap.pallets_count) <= parseFloat(car.pallets_count))
+            )
+            || car.id === model.value.carrier_car_id
+    )
 })
 
 const currentCarIsTractor = computed(() => {
@@ -438,7 +468,21 @@ const carrierFinesTotal = computed(() => {
     return getTotal(model.value.carrier_fines)
 })
 
+const needMKADSync = ref(false)
+
+const handleMKADrateBlur = () => {
+    needMKADSync.value = !(model.value.client_tariff_mkad_rate > 0 && model.value.carrier_tariff_mkad_rate > 0)
+}
+
+const syncMKADRate = (v) => {
+    if (needMKADSync.value) {
+        model.value.client_tariff_mkad_rate = v
+        model.value.carrier_tariff_mkad_rate = v
+    }
+}
+
 watch(() => prop.loading, async (v) => {
+    needMKADSync.value = !(model.value.client_tariff_mkad_rate > 0 && model.value.carrier_tariff_mkad_rate > 0)
     if (!v) {
         await orderCalculate(true)
     }
@@ -693,12 +737,13 @@ watch(() => prop.loading, async (v) => {
             </a-space>
             <a-space>
                 <a-form-item label="Паллеты" style="width: 172px">
-                    <a-checkbox v-model:checked="model.cargo_in_pallets">Груз на паллетах</a-checkbox>
+                    <a-checkbox v-model:checked="model.cargo_in_pallets" @change="handlePalletsChange">Груз на паллетах</a-checkbox>
                 </a-form-item>
                 <a-form-item v-if="!!model.cargo_in_pallets" label="Количество палет">
                     <a-input-number
                         v-model:value="model.cargo_pallets_count"
                         placeholder="Количество палет"
+                        @change="handlePalletsChange"
                         style="width: 100%"
                         :min="0"
                     />
@@ -885,7 +930,8 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
-                                    @change="orderCalculate"
+                                    @change="(e) => { syncMKADRate(e); orderCalculate() }"
+                                    @blur="handleMKADrateBlur"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">км.</div>
@@ -1015,6 +1061,9 @@ watch(() => prop.loading, async (v) => {
                                             <template v-if="!!car.volume">
                                                 <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
                                             </template>
+                                            <template v-if="!!car.pallets_count">
+                                                <a-divider type="vertical" />{{ car.pallets_count }} п
+                                            </template>
                                         </div>
                                     </div>
                                 </template>
@@ -1051,6 +1100,9 @@ watch(() => prop.loading, async (v) => {
                                                 </template>
                                                 <template v-if="!!car.volume">
                                                     <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
+                                                </template>
+                                                <template v-if="!!car.pallets_count">
+                                                    <a-divider type="vertical" />{{ car.pallets_count }} п
                                                 </template>
                                             </div>
                                         </div>
@@ -1196,7 +1248,8 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
-                                    @change="orderCalculate"
+                                    @change="(e) => { syncMKADRate(e); orderCalculate() }"
+                                    @blur="handleMKADrateBlur"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">км.</div>

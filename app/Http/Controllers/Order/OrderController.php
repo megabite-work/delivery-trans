@@ -107,25 +107,43 @@ class OrderController extends Controller
                 $params['arrive_date1'] = $d1;
                 $params['arrive_date2'] = $d2;
             }
-            if (array_key_exists("status_manager", $f)) {
+            if (array_key_exists("status_manager", $f) || array_key_exists("status_manager_date", $f)) {
                 $joinExp .= <<<EOD
                     left join (select distinct on (os.order_id) os.order_id, os.status, os.created_at
                     from order_statuses os
                     where type = 'MANAGER'
                     order by os.order_id, os.created_at desc) ms on orders.id = ms.order_id
                 EOD;
-                $whereExp .= " and ms.status = :status_manager";
-                $params['status_manager'] = $f["status_manager"];
+                if(array_key_exists("status_manager", $f)) {
+                    $whereExp .= " and ms.status = :status_manager";
+                    $params['status_manager'] = $f["status_manager"];
+                }
+                if (array_key_exists("status_manager_date", $f)) {
+                    $d1 = Date::parse($f["status_manager_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $d2 = Date::parse($f["status_manager_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $whereExp .=" and ms.created_at >= :status_manager_date1 and ms.created_at <= :status_manager_date2";
+                    $params['status_manager_date1'] = $d1;
+                    $params['status_manager_date2'] = $d2;
+                }
             }
-            if (array_key_exists("status_logist", $f)) {
+            if (array_key_exists("status_logist", $f) || array_key_exists("status_logist_date", $f)) {
                 $joinExp .= <<<EOD
                     left join (select distinct on (os.order_id) os.order_id, os.status, os.created_at
                     from order_statuses os
                     where type = 'LOGIST'
                     order by os.order_id, os.created_at desc) ls on orders.id = ls.order_id
                 EOD;
-                $whereExp .= " and ls.status = :status_logist";
-                $params['status_logist'] = $f["status_logist"];
+                if (array_key_exists("status_logist", $f)) {
+                    $whereExp .= " and ls.status = :status_logist";
+                    $params['status_logist'] = $f["status_logist"];
+                }
+                if (array_key_exists("status_logist_date", $f)) {
+                    $d1 = Date::parse($f["status_logist_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $d2 = Date::parse($f["status_logist_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $whereExp .=" and ls.created_at >= :status_logist_date1 and ls.created_at <= :status_logist_date2";
+                    $params['status_logist_date1'] = $d1;
+                    $params['status_logist_date2'] = $d2;
+                }
             }
             if (array_key_exists("text", $f)) {
                 $joinExp .= <<<EOD
@@ -257,6 +275,31 @@ class OrderController extends Controller
             'status' => LogistOrderStatus::CREATED,
         ];
         OrderStatus::create($ls);
+    }
 
+    public function getLastOrderCarrierCars(Request $request)
+    {
+        $data = $request->validate([
+            "carrier_id" => "required|numeric|exists:carriers,id",
+            "capacity_id" => "nullable|numeric|exists:car_capacities,id",
+        ]);
+
+        $cap_id_query = "and car_capacity_id = :capacity_id";
+        if (!key_exists('capacity_id', $data)) {
+            $cap_id_query = "";
+        }
+        $query = <<<SQL
+            select id, car_capacity_id, carrier_car_id, carrier_trailer_id, carrier_driver_id
+            from orders
+            where carrier_id = :carrier_id
+              and orders.carrier_car_id is not null $cap_id_query
+            order by id desc limit 1;
+        SQL;
+
+        $query = DB::select($query, $data);
+        if (count($query)>0) {
+            return response()->json($query[0]);
+        }
+        return response()->noContent();
     }
 }
