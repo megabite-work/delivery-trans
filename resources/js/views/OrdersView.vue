@@ -5,7 +5,8 @@ import {message} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-import {FilterOutlined, SearchOutlined} from "@ant-design/icons-vue";
+import {FilterOutlined, SearchOutlined, ArrowRightOutlined} from "@ant-design/icons-vue";
+import {isArray} from "radash";
 
 import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
@@ -214,11 +215,15 @@ onBeforeUnmount(() => {
             }"
             :scroll="{ y: clientHeight - 335, x: 1500 }"
             :row-class-name="() => 'cursor-pointer'"
+            :row-expandable="record => (record.from_locations && record.from_locations.length > 0) || (record.to_locations && record.to_locations.length > 0)"
+            :default-expand-all-rows="true"
+            row-key="id"
+            expand-fixed="id"
             @change="handleTableChange"
             size="small"
         >
             <template #headerCell="cell">
-                <div style="font-size: 12px; text-wrap: none; white-space: nowrap; text-align: center">
+                <div v-if="!isArray(cell.title)" style="font-size: 12px; text-wrap: none; white-space: nowrap; text-align: center">
                     {{cell.title}}
                 </div>
             </template>
@@ -318,6 +323,21 @@ onBeforeUnmount(() => {
                 <template v-if="column.key === 'margin_percent'">
                     <div style="text-align: right; font-size: 12px; white-space: nowrap ">{{ parseFloat(record[column.key]).toLocaleString('ru-RU', {style: 'percent', minimumFractionDigits: 0}) }}</div>
                 </template>
+            </template>
+            <template #expandedRowRender="{ record }">
+                <div style="display: flex; gap: 16px;">
+                    <div v-for="(loc, i) in record.from_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
+                        <div>{{ dayjs(loc.arrive_date).format("DD.MM.YYYY") }} {{ dayjs(loc.arrive_time).format("HH:mm") }}</div>
+                        <div>{{ loc.address }}</div>
+                    </div>
+                    <div v-if="record.to_locations && record.to_locations.length > 0">
+                        <ArrowRightOutlined />
+                    </div>
+                    <div v-for="(loc, i) in record.to_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
+                        <div>{{ dayjs(loc.arrive_date).format("DD.MM.YYYY") }} {{ dayjs(loc.arrive_time).format("HH:mm") }}</div>
+                        <div>{{ loc.address }}</div>
+                    </div>
+                </div>
             </template>
         </a-table>
         <drawer
