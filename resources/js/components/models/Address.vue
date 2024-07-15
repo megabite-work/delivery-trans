@@ -42,7 +42,7 @@ const getClientSuggest = async (type, q) => {
                 q, type
             }
         })
-        return data
+        return data.map(el => ({value: el.value, text: el.value, note: el.note}))
     }
     return null
 }
@@ -85,7 +85,14 @@ const getClientSuggest = async (type, q) => {
                     :options="contactOptions"
                     @search="searchContact"
                     @focus="() => searchContact(modelValue.contact_person ?? '')"
-                />
+                >
+                    <template #option="opt">
+                        <div>
+                            <div style="font-weight: 500">{{ opt.value }}</div>
+                            <div style="font-size: 12px">{{ opt.note }}</div>
+                        </div>
+                    </template>
+                </a-auto-complete>
 <!--                <a-input-->
 <!--                    :value="modelValue.contact_person"-->
 <!--                    @change="(e) => emit('update:modelValue', {-->
@@ -104,7 +111,14 @@ const getClientSuggest = async (type, q) => {
                     :options="phoneOptions"
                     @search="searchPhone"
                     @focus="() => searchPhone(modelValue.contact_phone ?? '')"
-                />
+                >
+                    <template #option="opt">
+                        <div>
+                            <div style="font-weight: 500">{{ opt.value }}</div>
+                            <div style="font-size: 12px">{{ opt.note }}</div>
+                        </div>
+                    </template>
+                </a-auto-complete>
 <!--                <a-input-->
 <!--                    :value="modelValue.contact_phone"-->
 <!--                    @change="(e) => emit('update:modelValue', {-->
