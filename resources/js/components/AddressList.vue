@@ -16,7 +16,8 @@ const emit = defineEmits(["change"]);
 
 const props = defineProps({
     title: {type: String},
-    addButtonText: {type: String}
+    addButtonText: {type: String},
+    clientId: {type: String},
 })
 
 const addressDrawer = reactive({ isOpen: false, isSaving: false })
@@ -137,7 +138,7 @@ const deleteAddress = () => {
         :width="700"
         :title="currentAddress.header"
     >
-        <Address v-model="currentAddress.data" />
+        <Address v-model="currentAddress.data" :client-id="clientId" />
     </drawer>
 </template>
 
