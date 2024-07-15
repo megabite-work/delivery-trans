@@ -10,10 +10,33 @@ use App\Models\Client;
 use App\Models\Contact;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class ContactController extends Controller
 {
+    public function clientContactSuggest(Request $request)
+    {
+        $data = $request->validate([
+            "type" => [Rule::enum(ContactType::class), 'required'],
+            "client_id" => 'required|exists:clients,id',
+        ]);
+        $data["q"] = $request->get("q", "");
+        $query = <<<SQL
+            select value, note from contacts
+                               where value ilike :q
+                                 and type = :type
+                                 and owner_type = :owner_type
+                                 and owner_id = :owner_id
+        SQL;
+        $res = DB::select($query, [
+            "q" => "%".$data["q"]."%",
+            "type" => $data["type"],
+            "owner_type" => Client::class,
+            "owner_id" => $data["client_id"],
+        ]);
+        return response()->json($res);
+    }
     public function clientContactsIndex(Request $request)
     {
         return Contact::whereHasMorph('owner', [Client::class],  function (Builder $query) use ($request) {
@@ -63,4 +86,6 @@ class ContactController extends Controller
         $contact->delete();
         return response()->noContent();
     }
+
+
 }

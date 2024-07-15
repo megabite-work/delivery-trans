@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('suggest/tonnages', [TonnageController::class, 'getTonnage'])->name("suggest.tonnage");
     Route::get('suggest/t-conditions', [TConditionsController::class, 'index'])->name("suggest.t-condition");
     Route::get('suggest/client-search', [ClientController::class, 'searchSuggest'])->name("suggest.client-search");
+    Route::get('suggest/client-contact', [ContactController::class, 'clientContactSuggest'])->name("suggest.client-contact");
     Route::get('suggest/carrier-search', [CarrierController::class, 'searchSuggest'])->name("suggest.carrier-search");
     Route::get('suggest/drivers-by-carrier', [DriverController::class, 'getDriversByCarrierID'])->name("suggest.drivers-by-carrier");
     Route::get('suggest/cars-by-carrier', [CarController::class, 'getCarsByCarrierId'])->name('suggest.cars-by-carrier');

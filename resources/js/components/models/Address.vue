@@ -2,9 +2,11 @@
 import {ref} from "vue";
 import {useSuggests} from "../../stores/models/suggests.js";
 import {debounce} from "radash";
+import axios from "axios";
 
 const prop = defineProps({
-    modelValue: {type: Object, default: {}}
+    modelValue: {type: Object, default: {}},
+    clientId: {type: Number},
 })
 const emit = defineEmits(['update:modelValue'])
 const addressOptions = ref([])
@@ -19,6 +21,31 @@ const onAddressSearch = debounce({delay: 500}, async (q) => {
     const suggest = await suggests.addressSuggest(q)
     addressOptions.value = suggest.map(el => ({value: el}))
 })
+
+const contactOptions = ref([])
+const phoneOptions = ref([])
+
+const searchContact = debounce({delay: 500}, async q => {
+    contactOptions.value = await getClientSuggest("PERSON", q)
+})
+
+const searchPhone = debounce({delay: 500}, async q => {
+    phoneOptions.value = await getClientSuggest("PHONE", q)
+})
+
+
+const getClientSuggest = async (type, q) => {
+    if (!!prop.clientId) {
+        const {data} = await axios.get('api/suggest/client-contact', {
+            params: {
+                client_id: prop.clientId,
+                q, type
+            }
+        })
+        return data
+    }
+    return null
+}
 
 </script>
 
@@ -50,22 +77,40 @@ const onAddressSearch = debounce({delay: 500}, async (q) => {
     <a-row :gutter="10">
         <a-col style="width: 50%">
             <a-form-item label="Контактное лицо">
-                <a-input
+                <a-auto-complete
                     :value="modelValue.contact_person"
                     @change="(e) => emit('update:modelValue', {
-                        ...modelValue, contact_person: e.target.value
+                        ...modelValue, contact_person: e
                     })"
+                    :options="contactOptions"
+                    @search="searchContact"
+                    @focus="() => searchContact(modelValue.contact_person ?? '')"
                 />
+<!--                <a-input-->
+<!--                    :value="modelValue.contact_person"-->
+<!--                    @change="(e) => emit('update:modelValue', {-->
+<!--                        ...modelValue, contact_person: e.target.value-->
+<!--                    })"-->
+<!--                />-->
             </a-form-item>
         </a-col>
         <a-col style="width: 50%">
             <a-form-item label="Номер телефона">
-                <a-input
+                <a-auto-complete
                     :value="modelValue.contact_phone"
                     @change="(e) => emit('update:modelValue', {
                         ...modelValue, contact_phone: e.target.value
                     })"
+                    :options="phoneOptions"
+                    @search="searchPhone"
+                    @focus="() => searchPhone(modelValue.contact_phone ?? '')"
                 />
+<!--                <a-input-->
+<!--                    :value="modelValue.contact_phone"-->
+<!--                    @change="(e) => emit('update:modelValue', {-->
+<!--                        ...modelValue, contact_phone: e.target.value-->
+<!--                    })"-->
+<!--                />-->
             </a-form-item>
         </a-col>
     </a-row>
