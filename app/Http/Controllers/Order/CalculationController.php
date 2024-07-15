@@ -36,12 +36,12 @@ class CalculationController extends Controller
             $mt = null;
             $gt = null;
             foreach ($request->get('from_locations') as $from) {
-                if (array_key_exists('arrive_date', $from) && array_key_exists('arrive_time', $from)) {
+                if (array_key_exists('arrive_date', $from) && array_key_exists('arrive_time', $from) && is_array($from['arrive_time']) && count($from['arrive_time']) > 0) {
                     $d = Date::parse($from['arrive_date'], null);
                     $t = Date::parse($from['arrive_time'][0], null);
-                    $d->second = 0;
                     $d->hour = $t->hour;
                     $d->minute = $t->minute;
+                    $d->second = 0;
                     if ($mt === null || $d->lessThan($mt)) {
                         $mt = $d;
                     }
@@ -51,12 +51,12 @@ class CalculationController extends Controller
                 $gt = Date::parse($request->get('ended_at'), null);
             } else {
                 foreach ($request->get('to_locations') as $to) {
-                    if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to)) {
+                    if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to) && is_array($from['arrive_time']) && count($from['arrive_time']) > 0) {
                         $d = Date::parse($to['arrive_date'], null);
                         $t = Date::parse($to['arrive_time'][0], null);
-                        $d->second = 0;
                         $d->hour = $t->hour;
                         $d->minute = $t->minute;
+                        $d->second = 0;
                         if ($gt === null || $d->greaterThan($gt)) {
                             $gt = $d;
                         }
