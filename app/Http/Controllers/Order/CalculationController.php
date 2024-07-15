@@ -51,7 +51,7 @@ class CalculationController extends Controller
                 $gt = Date::parse($request->get('ended_at'), null);
             } else {
                 foreach ($request->get('to_locations') as $to) {
-                    if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to) && is_array($from['arrive_time']) && count($from['arrive_time']) > 0) {
+                    if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to) && is_array($to['arrive_time']) && count($to['arrive_time']) > 0) {
                         $d = Date::parse($to['arrive_date'], null);
                         $t = Date::parse($to['arrive_time'][0], null);
                         $d->hour = $t->hour;
