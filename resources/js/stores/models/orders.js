@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from "axios";
 import dayjs from "dayjs";
-import {clone} from "radash";
+import {clone, isArray} from "radash";
 
 export const useOrdersStore = defineStore('orders', () => {
     const err = ref(null)
@@ -123,22 +123,22 @@ export const useOrdersStore = defineStore('orders', () => {
         if (res.ended_at) {
             res.ended_at = dayjs(res.ended_at)
         }
-        if (res.from_locations) {
+        if (isArray(res.from_locations)) {
             res.from_locations = res.from_locations.map(item => {
                 return {
                     ...item,
                     arrive_date: dayjs(item.arrive_date),
-                    arrive_time: item.arrive_time.map(t => dayjs(t))
+                    arrive_time: isArray(item.arrive_time) ? item.arrive_time.map(t => dayjs(t)) : []
                 }
             })
         }
 
-        if (res.to_locations) {
+        if (isArray(res.to_locations)) {
             res.to_locations = res.to_locations.map(item => {
                 return {
                     ...item,
                     arrive_date: dayjs(item.arrive_date),
-                    arrive_time: item.arrive_time.map(t => dayjs(t))
+                    arrive_time: isArray(item.arrive_time) ? item.arrive_time.map(t => dayjs(t)) : []
                 }
             })
         }
