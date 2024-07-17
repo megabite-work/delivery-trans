@@ -17,9 +17,13 @@ const onAddressSelect = (val) => {
         ...prop.modelValue, address: val
     })
 }
-const onAddressSearch = debounce({delay: 500}, async (q) => {
-    const suggest = await suggests.addressSuggest(q)
-    addressOptions.value = suggest.map(el => ({value: el}))
+const onAddressSearch = debounce({delay: 500}, async (q = '') => {
+    let suggest = []
+    if (q !== '') {
+        suggest = await suggests.addressSuggest(q)
+    }
+    const clientAddresses = await getClientSuggest("ADDRESS", q)
+    addressOptions.value = [...clientAddresses, ...suggest.map(el => ({value: el, note: 'Из адресного классификатора'}))].map((el, idx) => ({key: idx, ...el}))
 })
 
 const contactOptions = ref([])
@@ -53,12 +57,6 @@ const getClientSuggest = async (type, q) => {
 <a-form layout="vertical">
     <a-form-item label="Адрес">
         <a-space-compact size="large" block>
-<!--                <a-input-->
-<!--                    :value="modelValue.address"-->
-<!--                    @change="(e) => emit('update:modelValue', {-->
-<!--                        ...modelValue, address: e.target.value-->
-<!--                    })"-->
-<!--                />-->
             <a-auto-complete
                 :value="modelValue.address"
                 @change="(e) => emit('update:modelValue', {
@@ -68,7 +66,15 @@ const getClientSuggest = async (type, q) => {
                 placeholder="Введите адрес"
                 @select="onAddressSelect"
                 @search="onAddressSearch"
-            />
+                @focus="() => onAddressSearch(modelValue.address ?? '')"
+            >
+                <template #option="opt">
+                    <div>
+                        <div style="font-weight: 500">{{ opt.value }}</div>
+                        <div style="font-size: 12px">{{ opt.note }}</div>
+                    </div>
+                </template>
+            </a-auto-complete>
             <a-button type="primary">
                 Карта
             </a-button>

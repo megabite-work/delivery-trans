@@ -23,6 +23,7 @@ class DriverResource extends JsonResource
             "name" => $this->name,
             "patronymic" => $this->patronymic,
             "birthday" => $this->birthday,
+            "inn" => $this->inn,
             "citizenship" => $this->citizenship,
             "passport_number" => $this->passport_number,
             "passport_issuer" => $this->passport_issuer,

@@ -17,7 +17,7 @@ const emit = defineEmits(["change"]);
 const props = defineProps({
     title: {type: String},
     addButtonText: {type: String},
-    clientId: {type: String},
+    clientId: {type: Number},
 })
 
 const addressDrawer = reactive({ isOpen: false, isSaving: false })

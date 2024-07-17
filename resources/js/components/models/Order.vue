@@ -270,6 +270,7 @@ const driversOptions = computed(() => {
         const label = !!model.value.carrier_driver.phone ? model.value.carrier_driver.phone : (!!model.value.carrier_driver.email ? model.value.carrier_driver.email : '')
         res = [{
             value: model.value.carrier_driver.id,
+            inn: model.value.carrier_driver.inn,
             name,
             label: label !== '' ? `${name} (${label})` : name,
             phone: model.value.carrier_driver.phone,
@@ -279,8 +280,10 @@ const driversOptions = computed(() => {
     return res
 })
 
+
 const handleCarrierChange = async (e) => {
     const selectedCarrier = carrierOptions.value.find((el) => el.value === e)
+    model.value.carrier = selectedCarrier
     model.value.carrier_vat = selectedCarrier.vat
     await fetchDriversByCarrier()
     await fetchCarsByCarrier()
@@ -1011,7 +1014,7 @@ watch(() => prop.loading, async (v) => {
                             <a-select-option :value="2">Наличные</a-select-option>
                         </a-select>
                         <template v-if="!!model.carrier_id">
-                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Водитель</a-divider>
+                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Водитель{{model.carrier_driver && model.carrier_driver.inn ? ` - ИНН: ${model.carrier_driver.inn}` : '' }}</a-divider>
                             <a-select
                                 v-model:value="model.carrier_driver_id"
                                 placeholder="Выберите водителя"
@@ -1019,13 +1022,14 @@ watch(() => prop.loading, async (v) => {
                                 :options="driversOptions"
                                 @focus="fetchDriversByCarrier"
                             >
-                                <template #option="{ name, phone }">
+                                <template #option="{ name, phone, inn }">
                                     <div style="display: flex; justify-content: space-between; align-items: center">
                                         <div>{{ name }}</div>
                                         <div style="font-size: 11px; font-weight: 500">
                                             {{ phone }}
                                         </div>
                                     </div>
+                                    <div v-if="inn" style="font-size: 11px; font-weight: 500">ИНН: {{inn}}</div>
                                 </template>
                                 <template v-if="suggest.isLoading" #notFoundContent>
                                     <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
@@ -1306,7 +1310,7 @@ watch(() => prop.loading, async (v) => {
                 title="Куда"
                 add-button-text="Добавить адрес разгрузки"
                 @change="orderCalculate"
-                client-id="model.client_id"
+                :client-id="model.client_id"
             />
         </a-col>
     </a-row>
