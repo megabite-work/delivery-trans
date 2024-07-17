@@ -93,7 +93,7 @@ class DriverController extends Controller
     public function getDriversByCarrierID(Request $request)
     {
         $drivers = DB::table("drivers")
-            ->select("id", "surname", "name", "patronymic", "phone", "email", "is_active")
+            ->select("id", "surname", "name", "inn", "patronymic", "phone", "email", "is_active")
             ->where("carrier_id", $request['carrier_id'])
             ->get();
 

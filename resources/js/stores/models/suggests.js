@@ -168,6 +168,7 @@ export const useSuggests = defineStore('suggests', () => {
                     name,
                     label: label !== '' ? `${name} (${label})` : name,
                     phone: el.phone,
+                    inn: el.inn,
                     disabled: !el.is_active,
                 }
             })
