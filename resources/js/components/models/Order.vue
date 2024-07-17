@@ -1306,7 +1306,7 @@ watch(() => prop.loading, async (v) => {
                 title="Куда"
                 add-button-text="Добавить адрес разгрузки"
                 @change="orderCalculate"
-                client-id="model.client_id"
+                :client-id="model.client_id"
             />
         </a-col>
     </a-row>

@@ -23,7 +23,7 @@ class ContactController extends Controller
         ]);
         $data["q"] = $request->get("q", "");
         $query = <<<SQL
-            select value, note from contacts
+            select distinct value, note from contacts
                                where value ilike :q
                                  and type = :type
                                  and owner_type = :owner_type
