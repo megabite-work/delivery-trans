@@ -1,6 +1,8 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import axios from "axios";
+import {isArray} from "radash";
+import dayjs from "dayjs";
 
 export const useCarriersStore = defineStore('carriers', () => {
     const err = ref(null)
@@ -70,8 +72,11 @@ export const useCarriersStore = defineStore('carriers', () => {
 
     async function getCarrier(carrierId) {
         try {
-            const carrier = await axios.get(`api/carriers/${carrierId}`)
-            return carrier.data
+            const { data } = await axios.get(`api/carriers/${carrierId}`)
+            if (isArray(data.cars)) {
+                data.cars = data.cars.map(el => ({...el, sts_date: el.sts_date ? dayjs (el.sts_date) : null }))
+            }
+            return data
         } catch (e) {
             if (e.response) {
                 err.value = e.response.data
@@ -82,8 +87,11 @@ export const useCarriersStore = defineStore('carriers', () => {
 
     async function createCarrier(carrier) {
         try {
-            const res = await axios.post('api/carriers', carrier)
-            return res.data
+            const {data} = await axios.post('api/carriers', carrier)
+            if (isArray(data.cars)) {
+                data.cars = data.cars.map(el => ({...el, sts_date: el.sts_date ? dayjs (el.sts_date) : null }))
+            }
+            return data
         } catch (e) {
             if (e.response) {
                 err.value = e.response.data
@@ -94,8 +102,11 @@ export const useCarriersStore = defineStore('carriers', () => {
 
     async function storeCarrier(carrier) {
         try {
-            const res = await axios.put(`api/carriers/${carrier.id}`, carrier)
-            return res.data
+            const {data} = await axios.put(`api/carriers/${carrier.id}`, carrier)
+            if (isArray(data.cars)) {
+                data.cars = data.cars.map(el => ({...el, sts_date: el.sts_date ? dayjs (el.sts_date) : null }))
+            }
+            return data
         } catch (e) {
             if (e.response) {
                 err.value = e.response.data

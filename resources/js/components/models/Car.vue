@@ -1,8 +1,5 @@
 <script setup>
 import {reactive, ref, watch} from "vue";
-import {message} from "ant-design-vue";
-
-import axios from "axios";
 import {useSuggests} from "../../stores/models/suggests.js";
 
 const model = defineModel()
@@ -72,6 +69,27 @@ const fetchTonnages = async () => {
                         :options="bodyTypesOptionsList"
                         :loading="suggest.isLoading"
                         @focus="getBodyTypesOptionsList"
+                    />
+                </a-form-item>
+            </a-col>
+        </a-row>
+        <a-row :gutter="16">
+            <a-col :span="12">
+                <a-form-item label="Серия и номер СТС" name="sts_number" :validate-status="err.sts_number ? 'error': undefined" :help="err.sts_number">
+                    <a-input
+                        v-model:value="model.sts_number"
+                        placeholder="Серия и номер СТС"
+                        :maxlength="10"
+                    />
+                </a-form-item>
+            </a-col>
+            <a-col :span="12">
+                <a-form-item label="Дата выдачи СТС" name="sts_date" :validate-status="err.sts_date ? 'error': undefined" :help="err.sts_date">
+                    <a-date-picker
+                        v-model:value="model.sts_date"
+                        placeholder="Дата выдачи СТС"
+                        style="width: 100%"
+                        format="DD.MM.YYYY"
                     />
                 </a-form-item>
             </a-col>
