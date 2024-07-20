@@ -70,8 +70,8 @@ const handleWeightTypeChange = (v) => {
 const currentCarrierTab = ref('carrier')
 const currentClientTab = ref('client')
 
-const weightSegments = ['кг', 'т']
-const weightSegmentsValue = ref('кг')
+const weightSegments = ['т', 'кг']
+const weightSegmentsValue = ref('т')
 
 const cargoNameOptions = ref([])
 const handleCargoNameSearch = debounce({delay: 500}, async (q) => {
