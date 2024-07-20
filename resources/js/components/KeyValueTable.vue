@@ -19,7 +19,7 @@ const prop = defineProps({
 })
 
 const model = defineModel({type: Array, default: []})
-const emit = defineEmits(["update"])
+const emit = defineEmits(["update", "add"])
 
 const columns = [
     {key: 'k', title: prop.headerKeyText},
@@ -27,7 +27,9 @@ const columns = [
 ]
 
 const currentRowIdx = ref(-1)
+const isAdded = ref(false)
 const addRow = () => {
+    isAdded.value = true
     if (currentRowIdx.value >= 0) {applyRow(null)}
     model.value = [{ k: '', v: 0 }, ...model.value]
     editRow(0)
@@ -38,6 +40,10 @@ const applyRow = (e) => {
     if (!!e) { e.stopPropagation() }
     currentRowIdx.value = -1
     emit('update')
+    if (isAdded.value) {
+        emit('add', model.value[0])
+        isAdded.value = false
+    }
 }
 const deleteRow = (e, idx) => {
     e.stopPropagation()
