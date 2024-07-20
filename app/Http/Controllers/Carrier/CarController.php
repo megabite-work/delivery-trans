@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CarResource;
 use App\Models\Car;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
 
@@ -37,7 +38,12 @@ class CarController extends Controller
             'loading_rear' => 'nullable|boolean',
             'loading_lateral' => 'nullable|boolean',
             'loading_upper' => 'nullable|boolean',
+            'sts_number' => 'nullable|string',
+            'sts_date' => 'nullable|date',
         ]);
+        if (array_key_exists('sts_date', $data)){
+            $data['sts_date'] = Date::parse($data['sts_date'])->timezone("Europe/Moscow");
+        }
         $car = Car::create($data);
         return response()->json(new CarResource($car), 201);
     }
@@ -66,7 +72,12 @@ class CarController extends Controller
             'loading_rear' => 'nullable|boolean',
             'loading_lateral' => 'nullable|boolean',
             'loading_upper' => 'nullable|boolean',
+            'sts_number' => 'nullable|string',
+            'sts_date' => 'nullable|date',
         ]);
+        if (array_key_exists('sts_date', $data)){
+            $data['sts_date'] = Date::parse($data['sts_date'])->timezone("Europe/Moscow");
+        }
         $car->update($data);
         return response()->json(new CarResource($car));
     }

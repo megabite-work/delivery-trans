@@ -70,8 +70,8 @@ const handleWeightTypeChange = (v) => {
 const currentCarrierTab = ref('carrier')
 const currentClientTab = ref('client')
 
-const weightSegments = ['кг', 'т']
-const weightSegmentsValue = ref('кг')
+const weightSegments = ['т', 'кг']
+const weightSegmentsValue = ref('т')
 
 const cargoNameOptions = ref([])
 const handleCargoNameSearch = debounce({delay: 500}, async (q) => {
@@ -956,6 +956,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         @update="orderCalculate"
+                        @add="(el) => model.carrier_expenses.unshift(el)"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="discount" tab="Скидки">
@@ -970,6 +971,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         @update="orderCalculate"
+                        @add="() => {}"
                     />
                 </a-tab-pane>
             </a-tabs>
@@ -1275,6 +1277,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         @update="orderCalculate"
+                        @add="(el) => model.client_expenses.unshift(el)"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="fines" tab="Штрафы">
@@ -1289,6 +1292,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         @update="orderCalculate"
+                        @add="()=>{}"
                     />
                 </a-tab-pane>
             </a-tabs>

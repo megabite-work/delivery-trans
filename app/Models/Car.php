@@ -21,6 +21,8 @@ class Car extends Model
         "loading_rear",
         "loading_lateral",
         "loading_upper",
+        "sts_number",
+        "sts_date"
     ];
 
     public function carrier()

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from "../stores/auth.js";
 
 import ruRU from 'ant-design-vue/locale/ru_RU';
+import 'dayjs/locale/ru';
 
 defineProps({
     title: String,
