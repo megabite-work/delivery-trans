@@ -4,7 +4,6 @@ import { useRoute, useRouter } from "vue-router";
 import axios from 'axios';
 import {useAuthStore} from "../../stores/auth.js";
 import {message} from "ant-design-vue";
-// import Logo from "../../components/icons/Logo.vue";
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -24,7 +23,7 @@ const errorText = ref('')
 const onFinish = (cred) => {
     isLoading.value = true
     axios.post('login', cred)
-        .then(async (res) => {
+        .then(async () => {
             await authStore.refreshState()
             hasError.value = false
             router.replace({path: route.query.redirect || '/'})
