@@ -5,6 +5,7 @@ import {
     CloseCircleTwoTone,
     PlusCircleOutlined,
 } from "@ant-design/icons-vue";
+import {debounce, isFunction} from "radash";
 
 const prop = defineProps({
     scroll: { type: Object, required: false },
@@ -15,7 +16,8 @@ const prop = defineProps({
     valuePlaceholderText: {type: String, default: 'Значение'},
     valuePostfixText: {type: String, default: ''},
     valueWidth: { type: Number, default: 150 },
-    size: {type: String, default: 'small'}
+    size: {type: String, default: 'small'},
+    suggests: {type: Function}
 })
 
 const model = defineModel({type: Array, default: []})
@@ -25,9 +27,15 @@ const columns = [
     {key: 'k', title: prop.headerKeyText},
     {key: 'v', title: prop.headerValueText, width: prop.valueWidth},
 ]
-
+const suggestOptions = ref([])
 const currentRowIdx = ref(-1)
 const isAdded = ref(false)
+
+const handleSearch = debounce({delay: 500},async q => {
+    if (isFunction(prop.suggests)) {
+        suggestOptions.value = (await prop.suggests(q)).map(el => ({value: el}))
+    }
+})
 const addRow = () => {
     isAdded.value = true
     if (currentRowIdx.value >= 0) {applyRow(null)}
@@ -70,9 +78,16 @@ const deleteRow = (e, idx) => {
         <template #bodyCell="rec">
             <template v-if="rec.index === currentRowIdx">
                 <template v-if="rec.column.key === 'k'">
-                    <a-input
+<!--                    <a-input-->
+<!--                        v-model:value="model[currentRowIdx].k"-->
+<!--                        :placeholder="keyPlaceholderText"-->
+<!--                    />-->
+                    <a-auto-complete
                         v-model:value="model[currentRowIdx].k"
+                        :options="suggestOptions"
                         :placeholder="keyPlaceholderText"
+                        @search="handleSearch"
+                        style="width: 100%"
                     />
                 </template>
                 <template v-if="rec.column.key === 'v'">

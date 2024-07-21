@@ -73,7 +73,8 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('suggest/address', [SuggestController::class, 'addressSuggest'])->name("suggest.address");
     Route::get('suggest/additional-services/name', [AdditionalServiceController::class, 'nameSuggest'])->name("suggest.additional-services.name");
     Route::get('suggest/additional-services/price', [AdditionalServiceController::class, 'priceSuggest'])->name("suggest.additional-services.price");
-    Route::get('suggest/order-carrier-car', [OrderController::class, 'getLastOrderCarrierCars'])->name("suggest.order-carrier-car");
+    Route::get('suggest/order-driver-car', [OrderController::class, 'getLastOrderDriverCars'])->name("suggest.order-driver-car");
+    Route::get('suggest/expenses', [OrderController::class, 'getAdditionalExpensesSuggestions'])->name("suggest.expenses");
     Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 });
 

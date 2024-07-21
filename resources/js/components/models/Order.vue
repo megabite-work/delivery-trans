@@ -52,7 +52,7 @@ const syncCargoWeightWithCap = debounce({delay: 500}, async (tonnage, pallets) =
     const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= tonnage && (!model.value.cargo_in_pallets || el.pallets_count >= pallets))
     if (o) {
         model.value.car_capacity_id = o.id
-        await orderCalculate()
+        await orderCalculate(false)
     }
 })
 
@@ -165,7 +165,7 @@ const handlePRefresh = async () => {
         }
     }
     if (!ncl && !nca) {
-        await orderCalculate()
+        await orderCalculate(false)
         return
     }
     await fetchDefaultPricesOptions()
@@ -182,13 +182,14 @@ const handlePRefresh = async () => {
     if (nca) {
         applyDefaultPrice(p, 'CARRIER', true)
     }
-    await orderCalculate()
+    await orderCalculate(false)
 }
 
 const orderCalculation = ref({
     client: {sum: 0, expenses: 0, discount: 0, service: 0, total: 0, calculated: true},
     carrier: {sum: 0, expenses: 0, fine: 0, total: 0, calculated: true}
 })
+
 const orderCalculate = debounce({delay: 500}, async (drill = false) => {
     try {
         const { data } = await axios.post('/api/calculate', model.value)
@@ -287,19 +288,17 @@ const handleCarrierChange = async (e) => {
     model.value.carrier_vat = selectedCarrier.vat
     await fetchDriversByCarrier()
     await fetchCarsByCarrier()
-    const lastCar = await suggest.getLastOrderCarrierCar(e)
-    if (lastCar === null) {
-        model.value.carrier_driver_id = undefined
-        model.value.carrier_car_id = undefined
-        model.value.carrier_trailer_id = undefined
-        carsList.value = []
-        trailerList.value = []
-        driversList.value = []
-        return
+    model.value.carrier_driver_id = undefined
+    model.value.carrier_car_id = undefined
+    model.value.carrier_trailer_id = undefined
+}
+
+const handleDriverChange = async e => {
+    const lastCar = await suggest.getLastOrderDriverCar(e, model.value.car_capacity_id)
+    if (lastCar) {
+        model.value.carrier_car_id = lastCar.carrier_car_id
+        model.value.carrier_trailer_id = lastCar.carrier_trailer_id
     }
-    model.value.carrier_car_id = lastCar.carrier_car_id
-    model.value.carrier_trailer_id = lastCar.carrier_trailer_id
-    model.value.carrier_driver_id = lastCar.carrier_driver_id
 }
 
 const handleCarChange = () => {
@@ -415,25 +414,25 @@ const carrierPriceEditing = ref(false)
 
 const acceptCustomClientPrice = async () => {
     model.value.client_sum_calculated = false
-    await orderCalculate()
+    await orderCalculate(false)
     clientPriceEditing.value = false
 }
 
 const resetCustomClientPrice = async () => {
     model.value.client_sum_calculated = true
-    await orderCalculate()
+    await orderCalculate(false)
     clientPriceEditing.value = false
 }
 
 const acceptCustomCarrierPrice = async () => {
     model.value.carrier_sum_calculated = false
-    await orderCalculate()
+    await orderCalculate(false)
     carrierPriceEditing.value = false
 }
 
 const resetCustomCarrierPrice = async () => {
     model.value.carrier_sum_calculated = true
-    await orderCalculate()
+    await orderCalculate(false)
     carrierPriceEditing.value = false
 }
 
@@ -849,7 +848,7 @@ watch(() => prop.loading, async (v) => {
                                                 <a-menu-item
                                                     v-for="defaultPrice in defaultPricesOptions"
                                                     :key="defaultPrice.id"
-                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CLIENT'); await orderCalculate()}"
+                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CLIENT'); await orderCalculate(false)}"
                                                 >
                                                     {{defaultPrice.name}}
                                                 </a-menu-item>
@@ -868,7 +867,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Ставка"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / час</div>
@@ -884,7 +883,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Минимум часов"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">час.</div>
@@ -900,7 +899,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Часов на подачу"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">час.</div>
@@ -916,7 +915,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Тариф поездки за МКАД"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / км.</div>
@@ -933,7 +932,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
-                                    @change="(e) => { syncMKADRate(e); orderCalculate() }"
+                                    @change="(e) => { syncMKADRate(e); orderCalculate(false) }"
                                     @blur="handleMKADrateBlur"
                                 >
                                     <template #addonAfter>
@@ -955,8 +954,9 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update="orderCalculate"
-                        @add="(el) => model.carrier_expenses.unshift(el)"
+                        :suggests="suggest.expensesSuggest"
+                        @update="() => orderCalculate(false)"
+                        @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift(el) : model.carrier_expenses = [el]"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="discount" tab="Скидки">
@@ -970,8 +970,7 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Скидка"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update="orderCalculate"
-                        @add="() => {}"
+                        @update="() => orderCalculate(false)"
                     />
                 </a-tab-pane>
             </a-tabs>
@@ -1023,6 +1022,7 @@ watch(() => prop.loading, async (v) => {
                                 :style="{ width: '100%' }"
                                 :options="driversOptions"
                                 @focus="fetchDriversByCarrier"
+                                @change="handleDriverChange"
                             >
                                 <template #option="{ name, phone, inn }">
                                     <div style="display: flex; justify-content: space-between; align-items: center">
@@ -1143,7 +1143,7 @@ watch(() => prop.loading, async (v) => {
                                 format="DD.MM.YYYY HH:mm"
                                 :show-time="{ defaultValue: dayjs('00:00', 'HH:mm') }"
                                 style="width: 100%"
-                                @change="orderCalculate"
+                                @change="() => orderCalculate(false)"
                             />
                         </template>
                     </a-space>
@@ -1172,7 +1172,7 @@ watch(() => prop.loading, async (v) => {
                                                 <a-menu-item
                                                     v-for="defaultPrice in defaultPricesOptions"
                                                     :key="defaultPrice.id"
-                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CARRIER'); await orderCalculate()}"
+                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CARRIER'); await orderCalculate(false)}"
                                                 >
                                                     {{defaultPrice.name}}
                                                 </a-menu-item>
@@ -1191,7 +1191,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Ставка"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / час</div>
@@ -1207,7 +1207,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Минимум часов"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter><div style="width: 45px">час.</div></template>
                                 </a-input-number>
@@ -1221,7 +1221,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Часов на подачу"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">час.</div>
@@ -1237,7 +1237,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Тариф поездки за МКАД"
-                                    @change="orderCalculate"
+                                    @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / км.</div>
@@ -1254,7 +1254,7 @@ watch(() => prop.loading, async (v) => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Поездка за МКАД"
-                                    @change="(e) => { syncMKADRate(e); orderCalculate() }"
+                                    @change="(e) => { syncMKADRate(e); orderCalculate(false) }"
                                     @blur="handleMKADrateBlur"
                                 >
                                     <template #addonAfter>
@@ -1276,8 +1276,9 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update="orderCalculate"
-                        @add="(el) => model.client_expenses.unshift(el)"
+                        :suggests="suggest.expensesSuggest"
+                        @update="() => orderCalculate(false)"
+                        @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift(el) : model.client_expense = [el]"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="fines" tab="Штрафы">
@@ -1291,7 +1292,7 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Штраф"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
-                        @update="orderCalculate"
+                        @update="() => orderCalculate(false)"
                         @add="()=>{}"
                     />
                 </a-tab-pane>
@@ -1304,7 +1305,7 @@ watch(() => prop.loading, async (v) => {
                 v-model="model.from_locations"
                 title="Откуда"
                 add-button-text="Добавить адрес загрузки"
-                @change="orderCalculate"
+                @change="() => orderCalculate(false)"
                 :client-id="model.client_id"
             />
         </a-col>
@@ -1313,7 +1314,7 @@ watch(() => prop.loading, async (v) => {
                 v-model="model.to_locations"
                 title="Куда"
                 add-button-text="Добавить адрес разгрузки"
-                @change="orderCalculate"
+                @change="() => orderCalculate(false)"
                 :client-id="model.client_id"
             />
         </a-col>
@@ -1329,7 +1330,7 @@ watch(() => prop.loading, async (v) => {
         value-placeholder-text="Сумма"
         value-postfix-text="₽"
         :select-fetcher="suggest.getAdditionalServices"
-        @change="orderCalculate"
+        @change="() => orderCalculate(false)"
     />
 </a-form>
 
