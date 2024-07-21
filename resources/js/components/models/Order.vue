@@ -956,7 +956,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         @update="orderCalculate"
-                        @add="(el) => model.carrier_expenses.unshift(el)"
+                        @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift(el) : model.carrier_expenses = [el]"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="discount" tab="Скидки">
@@ -971,7 +971,6 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         @update="orderCalculate"
-                        @add="() => {}"
                     />
                 </a-tab-pane>
             </a-tabs>
@@ -1277,7 +1276,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         @update="orderCalculate"
-                        @add="(el) => model.client_expenses.unshift(el)"
+                        @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift(el) : model.client_expense = [el]"
                     />
                 </a-tab-pane>
                 <a-tab-pane key="fines" tab="Штрафы">
