@@ -955,6 +955,7 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        :suggests="suggest.expensesSuggest"
                         @update="orderCalculate"
                         @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift(el) : model.carrier_expenses = [el]"
                     />
@@ -1275,6 +1276,7 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Расход"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        :suggests="suggest.expensesSuggest"
                         @update="orderCalculate"
                         @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift(el) : model.client_expense = [el]"
                     />

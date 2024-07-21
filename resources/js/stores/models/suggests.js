@@ -156,6 +156,18 @@ export const useSuggests = defineStore('suggests', () => {
         }
     }
 
+    const expensesSuggest = async q => {
+        try {
+            isLoading.value = true
+            const {data} = await axios.get('api/suggest/expenses', {params: { q }})
+            return data
+        } catch {
+            message.error('Ошибка загрузки списка')
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     const getDriversByCarrier = async carrier_id => {
         try {
             isLoading.value = true
@@ -230,6 +242,6 @@ export const useSuggests = defineStore('suggests', () => {
         err, isLoading,
         getCargoNameSuggest, getTonnages, getCarBodyTypes, getTConditions, searchClient, searchCarrier,
         getDriversByCarrier, getCarsByCarrier, getAdditionalServices, getCarCapacities, firmSuggest,
-        bankSuggest, addressSuggest, getLastOrderCarrierCar
+        bankSuggest, addressSuggest, getLastOrderCarrierCar, expensesSuggest
     }
 })

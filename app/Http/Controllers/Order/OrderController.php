@@ -302,4 +302,26 @@ class OrderController extends Controller
         }
         return response()->noContent();
     }
+
+    public function getAdditionalExpensesSuggestions(Request $request)
+    {
+        $q = $request->get("q", "");
+        $query = <<<SQL
+            select distinct s.k
+            from ((select ja ->> 'k' as k
+                   from orders o,
+                        json_array_elements(o.client_expenses::json) ja
+                   where ja ->> 'k' ilike :q
+                   limit 10)
+                  union
+                  (select ja ->> 'k' as k
+                   from orders o,
+                        json_array_elements(o.carrier_expenses::json) ja
+                   where ja ->> 'k' ilike :q
+                   limit 10)) s
+        SQL;
+        $query = DB::select($query, ['q' => '%'.$q.'%']);
+        return response()->json(collect($query)->pluck('k')->all());
+    }
 }
+
