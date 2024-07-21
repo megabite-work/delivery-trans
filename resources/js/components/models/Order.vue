@@ -287,19 +287,17 @@ const handleCarrierChange = async (e) => {
     model.value.carrier_vat = selectedCarrier.vat
     await fetchDriversByCarrier()
     await fetchCarsByCarrier()
-    const lastCar = await suggest.getLastOrderCarrierCar(e)
-    if (lastCar === null) {
-        model.value.carrier_driver_id = undefined
-        model.value.carrier_car_id = undefined
-        model.value.carrier_trailer_id = undefined
-        carsList.value = []
-        trailerList.value = []
-        driversList.value = []
-        return
+    model.value.carrier_driver_id = undefined
+    model.value.carrier_car_id = undefined
+    model.value.carrier_trailer_id = undefined
+}
+
+const handleDriverChange = async e => {
+    const lastCar = await suggest.getLastOrderDriverCar(e, model.value.car_capacity_id)
+    if (lastCar) {
+        model.value.carrier_car_id = lastCar.carrier_car_id
+        model.value.carrier_trailer_id = lastCar.carrier_trailer_id
     }
-    model.value.carrier_car_id = lastCar.carrier_car_id
-    model.value.carrier_trailer_id = lastCar.carrier_trailer_id
-    model.value.carrier_driver_id = lastCar.carrier_driver_id
 }
 
 const handleCarChange = () => {
@@ -1023,6 +1021,7 @@ watch(() => prop.loading, async (v) => {
                                 :style="{ width: '100%' }"
                                 :options="driversOptions"
                                 @focus="fetchDriversByCarrier"
+                                @change="handleDriverChange"
                             >
                                 <template #option="{ name, phone, inn }">
                                     <div style="display: flex; justify-content: space-between; align-items: center">
