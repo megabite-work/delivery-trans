@@ -151,12 +151,16 @@ class OrderController extends Controller
                     left join carriers carrier on orders.carrier_id = carrier.id
                     left join cars car on orders.carrier_car_id = car.id
                     left join cars trailer on orders.carrier_trailer_id = trailer.id
+                    left join drivers driver on orders.carrier_driver_id = driver.id
                 EOD;
                 $whereExp .= <<<EOD
                     and (client.inn ilike :text or client.name_full ilike :text or client.name_short ilike :text or
                     carrier.inn ilike :text or carrier.name_full ilike :text or carrier.name_short ilike :text or
                     car.name ilike :text or car.plate_number ilike :text or
-                    trailer.name ilike :text or trailer.plate_number ilike :text)
+                    trailer.name ilike :text or trailer.plate_number ilike :text or
+                    driver.name ilike :text or driver.surname ilike :text or
+                    driver.patronymic ilike :text or driver.phone ilike :text or
+                    driver.email ilike :text or driver.inn ilike :text)
                 EOD;
                 $params["text"] = '%'.$f["text"].'%';
             }

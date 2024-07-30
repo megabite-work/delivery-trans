@@ -1,13 +1,12 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import {onBeforeUnmount, onMounted, reactive, ref, h} from "vue";
-import {message} from "ant-design-vue";
+import {onBeforeUnmount, onMounted, reactive, ref, h, createVNode} from "vue";
+import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-import {FilterOutlined, SearchOutlined, ArrowRightOutlined} from "@ant-design/icons-vue";
+import {FilterOutlined, SearchOutlined, ArrowRightOutlined, ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import {isArray} from "radash";
-
 import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
 
@@ -24,6 +23,7 @@ const columnsOrders = ref([
     },
     { title: 'Заказчик', key: 'client' },
     { title: 'Перевозчик', key: 'carrier' },
+    { title: 'Водитель', key: 'driver' },
     { title: 'Авто', key: 'vehicle' },
     { title: 'Вес груза', key: 'weight'},
     { title: 'Сумма', key: 'client_sum', fixed: 'right'},
@@ -32,7 +32,16 @@ const columnsOrders = ref([
     { title: 'Маржа %', key: 'margin_percent', fixed: 'right'},
 ])
 
-
+const showModalCloseConfirm = () => {
+    Modal.confirm({
+        title: 'Закрыть заявку',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: createVNode('div', { style: 'color:red;' }, 'Заявка не была сохранена. Вы хотите закрыть ее?'),
+        onOk() {
+            mainDrawer.isOpen = false
+        }
+    });
+};
 
 const ordersStore = useOrdersStore()
 const clientHeight = ref(document.documentElement.clientHeight)
@@ -62,6 +71,10 @@ const openMainDrawer = async (orderId = null) => {
 const closeMainDrawer = () => {
     if (mainDrawer.isSaving) {
         return
+    }
+    if (currentOrder.data.id === null && Object.keys(currentOrder.data).length > 1) {
+        showModalCloseConfirm()
+        return;
     }
     mainDrawer.isOpen = false
     currentOrder.data = { id: null }
@@ -150,7 +163,7 @@ onBeforeUnmount(() => {
                             <template #label>
                                 <search-outlined />
                             </template>
-                            <a-input v-model:value="ordersStore.filter.text" placeholder="Поисковая строка" style="width: 100%"/>
+                            <a-input v-model:value="ordersStore.filter.text" placeholder="Поисковая строка" style="width: 395px"/>
                         </a-form-item>
                     </div>
                     <div>
@@ -236,14 +249,13 @@ onBeforeUnmount(() => {
             :scroll="{ y: clientHeight - 335, x: 1500 }"
             :row-class-name="() => 'cursor-pointer'"
             :row-expandable="record => (record.from_locations && record.from_locations.length > 0) || (record.to_locations && record.to_locations.length > 0)"
-            :default-expand-all-rows="true"
             row-key="id"
             expand-fixed="id"
             @change="handleTableChange"
             size="small"
         >
             <template #headerCell="cell">
-                <div v-if="!isArray(cell.title)" style="font-size: 12px; text-wrap: none; white-space: nowrap; text-align: center">
+                <div v-if="!isArray(cell.title)" style="font-size: 12px; white-space: nowrap; text-align: center">
                     {{cell.title}}
                 </div>
             </template>
@@ -323,6 +335,17 @@ onBeforeUnmount(() => {
                 <template v-if="column.key === 'carrier'">
                     <div style="text-align: right; font-size: 12px">{{ record.carrier ? record.carrier.name_short : '–' }}</div>
                 </template>
+                <template v-if="column.key === 'driver'">
+                    <div style="text-align: right; font-size: 12px">
+                        {{ record.carrier_driver ? `${record.carrier_driver.surname} ${record.carrier_driver.name}` : '–' }}
+                        <template v-if="record.carrier_driver && record.carrier_driver.phone">
+                            <br/>{{record.carrier_driver.phone}}
+                        </template>
+                        <template v-else-if="record.carrier_driver && record.carrier_driver.email">
+                            <br/>{{record.carrier_driver.email}}
+                        </template>
+                    </div>
+                </template>
                 <template v-if="column.key === 'vehicle'">
                     <div v-if="record.carrier_car && record.carrier_car.body_type" style="text-align: right; font-size: 12px">
                         {{ record.carrier_car.body_type }}<br v-if="record.carrier_car.body_type"/>
@@ -364,7 +387,7 @@ onBeforeUnmount(() => {
             v-model:open="mainDrawer.isOpen"
             @save="saveOrder"
             @delete="deleteOrder"
-            @close="() => {mainDrawer.isOpen = false}"
+            @close="closeMainDrawer"
             :width="900"
             :loading="mainDrawer.isLoading"
             :saving="mainDrawer.isSaving"
@@ -374,6 +397,8 @@ onBeforeUnmount(() => {
             :need-delete="currentOrder.data.id !== null"
             need-deletion-confirm-text="Вы уверены? Заявка будет удалена!"
             delete-text="Удалить"
+            :maskClosable="currentOrder.data.id !== null"
+            :closable="currentOrder.data.id !== null"
         >
             <Order v-model="currentOrder.data" :loading="mainDrawer.isLoading" :errors="ordersStore.err?.errors"/>
         </drawer>
