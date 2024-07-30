@@ -1,13 +1,12 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import {onBeforeUnmount, onMounted, reactive, ref, h} from "vue";
-import {message} from "ant-design-vue";
+import {onBeforeUnmount, onMounted, reactive, ref, h, createVNode} from "vue";
+import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-import {FilterOutlined, SearchOutlined, ArrowRightOutlined} from "@ant-design/icons-vue";
+import {FilterOutlined, SearchOutlined, ArrowRightOutlined, ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import {isArray} from "radash";
-
 import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
 
@@ -33,7 +32,16 @@ const columnsOrders = ref([
     { title: 'Маржа %', key: 'margin_percent', fixed: 'right'},
 ])
 
-
+const showModalCloseConfirm = () => {
+    Modal.confirm({
+        title: 'Закрыть заявку',
+        icon: createVNode(ExclamationCircleOutlined),
+        content: createVNode('div', { style: 'color:red;' }, 'Заявка не была сохранена. Вы хотите закрыть ее?'),
+        onOk() {
+            mainDrawer.isOpen = false
+        }
+    });
+};
 
 const ordersStore = useOrdersStore()
 const clientHeight = ref(document.documentElement.clientHeight)
@@ -63,6 +71,10 @@ const openMainDrawer = async (orderId = null) => {
 const closeMainDrawer = () => {
     if (mainDrawer.isSaving) {
         return
+    }
+    if (currentOrder.data.id === null && Object.keys(currentOrder.data).length > 1) {
+        showModalCloseConfirm()
+        return;
     }
     mainDrawer.isOpen = false
     currentOrder.data = { id: null }
@@ -237,7 +249,6 @@ onBeforeUnmount(() => {
             :scroll="{ y: clientHeight - 335, x: 1500 }"
             :row-class-name="() => 'cursor-pointer'"
             :row-expandable="record => (record.from_locations && record.from_locations.length > 0) || (record.to_locations && record.to_locations.length > 0)"
-            :default-expand-all-rows="true"
             row-key="id"
             expand-fixed="id"
             @change="handleTableChange"
@@ -376,7 +387,7 @@ onBeforeUnmount(() => {
             v-model:open="mainDrawer.isOpen"
             @save="saveOrder"
             @delete="deleteOrder"
-            @close="() => {mainDrawer.isOpen = false}"
+            @close="closeMainDrawer"
             :width="900"
             :loading="mainDrawer.isLoading"
             :saving="mainDrawer.isSaving"
@@ -386,6 +397,8 @@ onBeforeUnmount(() => {
             :need-delete="currentOrder.data.id !== null"
             need-deletion-confirm-text="Вы уверены? Заявка будет удалена!"
             delete-text="Удалить"
+            :maskClosable="currentOrder.data.id !== null"
+            :closable="currentOrder.data.id !== null"
         >
             <Order v-model="currentOrder.data" :loading="mainDrawer.isLoading" :errors="ordersStore.err?.errors"/>
         </drawer>
