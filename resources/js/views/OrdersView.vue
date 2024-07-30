@@ -24,6 +24,7 @@ const columnsOrders = ref([
     },
     { title: 'Заказчик', key: 'client' },
     { title: 'Перевозчик', key: 'carrier' },
+    { title: 'Водитель', key: 'driver' },
     { title: 'Авто', key: 'vehicle' },
     { title: 'Вес груза', key: 'weight'},
     { title: 'Сумма', key: 'client_sum', fixed: 'right'},
@@ -243,7 +244,7 @@ onBeforeUnmount(() => {
             size="small"
         >
             <template #headerCell="cell">
-                <div v-if="!isArray(cell.title)" style="font-size: 12px; text-wrap: none; white-space: nowrap; text-align: center">
+                <div v-if="!isArray(cell.title)" style="font-size: 12px; white-space: nowrap; text-align: center">
                     {{cell.title}}
                 </div>
             </template>
@@ -322,6 +323,17 @@ onBeforeUnmount(() => {
                 </template>
                 <template v-if="column.key === 'carrier'">
                     <div style="text-align: right; font-size: 12px">{{ record.carrier ? record.carrier.name_short : '–' }}</div>
+                </template>
+                <template v-if="column.key === 'driver'">
+                    <div style="text-align: right; font-size: 12px">
+                        {{ record.carrier_driver ? `${record.carrier_driver.surname} ${record.carrier_driver.name}` : '–' }}
+                        <template v-if="record.carrier_driver.phone">
+                            <br/>{{record.carrier_driver.phone}}
+                        </template>
+                        <template v-else-if="record.carrier_driver.email">
+                            <br/>{{record.carrier_driver.email}}
+                        </template>
+                    </div>
                 </template>
                 <template v-if="column.key === 'vehicle'">
                     <div v-if="record.carrier_car && record.carrier_car.body_type" style="text-align: right; font-size: 12px">
