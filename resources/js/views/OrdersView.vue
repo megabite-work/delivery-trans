@@ -151,7 +151,7 @@ onBeforeUnmount(() => {
                             <template #label>
                                 <search-outlined />
                             </template>
-                            <a-input v-model:value="ordersStore.filter.text" placeholder="Поисковая строка" style="width: 100%"/>
+                            <a-input v-model:value="ordersStore.filter.text" placeholder="Поисковая строка" style="width: 395px"/>
                         </a-form-item>
                     </div>
                     <div>
@@ -327,10 +327,10 @@ onBeforeUnmount(() => {
                 <template v-if="column.key === 'driver'">
                     <div style="text-align: right; font-size: 12px">
                         {{ record.carrier_driver ? `${record.carrier_driver.surname} ${record.carrier_driver.name}` : '–' }}
-                        <template v-if="record.carrier_driver.phone">
+                        <template v-if="record.carrier_driver && record.carrier_driver.phone">
                             <br/>{{record.carrier_driver.phone}}
                         </template>
-                        <template v-else-if="record.carrier_driver.email">
+                        <template v-else-if="record.carrier_driver && record.carrier_driver.email">
                             <br/>{{record.carrier_driver.email}}
                         </template>
                     </div>
