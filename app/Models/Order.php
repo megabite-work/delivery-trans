@@ -133,10 +133,16 @@ class Order extends Model
         foreach ($locations as $from) {
             if (property_exists($from, 'arrive_date') && property_exists($from, 'arrive_time')) {
                 $d = Date::parse($from->arrive_date, null);
-                $t = Date::parse($from->arrive_time[0], null);
                 $d->second = 0;
-                $d->hour = $t->hour;
-                $d->minute = $t->minute;
+                $d->hour = 0;
+                $d->minute = 0;
+
+                if (is_array($from->arrive_time) && count($from->arrive_time) > 0) {
+                    $t = Date::parse($from->arrive_time[0], null);
+                    $d->hour = $t->hour;
+                    $d->minute = $t->minute;
+                }
+
                 if ($mt === null || $d->lessThan($mt)) {
                     $mt = $d;
                 }
