@@ -94,15 +94,16 @@ class OrderController extends Controller
                 $params['id'] = $f['id'];
             }
             if (array_key_exists("date", $f)) {
-                $d1 = Date::parse($f["date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
-                $d2 = Date::parse($f["date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                $d1 = Date::parse($f["date"][0])->startOfDay()->shiftTimezone("Europe/Moscow");
+                $d2 = Date::parse($f["date"][1])->endOfDay()->shiftTimezone("Europe/Moscow");
                 $whereExp .= " and orders.created_at >= :date1 and orders.created_at <= :date2";
                 $params['date1'] = $d1;
                 $params['date2'] = $d2;
+
             }
             if (array_key_exists("arrive_date", $f)) {
-                $d1 = Date::parse($f["arrive_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
-                $d2 = Date::parse($f["arrive_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                $d1 = Date::parse($f["arrive_date"][0])->startOfDay();
+                $d2 = Date::parse($f["arrive_date"][1])->endOfDay();
                 $whereExp .= " and arrive.arrive_time >= :arrive_date1 and arrive.arrive_time <= :arrive_date2";
                 $params['arrive_date1'] = $d1;
                 $params['arrive_date2'] = $d2;
@@ -119,8 +120,8 @@ class OrderController extends Controller
                     $params['status_manager'] = $f["status_manager"];
                 }
                 if (array_key_exists("status_manager_date", $f)) {
-                    $d1 = Date::parse($f["status_manager_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
-                    $d2 = Date::parse($f["status_manager_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $d1 = Date::parse($f["status_manager_date"][0])->startOfDay()->shiftTimezone("Europe/Moscow");
+                    $d2 = Date::parse($f["status_manager_date"][1])->endOfDay()->shiftTimezone("Europe/Moscow");
                     $whereExp .=" and ms.created_at >= :status_manager_date1 and ms.created_at <= :status_manager_date2";
                     $params['status_manager_date1'] = $d1;
                     $params['status_manager_date2'] = $d2;
@@ -138,8 +139,8 @@ class OrderController extends Controller
                     $params['status_logist'] = $f["status_logist"];
                 }
                 if (array_key_exists("status_logist_date", $f)) {
-                    $d1 = Date::parse($f["status_logist_date"][0])->timezone("Europe/Moscow")->format('Y-m-d');
-                    $d2 = Date::parse($f["status_logist_date"][1])->timezone("Europe/Moscow")->format('Y-m-d');
+                    $d1 = Date::parse($f["status_logist_date"][0])->startOfDay()->shiftTimezone("Europe/Moscow");
+                    $d2 = Date::parse($f["status_logist_date"][1])->endOfDay()->shiftTimezone("Europe/Moscow");
                     $whereExp .=" and ls.created_at >= :status_logist_date1 and ls.created_at <= :status_logist_date2";
                     $params['status_logist_date1'] = $d1;
                     $params['status_logist_date2'] = $d2;
