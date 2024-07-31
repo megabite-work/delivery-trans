@@ -36,7 +36,8 @@ const showModalCloseConfirm = () => {
     Modal.confirm({
         title: 'Закрыть заявку',
         icon: createVNode(ExclamationCircleOutlined),
-        content: createVNode('div', { style: 'color:red;' }, 'Заявка не была сохранена. Вы хотите закрыть ее?'),
+        content: createVNode('div', { style: 'color:red;' }, 'Заявка не была сохранена. Закрыть ее?'),
+        okText: 'Да, закрыть',
         onOk() {
             mainDrawer.isOpen = false
         }
