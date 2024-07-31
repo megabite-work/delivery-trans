@@ -58,13 +58,19 @@ export const useOrdersStore = defineStore('orders', () => {
     async function refreshDataList() {
         try {
             listLoading.value = true
+            const f = clone(filter.value)
+            Object.keys(f).forEach(k => {
+                if (k === 'date' || k === 'status_logist_date' || k === 'status_manager_date') {
+                    f[k] = f[k].map(v => dayjs(v).format('DD-MM-YYYY'))
+                }
+            })
             const res = await axios.get('api/orders', {
                 params: {
                     page: paginator.value.current,
                     per_page: paginator.value.pageSize,
                     sorter_key: sorter.value.columnKey,
                     sorter_order: sorter.value.order,
-                    filter: filter.value.isFiltered ? filter.value : undefined
+                    filter: filter.value.isFiltered ? f : undefined
                 }
             })
             dataList.value = res.data.data
