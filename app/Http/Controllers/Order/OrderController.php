@@ -161,7 +161,8 @@ class OrderController extends Controller
                     trailer.name ilike :text or trailer.plate_number ilike :text or
                     driver.name ilike :text or driver.surname ilike :text or
                     driver.patronymic ilike :text or driver.phone ilike :text or
-                    driver.email ilike :text or driver.inn ilike :text)
+                    driver.email ilike :text or driver.inn ilike :text or
+                    orders.from_locations::text ilike :text or orders.to_locations::text ilike :text)
                 EOD;
                 $params["text"] = '%'.$f["text"].'%';
             }
