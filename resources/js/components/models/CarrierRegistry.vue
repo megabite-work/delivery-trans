@@ -1,6 +1,7 @@
 <script setup>
 import {logistOrderStatuses, managerOrderStatuses} from "../../helpers/index.js";
 import dayjs from "dayjs";
+import {reactive, watch} from "vue";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
@@ -21,18 +22,29 @@ const makePaid = (v) => {
         model.value.carrier_paid = model.value.carrier_sum
     }
 }
+
+const err = reactive({ date: null, vat: null, carrier_sum: null, carrier_paid: null })
+watch(() => prop.errors, () => {
+    Object.keys(err).forEach((key) => {
+        if (prop.errors[key]) {
+            err[key] = prop.errors[key][0]
+            return
+        }
+        err[key] = null
+    })
+})
 </script>
 
 <template>
 <a-form layout="vertical" :model="model">
-    <a-form-item label="Дата реестра" name="date">
+    <a-form-item label="Дата реестра" name="date" :validate-status="err.date ? 'error': undefined" :help="err.date">
         <a-date-picker
             v-model:value="model.date"
             format="DD.MM.YYYY"
             style="width: 300px"
         />
     </a-form-item>
-    <a-form-item label="НДС">
+    <a-form-item label="НДС" name="vat" :validate-status="err.vat ? 'error': undefined" :help="err.vat">
         <a-select
             v-model:value="model.vat"
             placeholder="Выбор НДС"
@@ -44,7 +56,7 @@ const makePaid = (v) => {
     </a-form-item>
     <a-row :gutter="16">
         <a-col :span="12">
-            <a-form-item label="Сумма" name="carrier_sum">
+            <a-form-item label="Сумма" name="carrier_sum" :validate-status="err.carrier_sum ? 'error': undefined" :help="err.carrier_sum">
                 <a-input-number
                     v-model:value="model.carrier_sum"
                     :min="0"
@@ -57,7 +69,7 @@ const makePaid = (v) => {
             </a-form-item>
         </a-col>
         <a-col :span="12">
-            <a-form-item label="Оплачено" name="carrier_paid">
+            <a-form-item label="Оплачено" name="carrier_paid" :validate-status="err.carrier_paid ? 'error': undefined" :help="err.carrier_paid">
                 <a-input-number
                     v-model:value="model.carrier_paid"
                     :min="0"

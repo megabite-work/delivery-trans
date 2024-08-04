@@ -466,7 +466,7 @@ onBeforeUnmount(() => {
             <Client
                 v-model="currentClient.data"
                 :loading="mainDrawer.isLoading"
-                :errors="clientsStore.clientErr?.errors"
+                :errors="clientsStore.err?.errors"
             />
         </drawer>
 

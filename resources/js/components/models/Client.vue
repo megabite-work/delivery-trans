@@ -223,7 +223,6 @@ const accountsTableRowFn = record => ({ onClick: () => openAccountDrawer(record)
 const err = reactive({
     type: null, inn: null, kpp: null, ogrn: null, name_short: null, name_full: null
 })
-
 watch(() => prop.errors, () => {
     Object.keys(err).forEach((key) => {
         if (prop.errors[key]) {
@@ -248,7 +247,7 @@ watch(() => prop.errors, () => {
         :title="currentContact.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
         :width="500"
     >
-        <Contact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
+        <Contact v-model="currentContact.data" :errors="contactsStore.err?.errors" />
     </drawer>
 
     <drawer
@@ -263,7 +262,7 @@ watch(() => prop.errors, () => {
         :title="currentAccount.data.id === null ? 'Новый реквизит' : `Реквизит #${currentAccount.data.id}`"
         :width="500"
     >
-        <BankAccount v-model="currentAccount.data" :errors="clientsStore.clientAccountErr?.errors"/>
+        <BankAccount v-model="currentAccount.data" :errors="bankAccountsStore.err?.errors"/>
     </drawer>
 
     <a-form layout="vertical" :model="model">
@@ -296,11 +295,6 @@ watch(() => prop.errors, () => {
         <a-row :gutter="16">
             <a-col :span="model.type === 'LEGAL' ? 12 : 24">
                 <a-form-item label="ИНН" name="inn" :validate-status="err.inn ? 'error': undefined" :help="err.inn">
-<!--                    <a-input-->
-<!--                        v-model:value="model.inn"-->
-<!--                        placeholder="Введите ИНН заказчика"-->
-<!--                        :maxlength="model.type === 'LEGAL' ? 10 : 12"-->
-<!--                    />-->
                     <a-select
                         show-search
                         v-model:value="model.inn"

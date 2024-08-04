@@ -5,9 +5,10 @@ import {useSuggests} from "../../stores/models/suggests.js";
 
 const model = defineModel()
 const prop = defineProps({ errors: { type: Object, default: null } })
-const err = reactive({bik: null, account_payment: null, bank_name: null, payment_city: null, account_correspondent: null})
 const suggests = useSuggests()
 
+
+const err = reactive({bik: null, account_payment: null, bank_name: null, payment_city: null, account_correspondent: null})
 watch(() => prop.errors, () => {
     Object.keys(err).forEach((key) => {
         if (prop.errors[key]) {
@@ -46,11 +47,6 @@ const bankOptions = computed(() => {
 <template>
     <a-form layout="vertical" :model="model">
         <a-form-item label="БИК" name="bik" :validate-status="err.bik ? 'error': undefined" :help="err.bik">
-<!--            <a-input-->
-<!--                v-model:value="model.bik"-->
-<!--                placeholder="БИК банка"-->
-<!--                :maxlength="9"-->
-<!--            />-->
             <a-select
                 show-search
                 v-model:value="model.bik"

@@ -456,7 +456,7 @@ onBeforeUnmount(() => {
             need-deletion-confirm-text="Вы уверены? Перевозчик будет удален!"
             delete-text="Удалить"
         >
-            <Carrier v-model="currentCarrier.data" :loading="mainDrawer.isLoading" :errors="carriersStore.carrierErr?.errors"/>
+            <Carrier v-model="currentCarrier.data" :loading="mainDrawer.isLoading" :errors="carriersStore.err?.errors"/>
         </drawer>
 
         <drawer

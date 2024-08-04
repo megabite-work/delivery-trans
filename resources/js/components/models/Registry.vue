@@ -1,6 +1,7 @@
 <script setup>
 import {logistOrderStatuses, managerOrderStatuses} from "../../helpers/index.js";
 import dayjs from "dayjs";
+import {reactive, watch} from "vue";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
@@ -21,19 +22,28 @@ const makePaid = (v) => {
         model.value.client_paid = model.value.client_sum
     }
 }
-
+const err = reactive({date: null, vat: null, client_sum: null, client_paid: null})
+watch(() => prop.errors, () => {
+    Object.keys(err).forEach((key) => {
+        if (prop.errors[key]) {
+            err[key] = prop.errors[key][0]
+            return
+        }
+        err[key] = null
+    })
+})
 </script>
 
 <template>
 <a-form layout="vertical" :model="model">
-    <a-form-item label="Дата реестра" name="date">
+    <a-form-item label="Дата реестра" name="date" :validate-status="err.date ? 'error': undefined" :help="err.date">
         <a-date-picker
             v-model:value="model.date"
             format="DD.MM.YYYY"
             style="width: 300px"
         />
     </a-form-item>
-    <a-form-item label="НДС">
+    <a-form-item label="НДС" :validate-status="err.vat ? 'error': undefined" :help="err.vat">
         <a-select
             v-model:value="model.vat"
             placeholder="Выбор НДС"
@@ -45,7 +55,7 @@ const makePaid = (v) => {
     </a-form-item>
     <a-row :gutter="16">
         <a-col :span="12">
-            <a-form-item label="Сумма" name="client_sum">
+            <a-form-item label="Сумма" name="client_sum" :validate-status="err.client_sum ? 'error': undefined" :help="err.client_sum">
                 <a-input-number
                     v-model:value="model.client_sum"
                     :min="0"
@@ -58,7 +68,7 @@ const makePaid = (v) => {
             </a-form-item>
         </a-col>
         <a-col :span="12">
-            <a-form-item label="Оплачено" name="client_paid">
+            <a-form-item label="Оплачено" name="client_paid" :validate-status="err.client_paid ? 'error': undefined" :help="err.client_paid">
                 <a-input-number
                     v-model:value="model.client_paid"
                     :min="0"
