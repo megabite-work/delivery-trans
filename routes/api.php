@@ -22,6 +22,7 @@ use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
+use App\Http\Controllers\Registry\CarrierRegistryController;
 
 Route::middleware('auth:sanctum')->group(function (){
     Route::get('/user', function (Request $request) {
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('default-prices', DefaultPriceController::class);
     Route::apiResource('orders', OrderController::class);
     Route::apiResource('registries', RegistryController::class)->except(['index']);
+    Route::apiResource('carrier-registries', CarrierRegistryController::class)->except(['index']);
     Route::apiResource('users', UserController::class);
 
     Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
