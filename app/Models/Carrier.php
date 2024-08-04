@@ -40,4 +40,13 @@ class Carrier extends Model
     {
         return $this->morphMany(BankAccount::class, 'owner');
     }
+
+    public function registries()
+    {
+        return $this->hasMany(CarrierRegistry::class, 'carrier_id');
+    }
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'carrier_id');
+    }
 }

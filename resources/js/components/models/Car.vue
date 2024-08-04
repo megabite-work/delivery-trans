@@ -13,7 +13,7 @@ const getBodyTypesOptionsList = async () => {
 }
 
 const err = reactive({
-    type: null, name: null, plate_number: null, body_type: null, volume: null, pallets_count: null, tonnage: null,
+    type: null, name: null, plate_number: null, body_type: null, volume: null, pallets_count: null, tonnage: null
 })
 watch(() => prop.errors, () => {
     Object.keys(err).forEach((key) => {

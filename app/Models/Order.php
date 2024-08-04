@@ -56,6 +56,7 @@ class Order extends Model
         "carrier_sum_calculated",
         "carrier_sum_author",
         "registry_id",
+        "carrier_registry_id",
         "created_by",
         "updated_by",
         "ended_at",
@@ -99,6 +100,11 @@ class Order extends Model
     public function registry()
     {
         return $this->belongsTo(Registry::class, "registry_id");
+    }
+
+    public function carrierRegistry()
+    {
+        return $this->belongsTo(Registry::class, "carrier_registry_id");
     }
 
     public function getMarginSumAttribute()

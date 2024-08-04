@@ -77,6 +77,7 @@ class OrderResource extends JsonResource
             'margin_percent' => $this->marginPercent,
             'registry_id' => $this->registry_id,
             'registry' => OrderRegistryResource::make($this->registry),
+            'carrier_registry' => OrderCarrierRegistryResource::make($this->carrierRegistry),
         ];
 
         return array_filter($res, fn($v) => !is_null($v) && $v !== '');

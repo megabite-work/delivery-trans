@@ -11,18 +11,19 @@ const columnsOrders = [
     { key: 'created_at', title: 'Дата заказа' },
     { key: 'status_manager', title: 'Статус менеджер' },
     { key: 'status_logist', title: 'Статус логист' },
-    { key: 'client_sum', title: 'Сумма заказа' },
-    { key: 'client_vat', title: 'НДС' },
+    { key: 'carrier_sum', title: 'Сумма заказа' },
+    { key: 'carrier_vat', title: 'НДС' },
 ];
 
 const vatArr = ['Без НДС', 'НДС', 'Нал'];
 
 const makePaid = (v) => {
     if (v) {
-        model.value.client_paid = model.value.client_sum
+        model.value.carrier_paid = model.value.carrier_sum
     }
 }
-const err = reactive({date: null, vat: null, client_sum: null, client_paid: null})
+
+const err = reactive({ date: null, vat: null, carrier_sum: null, carrier_paid: null })
 watch(() => prop.errors, () => {
     Object.keys(err).forEach((key) => {
         if (prop.errors[key]) {
@@ -43,7 +44,7 @@ watch(() => prop.errors, () => {
             style="width: 300px"
         />
     </a-form-item>
-    <a-form-item label="НДС" :validate-status="err.vat ? 'error': undefined" :help="err.vat">
+    <a-form-item label="НДС" name="vat" :validate-status="err.vat ? 'error': undefined" :help="err.vat">
         <a-select
             v-model:value="model.vat"
             placeholder="Выбор НДС"
@@ -55,9 +56,9 @@ watch(() => prop.errors, () => {
     </a-form-item>
     <a-row :gutter="16">
         <a-col :span="12">
-            <a-form-item label="Сумма" name="client_sum" :validate-status="err.client_sum ? 'error': undefined" :help="err.client_sum">
+            <a-form-item label="Сумма" name="carrier_sum" :validate-status="err.carrier_sum ? 'error': undefined" :help="err.carrier_sum">
                 <a-input-number
-                    v-model:value="model.client_sum"
+                    v-model:value="model.carrier_sum"
                     :min="0"
                     style="width: 100%"
                     placeholder="Сумма к оплате"
@@ -68,9 +69,9 @@ watch(() => prop.errors, () => {
             </a-form-item>
         </a-col>
         <a-col :span="12">
-            <a-form-item label="Оплачено" name="client_paid" :validate-status="err.client_paid ? 'error': undefined" :help="err.client_paid">
+            <a-form-item label="Оплачено" name="carrier_paid" :validate-status="err.carrier_paid ? 'error': undefined" :help="err.carrier_paid">
                 <a-input-number
-                    v-model:value="model.client_paid"
+                    v-model:value="model.carrier_paid"
                     :min="0"
                     style="width: 100%"
                     placeholder="Оплачено"
@@ -84,8 +85,8 @@ watch(() => prop.errors, () => {
     <a-row :gutter="16">
         <a-col :span="12" :offset="12">
             <a-switch
-                :checked="model.client_paid >= model.client_sum"
-                :disabled="!(model.client_sum > 0)"
+                :checked="model.carrier_paid >= model.carrier_sum"
+                :disabled="!(model.carrier_sum > 0)"
                 @click="makePaid"
             />
             Реестр оплачен полностью
@@ -99,8 +100,8 @@ watch(() => prop.errors, () => {
         :pagination="false"
     >
         <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'client_sum'">
-                {{ parseFloat(record.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+            <template v-if="column.key === 'carrier_sum'">
+                {{ parseFloat(record.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
             </template>
             <template v-else-if="column.key === 'status_manager'">
                 <a-badge :color="managerOrderStatuses[record.status_manager.status].color" />

@@ -4,12 +4,12 @@ import {useIMask} from "vue-imask";
 
 const model = defineModel()
 const prop = defineProps({ errors: { type: Object, default: null } })
-const err = reactive({type: null, value: null, note: null})
-
 const { el } = useIMask({
     mask: '+{7}(000)000-00-00'
 });
 
+
+const err = reactive({type: null, value: null, note: null})
 watch(() => prop.errors, () => {
     Object.keys(err).forEach((key) => {
         if (prop.errors[key]) {

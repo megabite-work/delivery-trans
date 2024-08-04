@@ -593,7 +593,7 @@ watch(() => prop.errors, () => {
         :title="currentContact.data.id === null ? 'Новый контакт' : `Контакт #${currentContact.data.id}`"
         :width="500"
     >
-        <Contact v-model="currentContact.data" :errors="clientsStore.clientContactErr?.errors" />
+        <Contact v-model="currentContact.data" :errors="clientsStore.err?.errors" />
     </drawer>
 
     <drawer
@@ -608,7 +608,7 @@ watch(() => prop.errors, () => {
         :title="currentAccount.data.id === null ? 'Новый реквизит' : `Реквизит #${currentAccount.data.id}`"
         :width="500"
     >
-        <BankAccount v-model="currentAccount.data" :errors="clientsStore.clientAccountErr?.errors"/>
+        <BankAccount v-model="currentAccount.data" :errors="clientsStore.err?.errors"/>
     </drawer>
 
     <drawer
@@ -623,7 +623,7 @@ watch(() => prop.errors, () => {
         :title="currentCar.data.id === null ? 'Новая машина' : `Машина ${currentCar.data.plate_number}`"
         :width="500"
     >
-        <Car v-model="currentCar.data"/>
+        <Car v-model="currentCar.data" :errors="carsStore.err?.errors"/>
     </drawer>
 
     <drawer
@@ -638,7 +638,7 @@ watch(() => prop.errors, () => {
         :title="currentDriver.data.id === null ? 'Новый водитель' : `Водитель #${currentDriver.data.id}`"
         :width="500"
     >
-        <Driver v-model="currentDriver.data"/>
+        <Driver v-model="currentDriver.data" :errors="driversStore.err?.errors"/>
     </drawer>
 </template>
 

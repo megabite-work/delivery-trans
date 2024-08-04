@@ -31,6 +31,8 @@ class CarrierResource extends JsonResource
             'bank_accounts' => BankAccountResource::collection($this->bankAccounts),
             'cars' => CarResource::collection($this->cars),
             'drivers' => DriverResource::collection($this->drivers),
+            'orders' => CarrierRegistryOrderResource::collection($this->orders),
+            'registries' => CarrierRegistryResource::collection($this->registries),
         ];
     }
 }

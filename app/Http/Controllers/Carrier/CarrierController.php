@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Carrier;
 use App\Http\Controllers\Controller;
 use App\Enums\ClientType;
 use App\Http\Resources\CarrierResource;
-use App\Http\Resources\DTApiCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
 use App\Models\Carrier;
@@ -18,7 +17,7 @@ class CarrierController extends Controller
      */
     public function index(Request $request)
     {
-        return new DTApiCollection(
+        return CarrierResource::collection(
             Carrier::where('name_short', 'ilike', '%'.$request->get('filter', '').'%')
                 ->orWhere('name_full', 'ilike', '%'.$request->get('filter', '').'%')
                 ->orWhere('inn', 'ilike', '%'.$request->get('filter', '').'%')
