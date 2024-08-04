@@ -31,6 +31,8 @@ const prop = defineProps({ loading: { type: Boolean, default: false }, errors: {
 
 const isStatusLoading = ref(false);
 const cargoWeight = ref()
+const capacitySearchError = ref(false)
+
 watch(() => model.value.cargo_weight, () => {
     if (!!model.value.cargo_weight) {
         cargoWeight.value = model.value.cargo_weight / (weightSegmentsValue.value === 'т' ? 1000 : 1)
@@ -49,10 +51,13 @@ const handlePalletsChange = async () => {
 
 const syncCargoWeightWithCap = debounce({delay: 500}, async (tonnage, pallets) => {
     await fetchCarCapacities()
-    const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= tonnage && (!model.value.cargo_in_pallets || el.pallets_count >= pallets))
+    const o = [...carCapacitiesOptions.value].sort((a, b) => a.tonnage - b.tonnage).find((el) => el.tonnage >= (tonnage ? tonnage : 0) && (!model.value.cargo_in_pallets || el.pallets_count >= (pallets ? pallets : 0)))
     if (o) {
         model.value.car_capacity_id = o.id
+        capacitySearchError.value = false
         await orderCalculate(false)
+    } else {
+        capacitySearchError.value = true
     }
 })
 
@@ -754,7 +759,7 @@ watch(() => prop.loading, async (v) => {
         </a-col>
         <a-col :span="12">
             <a-divider orientation="left">Машина</a-divider>
-            <a-form-item label="Вместимость машины">
+            <a-form-item label="Вместимость машины" name="type" :validate-status="capacitySearchError ? 'error': undefined" :help="capacitySearchError ? 'Невозможно подобрать вместимость машины' : undefined">
                 <a-select
                     v-model:value="model.car_capacity_id"
                     placeholder="Вместимость"
