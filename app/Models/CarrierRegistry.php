@@ -28,12 +28,12 @@ class CarrierRegistry extends Model
 
     public function carrier()
     {
-        return $this->belongsTo(Client::class, "carrier_id");
+        return $this->belongsTo(Carrier::class, "carrier_id");
     }
 
     public function getIsPaidAttribute()
     {
-        return $this->client_sum <= $this->client_paid;
+        return $this->carrier_sum <= $this->carrier_paid;
     }
 
 }

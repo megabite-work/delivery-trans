@@ -100,7 +100,9 @@ const registriesList = computed(() => (clientId => {
                 client_id: clientId,
                 status: 'Без реестра',
                 orders_count: c.orders.filter(orderRecord => orderRecord.registry_id === null).length,
-                client_sum: c.orders.reduce((acc, cur) => acc + cur.registry_id === null ? 0 : cur.client_sum, 0),
+                client_sum: c.orders.reduce((acc, cur) => {
+                    return acc + (cur.registry_id === null ? parseFloat(cur.client_sum) : 0)
+                }, 0),
                 orders: c.orders.filter(orderRecord => orderRecord.registry_id === null)
             })
         }
@@ -211,7 +213,6 @@ const saveClient = async () => {
 }
 
 const saveRegistry = async () => {
-    console.log(currentRegistry.data)
     registryDrawer.isSaving = true
     try {
         if (currentRegistry.data.id === null) {
@@ -351,19 +352,19 @@ onBeforeUnmount(() => {
                                 {{ record.orders_count }}
                             </template>
                             <template v-if="column.key === 'status'">
-                                <template v-if="record.client_sum > 0 && record.client_paid === 0">
+                                <template v-if="parseFloat(record.client_sum) > 0 && parseFloat(record.client_paid) === 0">
                                     <a-badge status="error" />
                                     Не оплачен
                                 </template>
-                                <template v-else-if="record.client_sum > 0 && record.client_sum === record.client_paid">
+                                <template v-else-if="parseFloat(record.client_sum) > 0 && parseFloat(record.client_sum) === parseFloat(record.client_paid)">
                                     <a-badge status="success" />
                                     Оплачен
                                 </template>
-                                <template v-else-if="record.client_sum > 0 && record.client_sum > record.client_paid">
+                                <template v-else-if="parseFloat(record.client_sum) > 0 && parseFloat(record.client_sum) > parseFloat(record.client_paid)">
                                     <a-badge status="warning" />
                                     Частично оплачен
                                 </template>
-                                <template v-else-if="record.client_sum > 0 && record.client_sum < record.client_paid">
+                                <template v-else-if="parseFloat(record.client_sum) > 0 && parseFloat(record.client_sum) < parseFloat(record.client_paid)">
                                     <a-badge color="blue" />
                                     Переплата
                                 </template>

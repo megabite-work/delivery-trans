@@ -20,11 +20,11 @@ class CarrierRegistryResource extends JsonResource
             'id' => $this->id,
             'date' => Date::parse($this->date)->timezone("Europe/Moscow")->format('Y-m-d'),
             'is_paid' => $this->is_paid,
-            'carrier_id' => $this->client_id,
-            'carrier_sum' => $this->client_sum,
-            'carrier_paid' => $this->client_paid,
+            'carrier_id' => $this->carrier_id,
+            'carrier_sum' => $this->carrier_sum,
+            'carrier_paid' => $this->carrier_paid,
             'vat' => $this->vat,
-            'orders' => ClientRegistryOrderResource::collection($this->orders),
+            'orders' => CarrierRegistryOrderResource::collection($this->orders),
         ];
     }
 }

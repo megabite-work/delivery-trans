@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CarrierRegistryResource;
 use App\Models\CarrierRegistry;
 use App\Models\Order;
-use App\Models\Registry;
 use Illuminate\Http\Request;
 
 class CarrierRegistryController extends Controller
@@ -15,7 +14,7 @@ class CarrierRegistryController extends Controller
     {
         $data = $request->validate([
             'date' => 'required|date',
-            'carrier_id' => 'required|exists:carrier,id',
+            'carrier_id' => 'required|exists:carriers,id',
             'carrier_sum' => 'numeric',
             'carrier_paid' => 'numeric',
             'vat' => 'required|integer',
@@ -32,26 +31,26 @@ class CarrierRegistryController extends Controller
         return response()->json(new CarrierRegistryResource($registry),201);
     }
 
-    public function show(Registry $registry)
+    public function show(CarrierRegistry $carrierRegistry)
     {
-        return new CarrierRegistryResource($registry);
+        return new CarrierRegistryResource($carrierRegistry);
     }
 
-    public function update(Request $request, Registry $registry) {
+    public function update(Request $request, CarrierRegistry $carrierRegistry) {
         $data = $request->validate([
             "date" => "required|date",
             "carrier_sum" => "numeric",
             "carrier_paid" => "numeric",
             "vat" => "integer"
         ]);
-        $registry->update($data);
-        return response()->json(new CarrierRegistryResource($registry),200);
+        $carrierRegistry->update($data);
+        return response()->json(new CarrierRegistryResource($carrierRegistry),200);
     }
 
-    public function destroy(Registry $registry)
+    public function destroy(CarrierRegistry $carrierRegistry)
     {
-        $registry->orders()->update(['carrier_registry_id' => null]);
-        $registry->delete();
+        $carrierRegistry->orders()->update(['carrier_registry_id' => null]);
+        $carrierRegistry->delete();
         return response()->noContent();
     }
 
