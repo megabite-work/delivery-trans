@@ -23,10 +23,11 @@ use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
 use App\Http\Controllers\Registry\CarrierRegistryController;
+use App\Http\Resources\UserResource;
 
 Route::middleware('auth:sanctum')->group(function (){
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return new UserResource($request->user());
     });
     Route::post('orders/{order}/status', [OrderController::class, 'setStatus'])->name('orders.status');
     Route::apiResource('carriers', CarrierController::class);

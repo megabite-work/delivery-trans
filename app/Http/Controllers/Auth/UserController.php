@@ -84,6 +84,13 @@ class UserController extends Controller
                     "message" => "Пользователь не может удалить себя"
                 ], 400);
         }
+        if ($user->is_superuser) {
+            return response()->json(
+                [
+                    "code" => 400,
+                    "message" => "Нельзя удалить этого пользователя"
+                ], 400);
+        }
         $user->delete();
         return response()->noContent();
     }
