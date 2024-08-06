@@ -728,7 +728,9 @@ watch(() => prop.loading, async (v) => {
                         placeholder="Вес"
                         :min="0"
                         style="width: 100%"
-                    />
+                    >
+                        <template #addonAfter>{{ weightSegmentsValue }}.</template>
+                    </a-input-number>
                 </a-form-item>
                 <a-form-item label="Температурный режим">
                     <a-select
