@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Registry\RegistryController;
 use Illuminate\Http\Request;
@@ -48,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('registries', RegistryController::class)->except(['index']);
     Route::apiResource('carrier-registries', CarrierRegistryController::class)->except(['index']);
     Route::apiResource('users', UserController::class);
+    Route::apiResource('roles', RoleController::class);
 
     Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
     Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');
