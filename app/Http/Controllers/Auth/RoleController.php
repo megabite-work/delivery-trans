@@ -25,17 +25,17 @@ class RoleController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string',
-            'permissions' => 'required|array'
+            'permissions' => 'nullable|array'
         ]);
         $p = [];
-        foreach ($data['permissions'] as $permission) {
+        foreach ($request->get('permissions', []) as $permission) {
             if (Permissions::tryFrom($permission) != null) {
                 $p[] = $permission;
             }
         }
         $role = Role::create([
             'name' => $data['name'],
-            'permissions' => $p,
+            'permissions' => json_encode(array_unique($p)),
             'created_by' => $request->user()->name,
             'updated_by' => $request->user()->name,
         ]);
@@ -58,17 +58,17 @@ class RoleController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string',
-            'permissions' => 'required|array'
+            'permissions' => 'nullable|array'
         ]);
         $p = [];
-        foreach ($data['permissions'] as $permission) {
+        foreach ($request->get('permissions', []) as $permission) {
             if (Permissions::tryFrom($permission) != null) {
                 $p[] = $permission;
             }
         }
         $role->update([
             'name' => $data['name'],
-            'permissions' => $p,
+            'permissions' => json_encode(array_unique($p)),
             'updated_by' => $request->user()->name,
         ]);
 

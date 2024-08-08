@@ -110,12 +110,8 @@ onBeforeUnmount(() => {
             :row-class-name="() => 'cursor-pointer'"
         >
             <template #bodyCell="{ column, record }">
-
                 <template v-if="column.key === '__icon'">
                     <UserOutlined />
-                </template>
-                <template v-if="column.key === 'type'">
-                    {{ record }}
                 </template>
             </template>
         </a-table>

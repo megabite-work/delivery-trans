@@ -73,6 +73,12 @@ const router = createRouter({
             meta: { requiresAuth: true },
             component: () => import('../views/UsersView.vue')
         },
+        {
+            path: '/roles',
+            name: 'roles',
+            meta: { requiresAuth: true },
+            component: () => import('../views/RolesView.vue')
+        },
     ]
 })
 router.beforeResolve((to, from, next) => {

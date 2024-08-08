@@ -69,6 +69,10 @@ const optRoutes = [
         key: 'users',
         label: 'Пользователи'
     },
+    {
+        key: 'roles',
+        label: 'Роли'
+    },
 ]
 
 </script>
