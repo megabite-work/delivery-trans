@@ -33,6 +33,42 @@ const handlePermissionSet = (e) => {
         model.value.permissions.splice(idx, 1)
     }
 }
+
+const isSectionCheckAll = computed(() => (
+    idx => permissionsSections[idx].permissions.reduce(
+        (acc, v) => acc && isArray(model.value.permissions) && model.value.permissions.includes(v), true
+    )
+))
+const isIndeterminate = computed(() =>
+    idx => {
+        const s = permissionsSections[idx].permissions.reduce(
+            (acc, v) => {
+                if (isArray(model.value.permissions) && model.value.permissions.includes(v)) {
+                    return acc + 1
+                }
+                return acc
+            }, 0
+        )
+        return s > 0 && s < permissionsSections[idx].permissions.length
+    }
+)
+
+ const handleAllGroupChange = (idx, isChecked) => {
+     if (!isArray(model.value.permissions)) {
+         model.value.permissions = []
+     }
+    permissionsSections[idx].permissions.forEach(el => {
+        if (isChecked && !model.value.permissions.includes(el)) {
+            model.value.permissions.push(el)
+        }
+        if (!isChecked && model.value.permissions.includes(el)) {
+            const idx = model.value.permissions.indexOf(el)
+            if (idx > -1) {
+                model.value.permissions.splice(idx, 1)
+            }
+        }
+    })
+ }
 </script>
 
 <template>
@@ -44,8 +80,14 @@ const handlePermissionSet = (e) => {
             />
         </a-form-item>
         <a-divider>Разрешения</a-divider>
-        <template v-for="section in permissionsSections">
-            <a-divider orientation="left" orientation-margin="0px">{{section.label}}</a-divider>
+        <template v-for="(section, idx) in permissionsSections">
+            <a-checkbox
+                :checked="isSectionCheckAll(idx)"
+                :indeterminate="isIndeterminate(idx)"
+                @change="e => handleAllGroupChange(idx, e.target.checked)"
+            >
+                <a-divider orientation="left" orientation-margin="0px">{{section.label}}</a-divider>
+            </a-checkbox>
             <div>
                 <div v-for="p in section.permissions" :key="p" style="padding: 3px 0">
                     <a-checkbox :id="p" :checked="permissionsModel(p)" @change="handlePermissionSet">{{permissions[p]}}</a-checkbox>
