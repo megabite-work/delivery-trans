@@ -15,11 +15,20 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $roles = RoleResource::collection($this->roles)->collection;
+        if($this->is_superuser){
+            $roles->prepend([
+                'id' => 0,
+                'name' => 'Cуперадмин',
+                'permissions' => ['ALL'],
+            ]);
+        }
+
         return [
             "id" => $this->id,
             "email" => $this->email,
             "name" => $this->name,
-            "roles" => RoleResource::collection($this->roles),
+            "roles" => $roles,
         ];
     }
 }

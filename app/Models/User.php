@@ -47,4 +47,18 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Role::class);
     }
+
+    public function canDo($permission)
+    {
+        if ($this->is_superuser) {
+            return true;
+        }
+        $permissions = [];
+        foreach ($this->roles as $role) {
+            if ($role->permissions != null) {
+                $permissions = array_merge($permissions, json_decode($role->permissions));
+            }
+        }
+        return in_array($permission, $permissions);
+    }
 }

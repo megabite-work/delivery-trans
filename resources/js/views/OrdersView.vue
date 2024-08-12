@@ -1,36 +1,15 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
 import {onBeforeUnmount, onMounted, reactive, ref, h, createVNode} from "vue";
+import {FilterOutlined, SearchOutlined, ArrowRightOutlined, ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-import {FilterOutlined, SearchOutlined, ArrowRightOutlined, ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import {isArray} from "radash";
 import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
-
-const columnsOrders = ref([
-    { title: '#', key: 'id', width: 50, sorter: true, defaultSortOrder: 'descend' },
-    { title: 'Дата', key: 'created_at', sorter: true },
-    { title: 'Старт поездки', key: 'started_at', sorter: true },
-    {
-        title: 'Статус заявки',
-        children: [
-            { title: 'Менеджер', key: 'status_manager' },
-            { title: 'Логист', key: 'status_logist' }
-        ]
-    },
-    { title: 'Заказчик', key: 'client' },
-    { title: 'Перевозчик', key: 'carrier' },
-    { title: 'Водитель', key: 'driver' },
-    { title: 'Авто', key: 'vehicle' },
-    { title: 'Вес груза', key: 'weight'},
-    { title: 'Сумма', key: 'client_sum', fixed: 'right'},
-    { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right'},
-    { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right'},
-    { title: 'Маржа %', key: 'margin_percent', fixed: 'right'},
-])
+import {useAuthStore} from "../stores/auth.js";
 
 const showModalCloseConfirm = () => {
     Modal.confirm({
@@ -44,6 +23,7 @@ const showModalCloseConfirm = () => {
     });
 };
 
+const authStore = useAuthStore()
 const ordersStore = useOrdersStore()
 const clientHeight = ref(document.documentElement.clientHeight)
 const currentOrder = reactive({ data:{ id: null }, modified: false })
@@ -236,7 +216,7 @@ onBeforeUnmount(() => {
         <a-table
             :loading="ordersStore.listLoading || listLoading"
             :custom-row="tableRowFn"
-            :columns="columnsOrders"
+            :columns="ordersStore.columnsOrders"
             :data-source="ordersStore.dataList"
             :pagination="{
                 ...ordersStore.paginator,
@@ -370,14 +350,14 @@ onBeforeUnmount(() => {
             </template>
             <template #expandedRowRender="{ record }">
                 <div style="display: flex; gap: 16px;">
-                    <div v-for="(loc, i) in record.from_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
+                    <div v-if="authStore.userCan('ORDERS_LST_COLUMN_FROM')" v-for="(loc, i) in record.from_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
                         <div>{{ dayjs(loc.arrive_date).format("DD.MM.YYYY") }} {{ dayjs(loc.arrive_time).format("HH:mm") }}</div>
                         <div>{{ loc.address }}</div>
                     </div>
-                    <div v-if="record.to_locations && record.to_locations.length > 0">
+                    <div v-if="authStore.userCan('ORDERS_LST_COLUMN_TO') && record.to_locations && record.to_locations.length > 0">
                         <ArrowRightOutlined />
                     </div>
-                    <div v-for="(loc, i) in record.to_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
+                    <div v-if="authStore.userCan('ORDERS_LST_COLUMN_TO')" v-for="(loc, i) in record.to_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
                         <div>{{ dayjs(loc.arrive_date).format("DD.MM.YYYY") }} {{ dayjs(loc.arrive_time).format("HH:mm") }}</div>
                         <div>{{ loc.address }}</div>
                     </div>

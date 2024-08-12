@@ -1,8 +1,8 @@
 <script setup>
-import { ref, watch} from 'vue';
+import {computed, ref, watch} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from "../stores/auth.js";
-
+import { CheckOutlined } from "@ant-design/icons-vue";
 import ruRU from 'ant-design-vue/locale/ru_RU';
 import 'dayjs/locale/ru';
 
@@ -25,11 +25,9 @@ const logout = async () => {
     }
 }
 
+const avatarUserName = computed(() => auth.user.name.split(/\s/).reduce((response,word)=> response + word.slice(0, 1),''))
+
 const routes = [
-    // {
-    //     key: 'dashboard',
-    //     label: 'Dashboard',
-    // },
     {
         key: 'orders',
         label: 'Заявки',
@@ -87,16 +85,28 @@ const optRoutes = [
             <a-dropdown :trigger="['click']">
                 <a-avatar
                     @click.prevent
-                    alt="User Name"
                     :style="{cursor: 'pointer', backgroundColor: '#172554'}"
+                    :alt="auth.user.name"
                     size="large"
                     class="avatar"
-                />
+                >{{avatarUserName}}</a-avatar>
                 <template #overlay>
                     <a-menu :style="{width: '170px'}">
                         <a-menu-item key="0">
                             <a>{{ auth.user.name }}</a>
                         </a-menu-item>
+                        <a-sub-menu :key="auth.user.roles" :title="auth.currentRole.name">
+                            <a-menu-item v-for="role in auth.user.roles" :key="`r${role.id}`" @click="() => auth.switchRole(role.id)">
+                                <template v-if="auth.currentRole.id === role.id" >
+                                    <div style="font-weight: 600; display: flex; gap: 8px">
+                                        <CheckOutlined /><div>{{ role.name }}</div>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    {{role.name}}
+                                </template>
+                            </a-menu-item>
+                        </a-sub-menu>
                         <a-menu-divider />
                         <a-menu-item key="1" @click="logout">
                             <a>Выход</a>

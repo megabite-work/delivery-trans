@@ -4,7 +4,7 @@ namespace App\Enums;
 
 enum Permissions: string
 {
-    case ALL = '*';
+    case ALL = 'ALL';
     case ORDERS_LST_COLUMN_CREATED_AT = 'ORDERS_LST_COLUMN_CREATED_AT';
     case ORDERS_LST_COLUMN_STARTED_AT = 'ORDERS_LST_COLUMN_STARTED_AT';
     case ORDERS_LST_COLUMN_STATUS_MANAGER = 'ORDERS_LST_COLUMN_STATUS_MANAGER';

@@ -19,6 +19,8 @@ export const useOrdersStore = defineStore('orders', () => {
         order: localStorage.getItem('orders_table__sorterOrder'),
     })
     const filter = ref({isFiltered: false})
+    const columnsOrders = ref([])
+
 
     const applyFilter = async () => {
         filter.value.isFiltered = true
@@ -77,6 +79,7 @@ export const useOrdersStore = defineStore('orders', () => {
             paginator.value.pageSize = parseInt(res.data.meta.per_page)
             paginator.value.current = parseInt(res.data.meta.current_page)
             paginator.value.total = parseInt(res.data.meta.total)
+            columnsOrders.value = res.data.meta.listColumns
         } catch (e) {
             paginator.value = {
                 current: 1,
@@ -192,7 +195,7 @@ export const useOrdersStore = defineStore('orders', () => {
 
     return {
         err, paginator, dataList, setPage, setPageSize, setSorter, listLoading,
-        refreshDataList,
+        refreshDataList, columnsOrders,
         createOrder, storeOrder, deleteOrder, getOrder, setOrderStatus, filter, applyFilter, resetFilter
     }
 })

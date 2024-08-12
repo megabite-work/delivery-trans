@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Order;
 
-use Carbon\CarbonTimeZone;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Support\Facades\DB;
@@ -194,9 +193,165 @@ class OrderController extends Controller
             $ordersRes = $ordersRes->push($orders->find($id));
         }
 
+        $listColumns = [
+            [
+                "title" => "#",
+                "key" => "id",
+                "width" => 50,
+                "sorter" => true,
+                "defaultSortOrder" => "descend"
+            ],
+        ];
+        if($request->user()->canDo("ORDERS_LST_COLUMN_CREATED_AT")) {
+            $listColumns[] = [
+                "title" => "Дата",
+                "key" => "created_at",
+                "sorter" => true
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_STARTED_AT")) {
+            $listColumns[] = [
+                "title" => "Старт поездки",
+                "key" => "started_at",
+                "sorter" => true
+            ];
+        }
+        $statusColumn = [
+            "title" => "Статус заявки",
+            "children" => []
+        ];
+        if($request->user()->canDo("ORDERS_LST_COLUMN_STATUS_MANAGER")) {
+            $statusColumn["children"][] = [
+                "title" => "Менеджер",
+                "key" => "status_manager"
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_STATUS_LOGIST")) {
+            $statusColumn["children"][] = [
+                "title" => "Логист",
+                "key" => "status_logist"
+            ];
+        }
+        if(count($statusColumn["children"]) > 0) {
+            $listColumns[] = $statusColumn;
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_CLIENT")) {
+            $listColumns[] = [
+                "title" => "Заказчик",
+                "key" => "client",
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_CARRIER")) {
+            $listColumns[] = [
+                "title" => "Перевозчик",
+                "key" => "carrier",
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_DRIVER")) {
+            $listColumns[] = [
+                "title" => "Водитель",
+                "key" => "driver",
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_VEHICLE")) {
+            $listColumns[] = [
+                "title" => "Авто",
+                "key" => "vehicle",
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_WEIGHT")) {
+            $listColumns[] = [
+                "title" => "Вес груза",
+                "key" => "weight",
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_CLIENT_SUM")) {
+            $listColumns[] = [
+                "title" => "Сумма",
+                "key" => "client_sum",
+                "fixed" => "right"
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_CARRIER_SUM")) {
+            $listColumns[] = [
+                "title" => "Себестоимость",
+                "key" => "carrier_sum",
+                "fixed" => "right",
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_MARGIN_SUM")) {
+            $listColumns[] = [
+                "title" => "Маржа ₽",
+                "key" => "margin_sum",
+                "fixed" => "right",
+            ];
+        }
+        if($request->user()->canDo("ORDERS_LST_COLUMN_MARGIN_PERCENT")) {
+            $listColumns[] = [
+                "title" => "Маржа %",
+                "key" => "margin_percent",
+                "fixed" => "right",
+            ];
+        }
+        $res = [];
+        foreach($ordersRes as $orderRes) {
+            $order = ["id" => $orderRes->id];
+            if($request->user()->canDo("ORDERS_LST_COLUMN_CREATED_AT")) {
+                $order["created_at"] = $orderRes->created_at;
+                $order["updated_at"] = $orderRes->updated_at;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_STARTED_AT")) {
+                $order["started_at"] = $orderRes->started_at;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_STATUS_MANAGER")) {
+                $order["status_manager"] = $orderRes->status_manager;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_STATUS_LOGIST")) {
+                $order["status_logist"] = $orderRes->status_logist;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_CLIENT")) {
+                $order["client"] = $orderRes->client;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_CARRIER")) {
+                $order["carrier"] = $orderRes->carrier;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_DRIVER")) {
+                $order["carrier_driver_id"] = $orderRes->carrier_driver_id;
+                $order["carrier_driver"] = $orderRes->driver;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_VEHICLE")) {
+                $order["carrier_car_id"] = $orderRes->carrier_car_id;
+                $order["carrier_car"] = $orderRes->car;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_WEIGHT")) {
+                $order["cargo_weight"] = $orderRes->cargo_weight;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_CLIENT_SUM")) {
+                $order["client_sum"] = $orderRes->client_sum;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_CARRIER_SUM")) {
+                $order["carrier_sum"] = $orderRes->carrier_sum;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_MARGIN_SUM")) {
+                $order["margin_sum"] = $orderRes->margin_sum;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_MARGIN_PERCENT")) {
+                $order["margin_percent"] = $orderRes->margin_percent;
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_FROM")) {
+                $order["from_locations"] = json_decode($orderRes->from_locations);
+            }
+            if($request->user()->canDo("ORDERS_LST_COLUMN_TO")) {
+                $order["to_locations"] = json_decode($orderRes->to_locations);
+            }
+
+            $res[] = $order;
+        }
+
         return [
-            'data' => OrderResource::collection($ordersRes),
+            'data' => $res,
             'meta' => [
+                'listColumns' => $listColumns,
                 'total' => $ordersTotal,
                 'current_page' => $page,
                 'per_page' => $perPage,
