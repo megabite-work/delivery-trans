@@ -1,6 +1,6 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import {onBeforeUnmount, onMounted, reactive, ref, h, createVNode} from "vue";
+import {onBeforeUnmount, onMounted, reactive, ref, h, createVNode, computed} from "vue";
 import {FilterOutlined, SearchOutlined, ArrowRightOutlined, ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
@@ -10,6 +10,7 @@ import {isArray} from "radash";
 import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
 import {useAuthStore} from "../stores/auth.js";
+import {permissionColumns} from "../helpers/permissions.js";
 
 const showModalCloseConfirm = () => {
     Modal.confirm({
@@ -107,6 +108,35 @@ const setOrderStatus = async (orderId, statusType, status) => {
         listLoading.value = false
     }
 }
+const colsFromRole = computed(() => {
+    let res = []
+    authStore.currentRole.permissions.forEach(perm => {
+        if (Object.keys(permissionColumns).includes(perm)) {
+            res = [...res, ...permissionColumns[perm]]
+        }
+    })
+    return res
+})
+// const
+const columns = computed(() => {
+    const res = ordersStore.columnsOrders.filter(col => {
+        if (authStore.currentRole.permissions.includes("ALL")) {return true}
+        if (col.key === 'id') {return true}
+        if (!col.key && !!col.children) {return true}
+        return colsFromRole.value.includes(col.key)
+    })
+    for (let i = 0; i < res.length; i++) {
+        if (!res[i].key && res[i].children) {
+            res[i].children = res[i].children.filter(col => {
+                return colsFromRole.value.includes(col.key)
+            })
+            if (res[i].children.length === 0) {
+                res.splice(i, 1)
+            }
+        }
+    }
+    return res
+})
 
 const handleTableChange = async (pag, filters, sorter) => {
     await ordersStore.setSorter(sorter.column ? sorter.column.key : undefined, sorter.order)
@@ -216,7 +246,7 @@ onBeforeUnmount(() => {
         <a-table
             :loading="ordersStore.listLoading || listLoading"
             :custom-row="tableRowFn"
-            :columns="ordersStore.columnsOrders"
+            :columns="columns"
             :data-source="ordersStore.dataList"
             :pagination="{
                 ...ordersStore.paginator,

@@ -191,5 +191,22 @@ export const permissionsSections = [
             'ROLES_DELETE',
         ]
     },
-
 ]
+
+export const permissionColumns = {
+    ORDERS_LST_COLUMN_CREATED_AT: ['created_at', 'updated_at'],
+    ORDERS_LST_COLUMN_STARTED_AT: ['started_at'],
+    ORDERS_LST_COLUMN_STATUS_MANAGER: ['status_manager'],
+    ORDERS_LST_COLUMN_STATUS_LOGIST: ['status_logist'],
+    ORDERS_LST_COLUMN_CLIENT: ['client'],
+    ORDERS_LST_COLUMN_CARRIER: ['carrier'],
+    ORDERS_LST_COLUMN_DRIVER: ['carrier_driver_id', 'carrier_driver'],
+    ORDERS_LST_COLUMN_VEHICLE: ['carrier_car_id', 'carrier_car'],
+    ORDERS_LST_COLUMN_WEIGHT: ['cargo_weight'],
+    ORDERS_LST_COLUMN_CLIENT_SUM: ['client_sum'],
+    ORDERS_LST_COLUMN_CARRIER_SUM: ['carrier_sum'],
+    ORDERS_LST_COLUMN_MARGIN_SUM: ['margin_sum'],
+    ORDERS_LST_COLUMN_MARGIN_PERCENT: ['margin_percent'],
+    ORDERS_LST_COLUMN_FROM: ['from_locations'],
+    ORDERS_LST_COLUMN_TO: ['to_locations'],
+}
