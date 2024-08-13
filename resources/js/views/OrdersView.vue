@@ -6,7 +6,7 @@ import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-import {isArray} from "radash";
+import {clone, isArray} from "radash";
 import dayjs from "dayjs";
 import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
 import {useAuthStore} from "../stores/auth.js";
@@ -108,30 +108,35 @@ const setOrderStatus = async (orderId, statusType, status) => {
         listLoading.value = false
     }
 }
-const colsFromRole = computed(() => {
-    let res = []
-    authStore.currentRole.permissions.forEach(perm => {
-        if (Object.keys(permissionColumns).includes(perm)) {
-            res = [...res, ...permissionColumns[perm]]
-        }
-    })
-    return res
-})
-// const
+
 const columns = computed(() => {
-    const res = ordersStore.columnsOrders.filter(col => {
+    const res = clone(ordersStore.columnsOrders).filter(col => {
         if (authStore.currentRole.permissions.includes("ALL")) {return true}
         if (col.key === 'id') {return true}
-        if (!col.key && !!col.children) {return true}
-        return colsFromRole.value.includes(col.key)
+        if (!col.key) {return true}
+        let colsFromRole = []
+        authStore.currentRole.permissions.forEach(perm => {
+            if (Object.keys(permissionColumns).includes(perm)) {
+                colsFromRole = [...colsFromRole, ...permissionColumns[perm]]
+            }
+        })
+        return colsFromRole.includes(col.key)
     })
-    for (let i = 0; i < res.length; i++) {
-        if (!res[i].key && res[i].children) {
-            res[i].children = res[i].children.filter(col => {
-                return colsFromRole.value.includes(col.key)
-            })
-            if (res[i].children.length === 0) {
-                res.splice(i, 1)
+    if (!authStore.currentRole.permissions.includes("ALL")) {
+        for (let i = 0; i < res.length; i++) {
+            if (!res[i].key && res[i].children) {
+                res[i].children = res[i].children.filter(col => {
+                    let colsFromRole = []
+                    authStore.currentRole.permissions.forEach(perm => {
+                        if (Object.keys(permissionColumns).includes(perm)) {
+                            colsFromRole = [...colsFromRole, ...permissionColumns[perm]]
+                        }
+                    })
+                    return colsFromRole.includes(col.key) || authStore.currentRole.permissions.includes("ALL")
+                })
+                if (res[i].children.length === 0) {
+                    res.splice(i, 1)
+                }
             }
         }
     }
