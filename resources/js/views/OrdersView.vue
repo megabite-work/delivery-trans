@@ -135,7 +135,11 @@ const handleTableChange = async (pag, filters, sorter) => {
 }
 
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
-const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
+const tableRowFn = record => ({ onClick: () => {
+    if (authStore.userCan('ORDERS_VIEW')){
+        openMainDrawer(record.id)
+    }
+} })
 
 onMounted(() => {
     ordersStore.refreshDataList()
@@ -153,7 +157,7 @@ onBeforeUnmount(() => {
             <a-badge :dot="ordersStore.filter.isFiltered">
                 <a-button :type="filterOpen ? 'primary' : 'dashed'" :icon="h(FilterOutlined)" @click="() => filterOpen = !filterOpen">Фильтры</a-button>
             </a-badge>
-            <a-button type="primary" @click="() => openMainDrawer()">Новая заявка</a-button>
+            <a-button v-if="authStore.userCan('ORDERS_ADD')" type="primary" @click="() => openMainDrawer()">Новая заявка</a-button>
         </template>
         <div v-if="filterOpen" style="padding: 20px 24px; background-color: #fafafa; border-bottom: 1px solid #f0f0f0">
             <a-form layout="inline" style="width: 600px">
