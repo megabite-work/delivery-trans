@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
                         }">
                             {{ logistOrderStatuses[record.status_logist.status].label }}
                         </div>
-                        <template #overlay>
+                        <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE')" #overlay>
                             <a-menu>
                                 <template v-for="(v, key) in logistOrderStatuses">
                                     <a-menu-item v-if="key !== record.status_logist.status" @click="() => setOrderStatus(record.id, 'LOGIST', key)">
@@ -312,7 +312,7 @@ onBeforeUnmount(() => {
                         }">
                             {{ managerOrderStatuses[record.status_manager.status].label }}
                         </div>
-                        <template #overlay>
+                        <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE')" #overlay>
                             <a-menu>
                                 <template v-for="(v, key) in managerOrderStatuses">
                                     <a-menu-item v-if="key !== record.status_manager.status" @click="() => setOrderStatus(record.id, 'MANAGER', key)">
@@ -370,7 +370,7 @@ onBeforeUnmount(() => {
                     <div style="text-align: right; font-size: 12px; white-space: nowrap ">{{ parseFloat(record[column.key]).toLocaleString('ru-RU', {style: 'percent', minimumFractionDigits: 0}) }}</div>
                 </template>
             </template>
-            <template #expandedRowRender="{ record }">
+            <template v-if="authStore.userCan('ORDERS_LST_COLUMN_FROM') || authStore.userCan('ORDERS_LST_COLUMN_TO')" #expandedRowRender="{ record }">
                 <div style="display: flex; gap: 16px;">
                     <div v-if="authStore.userCan('ORDERS_LST_COLUMN_FROM')" v-for="(loc, i) in record.from_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
                         <div>{{ dayjs(loc.arrive_date).format("DD.MM.YYYY") }} {{ dayjs(loc.arrive_time).format("HH:mm") }}</div>
