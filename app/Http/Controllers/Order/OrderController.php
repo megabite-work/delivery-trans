@@ -216,24 +216,18 @@ class OrderController extends Controller
                 "sorter" => true
             ];
         }
-        $statusColumn = [
-            "title" => "Статус заявки",
-            "children" => []
-        ];
+
         if($request->user()->canDo("ORDERS_LST_COLUMN_STATUS_MANAGER")) {
-            $statusColumn["children"][] = [
-                "title" => "Менеджер",
+            $listColumns[] = [
+                "title" => "Статус менеджера",
                 "key" => "status_manager"
             ];
         }
         if($request->user()->canDo("ORDERS_LST_COLUMN_STATUS_LOGIST")) {
-            $statusColumn["children"][] = [
-                "title" => "Логист",
+            $listColumns[] = [
+                "title" => "Статус логиста",
                 "key" => "status_logist"
             ];
-        }
-        if(count($statusColumn["children"]) > 0) {
-            $listColumns[] = $statusColumn;
         }
         if($request->user()->canDo("ORDERS_LST_COLUMN_CLIENT")) {
             $listColumns[] = [

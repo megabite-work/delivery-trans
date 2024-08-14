@@ -1,14 +1,14 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import {onBeforeUnmount, onMounted, reactive, ref, h, createVNode, computed} from "vue";
-import {FilterOutlined, SearchOutlined, ArrowRightOutlined, ExclamationCircleOutlined} from "@ant-design/icons-vue";
+import {computed, createVNode, h, onBeforeUnmount, onMounted, reactive, ref} from "vue";
+import {ArrowRightOutlined, ExclamationCircleOutlined, FilterOutlined, SearchOutlined} from "@ant-design/icons-vue";
 import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-import {clone, isArray} from "radash";
+import {isArray} from "radash";
 import dayjs from "dayjs";
-import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
+import {logistOrderStatuses, managerOrderStatuses} from "../helpers/index.js";
 import {useAuthStore} from "../stores/auth.js";
 import {permissionColumns} from "../helpers/permissions.js";
 
@@ -110,10 +110,16 @@ const setOrderStatus = async (orderId, statusType, status) => {
 }
 
 const columns = computed(() => {
-    const res = clone(ordersStore.columnsOrders).filter(col => {
-        if (authStore.currentRole.permissions.includes("ALL")) {return true}
-        if (col.key === 'id') {return true}
-        if (!col.key) {return true}
+    return ordersStore.columnsOrders.filter(col => {
+        if (authStore.currentRole.permissions.includes("ALL")) {
+            return true
+        }
+        if (col.key === 'id') {
+            return true
+        }
+        if (!col.key) {
+            return true
+        }
         let colsFromRole = []
         authStore.currentRole.permissions.forEach(perm => {
             if (Object.keys(permissionColumns).includes(perm)) {
@@ -122,25 +128,6 @@ const columns = computed(() => {
         })
         return colsFromRole.includes(col.key)
     })
-    if (!authStore.currentRole.permissions.includes("ALL")) {
-        for (let i = 0; i < res.length; i++) {
-            if (!res[i].key && res[i].children) {
-                res[i].children = res[i].children.filter(col => {
-                    let colsFromRole = []
-                    authStore.currentRole.permissions.forEach(perm => {
-                        if (Object.keys(permissionColumns).includes(perm)) {
-                            colsFromRole = [...colsFromRole, ...permissionColumns[perm]]
-                        }
-                    })
-                    return colsFromRole.includes(col.key) || authStore.currentRole.permissions.includes("ALL")
-                })
-                if (res[i].children.length === 0) {
-                    res.splice(i, 1)
-                }
-            }
-        }
-    }
-    return res
 })
 
 const handleTableChange = async (pag, filters, sorter) => {
