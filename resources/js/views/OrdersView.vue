@@ -66,15 +66,22 @@ const saveOrder = async () => {
     mainDrawer.isSaving = true
     try {
         if (currentOrder.data.id === null) {
-            currentOrder.data = await ordersStore.createOrder(currentOrder.data)
-            currentOrder.modified = false
-            message.success('Заказ создан')
+            if (authStore.userCan('ORDERS_ADD')) {
+                currentOrder.data = await ordersStore.createOrder(currentOrder.data)
+                currentOrder.modified = false
+                message.success('Заказ создан')
+                if (!authStore.userCan('ORDERS_EDIT')) {
+                    closeMainDrawer()
+                }
+            }
             return
         }
-        currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
-        currentOrder.modified = false
-        mainDrawer.isSaving = false
-        closeMainDrawer()
+        if (authStore.userCan('ORDERS_EDIT')) {
+            currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
+            currentOrder.modified = false
+            mainDrawer.isSaving = false
+            closeMainDrawer()
+        }
     } catch {
         message.error('Ошибка. Не удалось записать заказ')
     } finally {
@@ -84,7 +91,7 @@ const saveOrder = async () => {
 }
 
 const deleteOrder = async () => {
-    if (currentOrder.data.id === null) {
+    if (currentOrder.data.id === null || !authStore.userCan('ORDERS_DELETE')) {
         return
     }
     try {
@@ -401,13 +408,22 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentOrder.data.id === null ? 'Новая заявка' : `Заявка #${currentOrder.data.id}`}${currentOrder.modified ? '*' : ''}`"
             :ok-text="currentOrder.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
-            :need-delete="currentOrder.data.id !== null"
+            :need-delete="currentOrder.data.id !== null && authStore.userCan('ORDERS_DELETE')"
+            :need-ok="authStore.userCan('ORDERS_EDIT') || authStore.userCan('ORDERS_ADD')"
             need-deletion-confirm-text="Вы уверены? Заявка будет удалена!"
             delete-text="Удалить"
             :maskClosable="currentOrder.data.id !== null"
             :closable="currentOrder.data.id !== null"
         >
-            <Order v-model="currentOrder.data" :loading="mainDrawer.isLoading" :errors="ordersStore.err?.errors"/>
+            <template v-if="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)" #extra>
+                <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
+            <Order
+                :read-only="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)"
+                v-model="currentOrder.data"
+                :loading="mainDrawer.isLoading"
+                :errors="ordersStore.err?.errors"
+            />
         </drawer>
     </Layout>
 </template>

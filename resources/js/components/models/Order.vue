@@ -16,18 +16,25 @@ import {usePricesStore} from "../../stores/models/prices.js";
 import {useClientsStore} from "../../stores/models/clients.js";
 import {managerOrderStatuses, logistOrderStatuses, decl} from "../../helpers/index.js";
 import {useOrdersStore} from "../../stores/models/orders.js";
+import {useAuthStore} from "../../stores/auth.js";
 
 import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
 import SelectValueTableWithCnt from "../SelectValueTableWithCnt.vue";
 import dayjs from "dayjs";
 
+
+const authStore = useAuthStore()
 const ordersStore = useOrdersStore()
 const suggest = useSuggests()
 const pricesStore = usePricesStore()
 const clientStore = useClientsStore()
 const model = defineModel()
-const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
+const prop = defineProps({
+    loading: { type: Boolean, default: false },
+    errors: { type: Object, default: null },
+    readOnly: {type: Boolean, default: false }
+})
 
 const isStatusLoading = ref(false);
 const cargoWeight = ref()
@@ -528,7 +535,7 @@ watch(() => prop.loading, async (v) => {
                             </template>
                             <template v-else>–</template>
                         </div>
-                        <template v-if="model.status_manager" #overlay>
+                        <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE') && model.status_manager" #overlay>
                             <a-menu>
                                 <template v-for="(v, key) in managerOrderStatuses">
                                     <a-menu-item v-if="key !== model.status_manager.status" @click="() => setOrderStatus(model.id, 'MANAGER', key)">
@@ -554,13 +561,13 @@ watch(() => prop.loading, async (v) => {
                     color: '#27272a'
                 }">
                     <div v-if="!clientPriceEditing" style="display: flex">
-                        <a-dropdown placement="bottom" arrow>
+                        <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')">
                             <a class="ant-dropdown-link" @click.prevent>
                                 <div style="display: flex;">
                                     {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
                                 </div>
                             </a>
-                            <template #overlay>
+                            <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')" #overlay>
                                 <a-menu>
                                     <a-menu-item :icon="h(EditOutlined)" @click="() => clientPriceEditing = true">
                                         Изменить сумму
@@ -626,7 +633,7 @@ watch(() => prop.loading, async (v) => {
                         </template>
                         <template v-else>–</template>
                     </div>
-                    <template v-if="model.status_logist" #overlay>
+                    <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE') && model.status_logist" #overlay>
                         <a-menu>
                             <template v-for="(v, key) in logistOrderStatuses">
                                 <a-menu-item v-if="key !== model.status_logist.status" @click="() => setOrderStatus(model.id, 'LOGIST', key)">
@@ -652,11 +659,11 @@ watch(() => prop.loading, async (v) => {
                 color: '#27272a'
             }">
                 <div v-if="!carrierPriceEditing" style="display: flex">
-                    <a-dropdown placement="bottom" arrow>
+                    <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')">
                         <a class="ant-dropdown-link" @click.prevent>
                             {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
                         </a>
-                        <template #overlay>
+                        <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')" #overlay>
                             <a-menu>
                                 <a-menu-item :icon="h(EditOutlined)" @click="() => carrierPriceEditing = true">
                                     Изменить сумму
@@ -696,7 +703,7 @@ watch(() => prop.loading, async (v) => {
         </a-col>
     </a-row>
 </div>
-<a-form layout="vertical" :model="model">
+<a-form layout="vertical" :model="model" :disabled="readOnly">
     <a-row :gutter="16">
         <a-col :span="12">
             <a-divider orientation="left">Груз</a-divider>
@@ -962,6 +969,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         :suggests="suggest.expensesSuggest"
+                        :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
                         @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift(el) : model.carrier_expenses = [el]"
                     />
@@ -977,6 +985,7 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Скидка"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
                     />
                 </a-tab-pane>
@@ -1284,6 +1293,7 @@ watch(() => prop.loading, async (v) => {
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
                         :suggests="suggest.expensesSuggest"
+                        :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
                         @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift(el) : model.client_expense = [el]"
                     />
@@ -1299,6 +1309,7 @@ watch(() => prop.loading, async (v) => {
                         key-placeholder-text="Штраф"
                         value-placeholder-text="Сумма"
                         value-postfix-text="₽"
+                        :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
                         @add="()=>{}"
                     />
@@ -1338,11 +1349,14 @@ watch(() => prop.loading, async (v) => {
         value-postfix-text="₽"
         :select-fetcher="suggest.getAdditionalServices"
         @change="() => orderCalculate(false)"
+        :read-only="prop.readOnly"
     />
 </a-form>
 
 </template>
 
-<style scoped>
-
+<style>
+input, select, textarea, .ant-select-selector {
+    color: #1a202c !important;
+}
 </style>

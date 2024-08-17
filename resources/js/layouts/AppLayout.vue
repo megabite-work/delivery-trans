@@ -27,51 +27,78 @@ const logout = async () => {
 
 const avatarUserName = computed(() => auth.user.name.split(/\s/).reduce((response,word)=> response + word.slice(0, 1),''))
 
-const routes = [
-    {
-        key: 'orders',
-        label: 'Заявки',
-    },
-    {
-        key: 'clients',
-        label: 'Заказчики',
-    },
-    {
-        key: 'carriers',
-        label: 'Перевозчики',
-    },
-]
+const routes = computed(() => {
+    const res = [];
+    if (auth.userCan('ORDERS_SECTION')) {
+        res.push({
+            key: 'orders',
+            label: 'Заявки',
+        })
+    }
 
-const optRoutes = [
-    {
-        key: 'prices',
-        label: 'Прайс-листы'
-    },
-    {
-        key: 'body-types',
-        label: 'Типы кузовов'
-    },
-    {
-        key: 'car-capacities',
-        label: 'Вместительность авто'
-    },
-    {
-        key: 'tconditions',
-        label: 'Температурные условия'
-    },
-    {
-        key: 'tonnages',
-        label: 'Тоннаж'
-    },
-    {
-        key: 'users',
-        label: 'Пользователи'
-    },
-    {
-        key: 'roles',
-        label: 'Роли'
-    },
-]
+    if (auth.userCan('CLIENTS_SECTION')) {
+        res.push({
+            key: 'clients',
+            label: 'Заказчики',
+        })
+    }
+
+    if (auth.userCan('CARRIERS_SECTION')) {
+        res.push({
+            key: 'carriers',
+            label: 'Перевозчики',
+        })
+    }
+    return res
+})
+
+const optRoutes = computed(() => {
+    const res = []
+
+    if (auth.userCan('PRICES_DIR')) {
+        res.push({
+            key: 'prices',
+            label: 'Прайс-листы'
+        })
+    }
+    if (auth.userCan('BODY_TYPES_DIR')) {
+        res.push({
+            key: 'body-types',
+            label: 'Типы кузовов'
+        })
+    }
+    if (auth.userCan('CAPACITIES_DIR')) {
+        res.push({
+            key: 'car-capacities',
+            label: 'Вместительность авто'
+        })
+    }
+    if (auth.userCan('T_CONDITIONS_DIR')) {
+        res.push({
+            key: 'tconditions',
+            label: 'Температурные условия'
+        })
+    }
+    if (auth.userCan('TONNAGES_DIR')) {
+        res.push({
+            key: 'tonnages',
+            label: 'Тоннаж'
+        })
+    }
+    if (auth.userCan('USERS_DIR')) {
+        res.push({
+            key: 'users',
+            label: 'Пользователи'
+        })
+    }
+    if (auth.userCan('ROLES_DIR')) {
+        res.push({
+            key: 'roles',
+            label: 'Роли'
+        })
+    }
+    return res
+})
 
 </script>
 
@@ -118,7 +145,7 @@ const optRoutes = [
                 <a-menu-item v-for="route in routes" :key="route.key">
                     <router-link :to="{name: route.key}">{{ route.label }}</router-link>
                 </a-menu-item>
-                <a-sub-menu key="options">
+                <a-sub-menu v-if="optRoutes.length > 0" key="options">
                     <template #title>Справочники</template>
                     <a-menu-item v-for="route in optRoutes" :key="route.key">
                         <router-link :to="{name: route.key}">{{ route.label }}</router-link>
@@ -147,7 +174,6 @@ const optRoutes = [
 </template>
 
 <style>
-
 .logo {
     color: #ffffff;
     font-family: 'Ubuntu', sans-serif;
@@ -161,6 +187,4 @@ const optRoutes = [
     float: right;
     margin: 12px;
 }
-
-
 </style>
