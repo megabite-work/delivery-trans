@@ -6,6 +6,7 @@ import Drawer from "../components/Drawer.vue";
 import {ControlOutlined} from "@ant-design/icons-vue";
 import Role from "../components/models/Role.vue";
 import {useRolesStore} from "../stores/models/roles.js";
+import {useAuthStore} from "../stores/auth.js";
 
 
 const columnsRoles = [
@@ -13,7 +14,9 @@ const columnsRoles = [
     { title: 'Название роли', dataIndex: 'name' },
 ];
 
+
 const rolesStore = useRolesStore()
+const authStore = useAuthStore()
 
 const currentRole = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
@@ -47,13 +50,17 @@ const saveRole = async () => {
     mainDrawer.isSaving = true
     try {
         if (currentRole.data.id === null) {
-            currentRole.data  = await rolesStore.createRole(currentRole.data)
-            currentRole.modified = false
-            message.success('Роль создана')
+            if (authStore.userCan('ROLES_CREATE')){
+                currentRole.data  = await rolesStore.createRole(currentRole.data)
+                currentRole.modified = false
+                message.success('Роль создана')
+            }
         } else {
-            currentRole.data = await rolesStore.storeRole(currentRole.data)
-            currentRole.modified = false
-            message.success('Роль записана')
+            if (authStore.userCan('ROLES_EDIT')) {
+                currentRole.data = await rolesStore.storeRole(currentRole.data)
+                currentRole.modified = false
+                message.success('Роль записана')
+            }
         }
         mainDrawer.isSaving = false
         closeMainDrawer()
@@ -66,7 +73,7 @@ const saveRole = async () => {
 }
 
 const deleteRole = async () => {
-    if (currentRole.data.id === null) {
+    if (currentRole.data.id === null || !authStore.userCan('ROLES_DELETE')) {
         return
     }
     try {
@@ -94,7 +101,7 @@ onBeforeUnmount(() => {
 
 <template>
     <Layout title="Роли">
-        <template #headerExtra>
+        <template v-if="authStore.userCan('ROLES_CREATE')" #headerExtra>
             <a-button type="primary" @click="() => openMainDrawer()">Новая роль</a-button>
         </template>
         <a-table
@@ -124,11 +131,17 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentRole.data.id === null ? 'Новая роль' : `Роль ${currentRole.data.name}`}${currentRole.modified ? '*' : ''}`"
             ok-text="Сохранить и закрыть"
-            :need-delete="currentRole.data.id !== null"
+            :need-ok="authStore.userCan('ROLES_CREATE') || authStore.userCan('ROLES_EDIT')"
+            :need-delete="currentRole.data.id !== null && authStore.userCan('ROLES_DELETE')"
             need-deletion-confirm-text="Вы уверены? Роль будет удалена!"
             delete-text="Удалить"
         >
-            <Role v-model="currentRole.data" :loading="mainDrawer.isLoading" :errors="rolesStore.err?.errors"/>
+            <Role
+                v-model="currentRole.data"
+                :loading="mainDrawer.isLoading"
+                :errors="rolesStore.err?.errors"
+                :read-only="(!authStore.userCan('ROLES_EDIT') && currentRole.data.id !== null) || (!authStore.userCan('ROLES_CREATE') && currentRole.data.id === null)"
+            />
         </drawer>
     </Layout>
 </template>

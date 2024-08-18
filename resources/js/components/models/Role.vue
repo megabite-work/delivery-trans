@@ -4,7 +4,11 @@ import {permissionsSections, permissions} from "../../helpers/permissions.js";
 import {isArray} from "radash";
 
 const model = defineModel()
-const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
+const prop = defineProps({
+    loading: { type: Boolean, default: false },
+    errors: { type: Object, default: null },
+    readOnly: {type: Boolean, default: false }
+})
 
 const err = reactive({
     name: null, permissions: null
@@ -72,7 +76,7 @@ const isIndeterminate = computed(() =>
 </script>
 
 <template>
-    <a-form layout="vertical" :model="model">
+    <a-form layout="vertical" :model="model" :disabled="readOnly">
         <a-form-item label="Наименование роли" name="name" :validate-status="err.name ? 'error': undefined" :help="err.name">
             <a-input
                 v-model:value="model.name"
@@ -97,6 +101,8 @@ const isIndeterminate = computed(() =>
     </a-form>
 </template>
 
-<style scoped>
-
+<style>
+input, select, textarea, .ant-select-selector {
+    color: #1a202c !important;
+}
 </style>

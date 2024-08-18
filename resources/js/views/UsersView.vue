@@ -49,13 +49,17 @@ const saveUser = async () => {
     mainDrawer.isSaving = true
     try {
         if (currentUser.data.id === null) {
-            currentUser.data  = await usersStore.createUser(currentUser.data)
-            currentUser.modified = false
-            message.success('Пользователь создан')
+            if (authStore.userCan('USERS_CREATE')){
+                currentUser.data  = await usersStore.createUser(currentUser.data)
+                currentUser.modified = false
+                message.success('Пользователь создан')
+            }
         } else {
-            currentUser.data = await usersStore.storeUser(currentUser.data)
-            currentUser.modified = false
-            message.success('Пользователь записан')
+            if(authStore.userCan('USERS_EDIT')) {
+                currentUser.data = await usersStore.storeUser(currentUser.data)
+                currentUser.modified = false
+                message.success('Пользователь записан')
+            }
         }
         mainDrawer.isSaving = false
         closeMainDrawer()
@@ -68,7 +72,7 @@ const saveUser = async () => {
 }
 
 const deleteUser = async () => {
-    if (currentUser.data.id === null) {
+    if (currentUser.data.id === null || !authStore.userCan('USERS_DELETE')) {
         return
     }
     try {
@@ -97,7 +101,7 @@ onBeforeUnmount(() => {
 
 <template>
     <Layout title="Пользователи">
-        <template #headerExtra>
+        <template v-if="authStore.userCan('USERS_CREATE')" #headerExtra>
             <a-button type="primary" @click="() => openMainDrawer()">Новый пользователь</a-button>
         </template>
         <a-table
@@ -126,11 +130,17 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentUser.data.id === null ? 'Новый пользователь' : `Пользователь ${currentUser.data.email}`}${currentUser.modified ? '*' : ''}`"
             ok-text="Сохранить и закрыть"
-            :need-delete="currentUser.data.id !== null && currentUser.data.id !== authStore.user.id"
+            :need-ok="authStore.userCan('USERS_CREATE') || authStore.userCan('USERS_EDIT')"
+            :need-delete="currentUser.data.id !== null && currentUser.data.id !== authStore.user.id && authStore.userCan('USERS_DELETE')"
             need-deletion-confirm-text="Вы уверены? Пользователь будет удален!"
             delete-text="Удалить"
         >
-            <User v-model="currentUser.data" :loading="mainDrawer.isLoading" :errors="usersStore.err?.errors"/>
+            <User
+                v-model="currentUser.data"
+                :loading="mainDrawer.isLoading"
+                :errors="usersStore.err?.errors"
+                :read-only="(!authStore.userCan('USERS_EDIT') && currentUser.data.id !== null) || (!authStore.userCan('USERS_CREATE') && currentUser.data.id === null)"
+            />
         </drawer>
     </Layout>
 </template>

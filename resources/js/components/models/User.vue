@@ -3,7 +3,11 @@
 import {reactive, watch} from "vue";
 
 const model = defineModel()
-const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
+const prop = defineProps({
+    loading: { type: Boolean, default: false },
+    errors: { type: Object, default: null },
+    readOnly: {type: Boolean, default: false }
+})
 
 const handlePasswordFocus = () => {
     model.value.password = undefined
@@ -24,7 +28,7 @@ watch(() => prop.errors, () => {
 </script>
 
 <template>
-    <a-form layout="vertical" :model="model">
+    <a-form layout="vertical" :model="model" :disabled="readOnly">
         <a-form-item label="Имя и фамилия пользователя" name="name" :validate-status="err.name ? 'error': undefined" :help="err.name">
             <a-input
                 v-model:value="model.name"
@@ -40,6 +44,7 @@ watch(() => prop.errors, () => {
         </a-form-item>
         <a-form-item label="Пароль" name="password" :validate-status="err.password ? 'error': undefined" :help="err.password">
             <a-input-password
+                autocomplete="on"
                 v-model:value="model.password"
                 :placeholder="model.id ? 'Новый пароль' : 'Задайте пароль'"
                 @focus="handlePasswordFocus"
@@ -48,6 +53,8 @@ watch(() => prop.errors, () => {
     </a-form>
 </template>
 
-<style scoped>
-
+<style>
+input, select, textarea, .ant-select-selector {
+    color: #1a202c !important;
+}
 </style>
