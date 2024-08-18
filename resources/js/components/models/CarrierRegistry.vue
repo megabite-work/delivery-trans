@@ -4,7 +4,11 @@ import dayjs from "dayjs";
 import {reactive, watch} from "vue";
 
 const model = defineModel()
-const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
+const prop = defineProps({
+    loading: { type: Boolean, default: false },
+    errors: { type: Object, default: null },
+    readOnly: {type: Boolean, default: false }
+})
 
 const columnsOrders = [
     { key: 'id', title: '#' },
@@ -36,7 +40,7 @@ watch(() => prop.errors, () => {
 </script>
 
 <template>
-<a-form layout="vertical" :model="model">
+<a-form layout="vertical" :model="model" :disabled="readOnly">
     <a-form-item label="Дата реестра" name="date" :validate-status="err.date ? 'error': undefined" :help="err.date">
         <a-date-picker
             v-model:value="model.date"
@@ -86,7 +90,7 @@ watch(() => prop.errors, () => {
         <a-col :span="12" :offset="12">
             <a-switch
                 :checked="model.carrier_paid >= model.carrier_sum"
-                :disabled="!(model.carrier_sum > 0)"
+                :disabled="!(model.carrier_sum > 0) || readOnly"
                 @click="makePaid"
             />
             Реестр оплачен полностью
