@@ -12,6 +12,7 @@ import Registry from "../components/models/Registry.vue";
 
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
 import {managerOrderStatuses, logistOrderStatuses, decl} from "../helpers/index.js";
+import {useAuthStore} from "../stores/auth.js";
 
 
 const columnsClients = [
@@ -42,6 +43,7 @@ const columnsOrders = [
 
 const vatArr = ['Без НДС', 'НДС', 'Нал'];
 
+const authStore = useAuthStore()
 const clientsStore = useClientsStore()
 const registriesStore = useRegistriesStore()
 
@@ -197,13 +199,18 @@ const saveClient = async () => {
             currentClient.data  = await clientsStore.createClient(currentClient.data)
             currentClient.modified = false
             message.success('Карточка заказчика создана')
+            if (!authStore.userCan('CLIENTS_EDIT')){
+                closeMainDrawer()
+            }
             return
         }
-        currentClient.data = await clientsStore.storeClient(currentClient.data)
-        currentClient.modified = false
-        message.success('Карточка заказчика записана')
-        mainDrawer.isSaving = false
-        closeMainDrawer()
+        if (authStore.userCan('CLIENTS_EDIT')) {
+            currentClient.data = await clientsStore.storeClient(currentClient.data)
+            currentClient.modified = false
+            message.success('Карточка заказчика записана')
+            mainDrawer.isSaving = false
+            closeMainDrawer()
+        }
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentClient.data.id === null ? 'создать' : 'сохранить'} карточку заказчика`)
     } finally {
@@ -236,7 +243,7 @@ const saveRegistry = async () => {
 }
 
 const deleteClient = async () => {
-    if (currentClient.data.id === null) {
+    if (currentClient.data.id === null || !authStore.userCan('CLIENTS_DELETE')) {
         return
     }
     try {
@@ -265,7 +272,11 @@ const deleteRegistry = async () => {
 
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
 
-const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
+const tableRowFn = record => ({ onClick: () => {
+        if (authStore.userCan('CLIENTS_VIEW')){
+            openMainDrawer(record.id)
+        }
+    } })
 const registryTableRowFn = record => ({ onClick: () => {if (record.id > 0) {openRegistryDrawer(record.id)}}})
 
 onMounted(() => {
@@ -289,8 +300,10 @@ onBeforeUnmount(() => {
                 :allow-clear="true"
                 @search="clientsStore.applyFilter()"
             />
-            <a-divider type="vertical" />
-            <a-button type="primary" @click="() => openMainDrawer()">Новый заказчик</a-button>
+            <template v-if="authStore.userCan('CLIENTS_ADD')">
+                <a-divider type="vertical" />
+                <a-button type="primary" @click="() => openMainDrawer()">Новый заказчик</a-button>
+            </template>
         </template>
         <a-table
             :loading="clientsStore.listLoading"
@@ -459,14 +472,19 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentClient.data.id === null ? 'Новый заказчик' : `Заказчик #${currentClient.data.id}`}${currentClient.modified ? '*' : ''}`"
             :ok-text="currentClient.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
-            :need-delete="currentClient.data.id !== null"
+            :need-ok="authStore.userCan('CLIENTS_ADD') || authStore.userCan('CLIENTS_EDIT')"
+            :need-delete="authStore.userCan('CLIENTS_DELETE') && currentClient.data.id !== null"
             need-deletion-confirm-text="Вы уверены? Заказчик будет удален!"
             delete-text="Удалить"
         >
+            <template v-if="(!authStore.userCan('CLIENTS_EDIT') && currentClient.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentClient.data.id === null)" #extra>
+                <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
             <Client
                 v-model="currentClient.data"
                 :loading="mainDrawer.isLoading"
                 :errors="clientsStore.err?.errors"
+                :read-only="(!authStore.userCan('CLIENTS_EDIT') && currentClient.data.id !== null) || (!authStore.userCan('CLIENTS_ADD') && currentClient.data.id === null)"
             />
         </drawer>
 

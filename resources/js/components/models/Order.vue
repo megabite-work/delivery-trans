@@ -1,5 +1,5 @@
 <script setup>
-import {ref, h, watch, computed} from "vue";
+import {ref, h, watch, computed, onMounted} from "vue";
 import axios from "axios";
 import {debounce, isArray, trim} from "radash";
 
@@ -79,6 +79,7 @@ const handleWeightTypeChange = (v) => {
     }
     cargoWeight.value = 0
 }
+
 const currentCarrierTab = ref('carrier')
 const currentClientTab = ref('client')
 
@@ -502,10 +503,41 @@ watch(() => prop.loading, async (v) => {
     }
 })
 
+const clientS = {
+    client: "ORDER_CLIENT_SECTION",
+    price: "ORDER_CLIENT_TARIFF_SECTION",
+    expenses: "ORDER_CLIENT_EXPENSES_SECTION",
+    discount: "ORDER_CLIENT_DISCOUNT_SECTION"
+}
+
+const carrierS = {
+    carrier: "ORDER_CARRIER_SECTION",
+    price: "ORDER_CARRIER_TARIFF_SECTION",
+    expenses: "ORDER_CARRIER_EXPENSES_SECTION",
+    fines: "ORDER_CARRIER_FINES_SECTION"
+}
+
+onMounted(() => {
+    let s = true
+    Object.keys(clientS).forEach(k => {
+        if (s && authStore.userCan(clientS[k])) {
+            currentClientTab.value = k
+            s = false
+        }
+    })
+    s = true
+    Object.keys(carrierS).forEach(k => {
+        if (s && authStore.userCan(carrierS[k])) {
+            currentCarrierTab.value = k
+            s = false
+        }
+    })
+})
+
 </script>
 
 <template>
-<div :style="{
+<div v-if="authStore.userCan('ORDER_CLIENT_PRICE') || authStore.userCan('ORDER_CARRIER_PRICE')" :style="{
     backgroundColor: '#f5f5f4',
     padding: '10px 20px',
     borderRadius: '6px'
@@ -513,7 +545,7 @@ watch(() => prop.loading, async (v) => {
     <a-row>
         <a-col :span="12" style="color: #737373">
             <div>
-                <div>
+                <div v-if="authStore.userCan('ORDER_MANAGER_STATUS')">
                     <a-dropdown trigger="click">
                         <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
                             <template v-if="model.status_manager">
@@ -554,64 +586,64 @@ watch(() => prop.loading, async (v) => {
                         </template>
                     </a-dropdown>
                 </div>
-                К оплате заказчику<template v-if="orderCalculation.order && orderCalculation.order.client_hours"> за {{orderCalculation.order.client_hours}} {{decl(orderCalculation.order.client_hours, ['час', 'часа', 'часов'])}}</template>:
-                <div :style="{
-                    fontSize: '24px',
-                    fontWeight: '600',
-                    color: '#27272a'
-                }">
-                    <div v-if="!clientPriceEditing" style="display: flex">
-                        <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')">
-                            <a class="ant-dropdown-link" @click.prevent>
-                                <div style="display: flex;">
-                                    {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
-                                </div>
-                            </a>
-                            <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')" #overlay>
-                                <a-menu>
-                                    <a-menu-item :icon="h(EditOutlined)" @click="() => clientPriceEditing = true">
-                                        Изменить сумму
-                                    </a-menu-item>
-                                    <a-menu-divider />
-                                    <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomClientPrice">
-                                        Посчитать автоматически
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
-                        <div v-if="!orderCalculation.client.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
-                            {{ (orderCalculation.client.sum + orderCalculation.client.expenses + orderCalculation.client.discount + orderCalculation.client.service).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                <template v-if="authStore.userCan('ORDER_CLIENT_PRICE')">
+                    К оплате заказчику<template v-if="orderCalculation.order && orderCalculation.order.client_hours"> за {{orderCalculation.order.client_hours}} {{decl(orderCalculation.order.client_hours, ['час', 'часа', 'часов'])}}</template>:
+                    <div :style="{
+                        fontSize: '24px',
+                        fontWeight: '600',
+                        color: '#27272a'
+                    }">
+                        <div v-if="!clientPriceEditing" style="display: flex">
+                            <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')">
+                                <a class="ant-dropdown-link" @click.prevent>
+                                    <div style="display: flex;">
+                                        {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                                    </div>
+                                </a>
+                                <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')" #overlay>
+                                    <a-menu>
+                                        <a-menu-item :icon="h(EditOutlined)" @click="() => clientPriceEditing = true">
+                                            Изменить сумму
+                                        </a-menu-item>
+                                        <a-menu-divider />
+                                        <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomClientPrice">
+                                            Посчитать автоматически
+                                        </a-menu-item>
+                                    </a-menu>
+                                </template>
+                            </a-dropdown>
+                            <div v-if="!orderCalculation.client.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
+                                {{ (orderCalculation.client.sum + orderCalculation.client.expenses + orderCalculation.client.discount + orderCalculation.client.service).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                            </div>
+                        </div>
+                        <div v-else style="display: flex; align-items: center">
+                            <a-input-number
+                                v-model:value="model.client_sum"
+                                :min="0"
+                                style="width: 200px"
+                            >
+                                <template #addonAfter>₽</template>
+                            </a-input-number>
+                            <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomClientPrice"/>
+                            <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomClientPrice"/>
+                        </div>
+                        <div :style="{
+                            fontWeight: '400',
+                            fontSize: '11px',
+                            color: '#404040'
+                        }">
+                            Допрасходы: {{clientExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                            <a-divider type="vertical" />
+                            Допуслуги: {{additionalServiceTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                            <a-divider type="vertical" />
+                            Скидка: {{clientDiscountsTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                         </div>
                     </div>
-                    <div v-else style="display: flex; align-items: center">
-                        <a-input-number
-                            v-model:value="model.client_sum"
-                            :min="0"
-                            style="width: 200px"
-                        >
-                            <template #addonAfter>₽</template>
-                        </a-input-number>
-                        <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomClientPrice"/>
-                        <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomClientPrice"/>
-                    </div>
-                    <div :style="{
-                        fontWeight: '400',
-                        fontSize: '11px',
-                        color: '#404040'
-                    }">
-                        Допрасходы: {{clientExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                        <a-divider type="vertical" />
-                        Допуслуги: {{additionalServiceTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                        <a-divider type="vertical" />
-                        Скидка: {{clientDiscountsTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                    </div>
-                </div>
+                </template>
             </div>
-
-
         </a-col>
         <a-col :span="12" style="color: #737373">
-            <div>
+            <div v-if="authStore.userCan('ORDER_CARRIER_STATUS')">
                 <a-dropdown trigger="click">
                     <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
                         <template v-if="model.status_logist">
@@ -652,60 +684,62 @@ watch(() => prop.loading, async (v) => {
                     </template>
                 </a-dropdown>
             </div>
-            К оплате перевозчику<template v-if="orderCalculation.order && orderCalculation.order.carrier_hours"> за {{orderCalculation.order.carrier_hours}} {{decl(orderCalculation.order.carrier_hours, ['час', 'часа', 'часов'])}}</template>:
-            <div :style="{
-                fontSize: '24px',
-                fontWeight: '600',
-                color: '#27272a'
-            }">
-                <div v-if="!carrierPriceEditing" style="display: flex">
-                    <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')">
-                        <a class="ant-dropdown-link" @click.prevent>
-                            {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
-                        </a>
-                        <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')" #overlay>
-                            <a-menu>
-                                <a-menu-item :icon="h(EditOutlined)" @click="() => carrierPriceEditing = true">
-                                    Изменить сумму
-                                </a-menu-item>
-                                <a-menu-divider />
-                                <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomCarrierPrice">
-                                    Посчитать автоматически
-                                </a-menu-item>
-                            </a-menu>
-                        </template>
-                    </a-dropdown>
-                    <div v-if="!orderCalculation.carrier.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
-                        {{ (orderCalculation.carrier.sum + orderCalculation.carrier.expenses - orderCalculation.carrier.fine).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+            <template v-if="authStore.userCan('ORDER_CARRIER_PRICE')">
+                К оплате перевозчику<template v-if="orderCalculation.order && orderCalculation.order.carrier_hours"> за {{orderCalculation.order.carrier_hours}} {{decl(orderCalculation.order.carrier_hours, ['час', 'часа', 'часов'])}}</template>:
+                <div :style="{
+                    fontSize: '24px',
+                    fontWeight: '600',
+                    color: '#27272a'
+                }">
+                    <div v-if="!carrierPriceEditing" style="display: flex">
+                        <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')">
+                            <a class="ant-dropdown-link" @click.prevent>
+                                {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                            </a>
+                            <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')" #overlay>
+                                <a-menu>
+                                    <a-menu-item :icon="h(EditOutlined)" @click="() => carrierPriceEditing = true">
+                                        Изменить сумму
+                                    </a-menu-item>
+                                    <a-menu-divider />
+                                    <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomCarrierPrice">
+                                        Посчитать автоматически
+                                    </a-menu-item>
+                                </a-menu>
+                            </template>
+                        </a-dropdown>
+                        <div v-if="!orderCalculation.carrier.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
+                            {{ (orderCalculation.carrier.sum + orderCalculation.carrier.expenses - orderCalculation.carrier.fine).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                        </div>
+                    </div>
+                    <div v-else style="display: flex; align-items: center">
+                        <a-input-number
+                            v-model:value="model.carrier_sum"
+                            :min="0"
+                            style="width: 200px"
+                        >
+                            <template #addonAfter>₽</template>
+                        </a-input-number>
+                        <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomCarrierPrice"/>
+                        <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomCarrierPrice"/>
+                    </div>
+                    <div :style="{
+                                fontWeight: '400',
+                                fontSize: '11px',
+                                color: '#404040'
+                            }">
+                        Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                        <a-divider type="vertical" />
+                        Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                     </div>
                 </div>
-                <div v-else style="display: flex; align-items: center">
-                    <a-input-number
-                        v-model:value="model.carrier_sum"
-                        :min="0"
-                        style="width: 200px"
-                    >
-                        <template #addonAfter>₽</template>
-                    </a-input-number>
-                    <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomCarrierPrice"/>
-                    <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomCarrierPrice"/>
-                </div>
-                <div :style="{
-                            fontWeight: '400',
-                            fontSize: '11px',
-                            color: '#404040'
-                        }">
-                    Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                    <a-divider type="vertical" />
-                    Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                </div>
-            </div>
+            </template>
         </a-col>
     </a-row>
 </div>
 <a-form layout="vertical" :model="model" :disabled="readOnly">
     <a-row :gutter="16">
-        <a-col :span="12">
+        <a-col v-if="authStore.userCan('ORDER_CARGO_SECTION')" :span="12">
             <a-divider orientation="left">Груз</a-divider>
             <a-form-item label="Наименование груза" name="cargo_name">
                 <a-auto-complete
@@ -766,7 +800,7 @@ watch(() => prop.loading, async (v) => {
                 </a-form-item>
             </a-space>
         </a-col>
-        <a-col :span="12">
+        <a-col v-if="authStore.userCan('ORDER_CAR_SECTION')" :span="12 + (authStore.userCan('ORDER_CARGO_SECTION') ? 0 : 12)">
             <a-divider orientation="left">Машина</a-divider>
             <a-form-item label="Вместимость машины" name="type" :validate-status="capacitySearchError ? 'error': undefined" :help="capacitySearchError ? 'Невозможно подобрать вместимость машины' : undefined">
                 <a-select
@@ -799,7 +833,7 @@ watch(() => prop.loading, async (v) => {
     <a-row :gutter="16">
         <a-col :span="12">
             <a-tabs v-model:activeKey="currentClientTab">
-                <a-tab-pane key="client" tab="Заказчик">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_SECTION')" key="client" tab="Заказчик">
                     <a-space direction="vertical" :style="{ width: '100%' }">
                         <a-select
                             show-search
@@ -838,7 +872,7 @@ watch(() => prop.loading, async (v) => {
                         </a-select>
                     </a-space>
                 </a-tab-pane>
-                <a-tab-pane key="price" tab="Тариф">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_TARIFF_SECTION')" key="price" tab="Тариф">
                     <a-space direction="vertical" style="width: 100%">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 100px; text-align: right"></div>
@@ -957,7 +991,7 @@ watch(() => prop.loading, async (v) => {
                         </div>
                     </a-space>
                 </a-tab-pane>
-                <a-tab-pane key="expenses" tab="Допрасходы">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_EXPENSES_SECTION')" key="expenses" tab="Допрасходы">
                     <KeyValueTable
                         v-model="model.client_expenses"
                         :scroll="{y: 150}"
@@ -974,7 +1008,7 @@ watch(() => prop.loading, async (v) => {
                         @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift(el) : model.carrier_expenses = [el]"
                     />
                 </a-tab-pane>
-                <a-tab-pane key="discount" tab="Скидки">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_DISCOUNT_SECTION')" key="discount" tab="Скидки">
                     <KeyValueTable
                         v-model="model.client_discounts"
                         :scroll="{y: 150}"
@@ -993,7 +1027,7 @@ watch(() => prop.loading, async (v) => {
         </a-col>
         <a-col :span="12">
             <a-tabs v-model:activeKey="currentCarrierTab">
-                <a-tab-pane key="carrier" tab="Перевозчик">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_SECTION')" key="carrier" tab="Перевозчик">
                     <a-space direction="vertical" :style="{ width: '100%' }">
                         <a-select
                             show-search
@@ -1164,7 +1198,7 @@ watch(() => prop.loading, async (v) => {
                         </template>
                     </a-space>
                 </a-tab-pane>
-                <a-tab-pane key="price" tab="Тариф">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_TARIFF_SECTION')" key="price" tab="Тариф">
                     <a-space direction="vertical" style="width: 100%">
                         <div style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 100px; text-align: right"></div>
@@ -1281,7 +1315,7 @@ watch(() => prop.loading, async (v) => {
                         </div>
                     </a-space>
                 </a-tab-pane>
-                <a-tab-pane key="expenses" tab="Допрасходы">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_EXPENSES_SECTION')" key="expenses" tab="Допрасходы">
                     <KeyValueTable
                         v-model="model.carrier_expenses"
                         :scroll="{y: 150}"
@@ -1298,7 +1332,7 @@ watch(() => prop.loading, async (v) => {
                         @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift(el) : model.client_expense = [el]"
                     />
                 </a-tab-pane>
-                <a-tab-pane key="fines" tab="Штрафы">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_FINES_SECTION')" key="fines" tab="Штрафы">
                     <KeyValueTable
                         v-model="model.carrier_fines"
                         :scroll="{y: 150}"
@@ -1317,8 +1351,8 @@ watch(() => prop.loading, async (v) => {
             </a-tabs>
         </a-col>
     </a-row>
-    <a-row :gutter="16" style="padding-top: 16px">
-        <a-col :span="12">
+    <a-row v-if="authStore.userCan('ORDER_LOCATION_FROM_SECTION') || authStore.userCan('ORDER_LOCATION_TO_SECTION')" :gutter="16" style="padding-top: 16px">
+        <a-col v-if="authStore.userCan('ORDER_LOCATION_FROM_SECTION')" :span="12 + (authStore.userCan('ORDER_LOCATION_TO_SECTION') ? 0 : 12)">
             <AddressList
                 v-model="model.from_locations"
                 title="Откуда"
@@ -1327,7 +1361,7 @@ watch(() => prop.loading, async (v) => {
                 :client-id="model.client_id"
             />
         </a-col>
-        <a-col :span="12">
+        <a-col v-if="authStore.userCan('ORDER_LOCATION_TO_SECTION')" :span="12 + (authStore.userCan('ORDER_LOCATION_FROM_SECTION') ? 0 : 12)">
             <AddressList
                 v-model="model.to_locations"
                 title="Куда"
@@ -1337,20 +1371,22 @@ watch(() => prop.loading, async (v) => {
             />
         </a-col>
     </a-row>
-    <a-divider orientation="left">Дополнительные услуги</a-divider>
-    <SelectValueTableWithCnt
-        v-model="model.additional_service"
-        header-key-text="Услуга"
-        header-count-text="Кол-во"
-        header-value-text="Сумма"
-        add-button-text="Добавить допуслугу"
-        key-placeholder-text="Выберите допуслугу"
-        value-placeholder-text="Сумма"
-        value-postfix-text="₽"
-        :select-fetcher="suggest.getAdditionalServices"
-        @change="() => orderCalculate(false)"
-        :read-only="prop.readOnly"
-    />
+    <template v-if="authStore.userCan('ORDER_ADDITIONAL_SERVICES')">
+        <a-divider orientation="left">Дополнительные услуги</a-divider>
+        <SelectValueTableWithCnt
+            v-model="model.additional_service"
+            header-key-text="Услуга"
+            header-count-text="Кол-во"
+            header-value-text="Сумма"
+            add-button-text="Добавить допуслугу"
+            key-placeholder-text="Выберите допуслугу"
+            value-placeholder-text="Сумма"
+            value-postfix-text="₽"
+            :select-fetcher="suggest.getAdditionalServices"
+            @change="() => orderCalculate(false)"
+            :read-only="prop.readOnly"
+        />
+    </template>
 </a-form>
 
 </template>

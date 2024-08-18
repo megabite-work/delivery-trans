@@ -10,6 +10,7 @@ import {useCarrierRegistriesStore} from "../stores/models/carrierRegistries.js";
 import dayjs from "dayjs";
 import {decl, logistOrderStatuses, managerOrderStatuses} from "../helpers/index.js";
 import CarrierRegistry from "../components/models/CarrierRegistry.vue";
+import {useAuthStore} from "../stores/auth.js";
 
 const columnsCarriers = [
     { key: 'type', width: 50 },
@@ -39,6 +40,7 @@ const columnsOrders = [
 
 const vatArr = ['Без НДС', 'НДС', 'Нал'];
 
+const authStore = useAuthStore()
 const carriersStore = useCarriersStore()
 const registriesStore = useCarrierRegistriesStore()
 
@@ -191,13 +193,18 @@ const saveCarrier = async () => {
             currentCarrier.data  = await carriersStore.createCarrier(currentCarrier.data)
             currentCarrier.modified = false
             message.success('Карточка перевозчика создана')
+            if (!authStore.userCan('CARRIERS_EDIT')){
+                closeMainDrawer()
+            }
             return
         }
-        currentCarrier.data = await carriersStore.storeCarrier(currentCarrier.data)
-        currentCarrier.modified = false
-        message.success('Карточка перевозчика записана')
-        mainDrawer.isSaving = false
-        closeMainDrawer()
+        if (authStore.userCan('CARRIERS_EDIT')) {
+            currentCarrier.data = await carriersStore.storeCarrier(currentCarrier.data)
+            currentCarrier.modified = false
+            message.success('Карточка перевозчика записана')
+            mainDrawer.isSaving = false
+            closeMainDrawer()
+        }
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentCarrier.data.id === null ? 'создать' : 'сохранить'} карточку перевозчика`)
     } finally {
@@ -230,7 +237,7 @@ const saveRegistry = async () => {
 }
 
 const deleteCarrier = async () => {
-    if (currentCarrier.data.id === null) {
+    if (currentCarrier.data.id === null || !authStore.userCan('CARRIERS_DELETE')) {
         return
     }
     try {
@@ -259,7 +266,11 @@ const deleteRegistry = async () => {
 
 const clientHeight = ref(document.documentElement.clientHeight)
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
-const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
+const tableRowFn = record => ({ onClick: () => {
+        if (authStore.userCan('CARRIERS_VIEW')){
+            openMainDrawer(record.id)
+        }
+    } })
 const registryTableRowFn = record => ({ onClick: () => {if (record.id > 0) {openRegistryDrawer(record.id)}}})
 
 onMounted(() => {
@@ -282,8 +293,10 @@ onBeforeUnmount(() => {
                 :allow-clear="true"
                 @search="carriersStore.applyFilter()"
             />
-            <a-divider type="vertical" />
-            <a-button type="primary" @click="() => openMainDrawer()">Новый перевозчик</a-button>
+            <template v-if="authStore.userCan('CARRIERS_VIEW')">
+                <a-divider type="vertical" />
+                <a-button type="primary" @click="() => openMainDrawer()">Новый перевозчик</a-button>
+            </template>
         </template>
         <a-table
             :loading="carriersStore.listLoading"
@@ -452,11 +465,20 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentCarrier.data.id === null ? 'Новый перевозчик' : `Перевозчик #${currentCarrier.data.id}`}${currentCarrier.modified ? '*' : ''}`"
             :ok-text="currentCarrier.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
-            :need-delete="currentCarrier.data.id !== null"
+            :need-ok="authStore.userCan('CARRIERS_ADD') || authStore.userCan('CARRIERS_EDIT')"
+            :need-delete="authStore.userCan('CARRIERS_DELETE') && currentCarrier.data.id !== null"
             need-deletion-confirm-text="Вы уверены? Перевозчик будет удален!"
             delete-text="Удалить"
         >
-            <Carrier v-model="currentCarrier.data" :loading="mainDrawer.isLoading" :errors="carriersStore.err?.errors"/>
+            <template v-if="(!authStore.userCan('CARRIERS_EDIT') && currentCarrier.data.id !== null) || (!authStore.userCan('CARRIERS_ADD') && currentCarrier.data.id === null)" #extra>
+                <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
+            <Carrier
+                v-model="currentCarrier.data"
+                :loading="mainDrawer.isLoading"
+                :errors="carriersStore.err?.errors"
+                :read-only="(!authStore.userCan('CARRIERS_EDIT') && currentCarrier.data.id !== null) || (!authStore.userCan('CARRIERS_ADD') && currentCarrier.data.id === null)"
+            />
         </drawer>
 
         <drawer
