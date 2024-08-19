@@ -281,7 +281,7 @@ const tableRowFn = record => ({ onClick: () => {
     } })
 const registryTableRowFn = record => ({ onClick: () =>
     {
-        if (record.id > 0 && authStore.userCan('CLIENT_REGISTRIES_VIEW')) {
+        if (record.id > 0 && authStore.userCan('CLIENTS_REGISTRIES_VIEW')) {
             openRegistryDrawer(record.id)
         }
     }
@@ -346,7 +346,7 @@ onBeforeUnmount(() => {
                     {{ record.orders.length === 0 ? '–' : record.orders.length}}
                 </template>
             </template>
-            <template v-if="authStore.userCan('CLIENT_REGISTRIES_VIEW')" #expandedRowRender="{ record }">
+            <template v-if="authStore.userCan('CLIENTS_REGISTRIES_VIEW')" #expandedRowRender="{ record }">
                 <template v-if="record.orders && record.orders.length > 0">
                     <a-table
                         :columns="columnsRegitries"
