@@ -12,12 +12,6 @@ const router = createRouter({
             meta: { requiresAuth: false },
             component: () => import('../views/auth/LoginView.vue')
         },
-        // {
-        //     path: '/',
-        //     name: 'dashboard',
-        //     meta: { requiresAuth: true },
-        //     component: () => import('../views/DashboardView.vue')
-        // },
         {
             path: '/orders',
             alias: '/',
@@ -72,6 +66,26 @@ const router = createRouter({
             name: 'users',
             meta: { requiresAuth: true },
             component: () => import('../views/UsersView.vue')
+        },
+        {
+            path: '/roles',
+            name: 'roles',
+            meta: { requiresAuth: true },
+            component: () => import('../views/RolesView.vue')
+        },
+        {
+            path: '/404',
+            name: '404',
+            component: () => import('../views/404.vue')
+        },
+        {
+            path: '/403',
+            name: '403',
+            component: () => import('../views/403.vue')
+        },
+        {
+            path: '/:catchAll(.*)',
+            redirect: '404',
         },
     ]
 })

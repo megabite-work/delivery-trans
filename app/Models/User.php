@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -31,6 +30,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'is_superuser'
     ];
 
     /**
@@ -42,4 +42,23 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class);
+    }
+
+    public function canDo($permission)
+    {
+        if ($this->is_superuser) {
+            return true;
+        }
+        $permissions = [];
+        foreach ($this->roles as $role) {
+            if ($role->permissions != null) {
+                $permissions = array_merge($permissions, json_decode($role->permissions));
+            }
+        }
+        return in_array($permission, $permissions);
+    }
 }

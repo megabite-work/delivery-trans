@@ -26,7 +26,8 @@ const prop = defineProps({
     valuePostfixText: {type: String, default: ''},
     countWidth: { type: Number, default: 150 },
     valueWidth: { type: Number, default: 150 },
-    size: {type: String, default: 'small'}
+    size: {type: String, default: 'small'},
+    readOnly: {type: Boolean, default: false }
 })
 
 const columns = [
@@ -68,7 +69,11 @@ const addRow = () => {
     model.value = Array({ k: '', c: 1, v: 0 }, ...model.value)
     editRow(0)
 }
-const tableRowFn = (record, idx) => ({ onClick: () => editRow(idx) })
+const tableRowFn = (record, idx) => ({ onClick: () => {
+    if(!prop.readOnly) {
+        editRow(idx)
+    }
+}})
 const editRow = idx => {
     if (model.value[idx] && !model.value[idx].hasOwnProperty('c')) {
         model.value[idx].c = 1

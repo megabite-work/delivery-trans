@@ -17,7 +17,8 @@ const prop = defineProps({
     valuePostfixText: {type: String, default: ''},
     valueWidth: { type: Number, default: 150 },
     size: {type: String, default: 'small'},
-    suggests: {type: Function}
+    suggests: {type: Function},
+    readOnly: {type: Boolean, default: false }
 })
 
 const model = defineModel({type: Array, default: []})
@@ -42,7 +43,11 @@ const addRow = () => {
     model.value = [{ k: '', v: 0 }, ...model.value]
     editRow(0)
 }
-const tableRowFn = (record, idx) => ({ onClick: () => editRow(idx) })
+const tableRowFn = (record, idx) => ({ onClick: () => {
+        if(!prop.readOnly) {
+            editRow(idx)
+        }
+    }})
 const editRow = idx => currentRowIdx.value = idx
 const applyRow = (e) => {
     if (!!e) { e.stopPropagation() }

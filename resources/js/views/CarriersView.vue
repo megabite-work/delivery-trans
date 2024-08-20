@@ -10,6 +10,7 @@ import {useCarrierRegistriesStore} from "../stores/models/carrierRegistries.js";
 import dayjs from "dayjs";
 import {decl, logistOrderStatuses, managerOrderStatuses} from "../helpers/index.js";
 import CarrierRegistry from "../components/models/CarrierRegistry.vue";
+import {useAuthStore} from "../stores/auth.js";
 
 const columnsCarriers = [
     { key: 'type', width: 50 },
@@ -39,6 +40,7 @@ const columnsOrders = [
 
 const vatArr = ['Без НДС', 'НДС', 'Нал'];
 
+const authStore = useAuthStore()
 const carriersStore = useCarriersStore()
 const registriesStore = useCarrierRegistriesStore()
 
@@ -191,13 +193,18 @@ const saveCarrier = async () => {
             currentCarrier.data  = await carriersStore.createCarrier(currentCarrier.data)
             currentCarrier.modified = false
             message.success('Карточка перевозчика создана')
+            if (!authStore.userCan('CARRIERS_EDIT')){
+                closeMainDrawer()
+            }
             return
         }
-        currentCarrier.data = await carriersStore.storeCarrier(currentCarrier.data)
-        currentCarrier.modified = false
-        message.success('Карточка перевозчика записана')
-        mainDrawer.isSaving = false
-        closeMainDrawer()
+        if (authStore.userCan('CARRIERS_EDIT')) {
+            currentCarrier.data = await carriersStore.storeCarrier(currentCarrier.data)
+            currentCarrier.modified = false
+            message.success('Карточка перевозчика записана')
+            mainDrawer.isSaving = false
+            closeMainDrawer()
+        }
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentCarrier.data.id === null ? 'создать' : 'сохранить'} карточку перевозчика`)
     } finally {
@@ -209,17 +216,19 @@ const saveCarrier = async () => {
 const saveRegistry = async () => {
     registryDrawer.isSaving = true
     try {
-        if (currentRegistry.data.id === null) {
+        if (currentRegistry.data.id === null && authStore.userCan('CARRIERS_REGISTRIES_CREATE')) {
             currentRegistry.data  = await registriesStore.createRegistry(currentRegistry.data)
             currentRegistry.modified = false
             closeRegistryDrawer()
             message.success('Реестр создан')
             return
         }
-        currentRegistry.data = await registriesStore.storeRegistry(currentRegistry.data)
-        currentRegistry.modified = false
-        message.success('Изменения записаны')
-        registriesStore.isSaving = false
+        if (authStore.userCan('CARRIERS_REGISTRIES_EDIT')) {
+            currentRegistry.data = await registriesStore.storeRegistry(currentRegistry.data)
+            currentRegistry.modified = false
+            message.success('Изменения записаны')
+            registriesStore.isSaving = false
+        }
         closeRegistryDrawer()
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentCarrier.data.id === null ? 'создать' : 'сохранить'} реестр`)
@@ -230,7 +239,7 @@ const saveRegistry = async () => {
 }
 
 const deleteCarrier = async () => {
-    if (currentCarrier.data.id === null) {
+    if (currentCarrier.data.id === null || !authStore.userCan('CARRIERS_DELETE')) {
         return
     }
     try {
@@ -244,7 +253,7 @@ const deleteCarrier = async () => {
 }
 
 const deleteRegistry = async () => {
-    if (currentRegistry.data.id === null) {
+    if (currentRegistry.data.id === null || !authStore.userCan('CARRIERS_REGISTRIES_DELETE')) {
         return
     }
     try {
@@ -259,9 +268,18 @@ const deleteRegistry = async () => {
 
 const clientHeight = ref(document.documentElement.clientHeight)
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
-const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
-const registryTableRowFn = record => ({ onClick: () => {if (record.id > 0) {openRegistryDrawer(record.id)}}})
-
+const tableRowFn = record => ({ onClick: () => {
+        if (authStore.userCan('CARRIERS_VIEW')){
+            openMainDrawer(record.id)
+        }
+    } })
+const registryTableRowFn = record => ({ onClick: () =>
+    {
+        if (record.id > 0 && authStore.userCan('CARRIERS_REGISTRIES_VIEW')) {
+            openRegistryDrawer(record.id)
+        }
+    }
+})
 onMounted(() => {
     carriersStore.refreshDataList()
     window.addEventListener('resize', updateClientHeight)
@@ -282,8 +300,10 @@ onBeforeUnmount(() => {
                 :allow-clear="true"
                 @search="carriersStore.applyFilter()"
             />
-            <a-divider type="vertical" />
-            <a-button type="primary" @click="() => openMainDrawer()">Новый перевозчик</a-button>
+            <template v-if="authStore.userCan('CARRIERS_VIEW')">
+                <a-divider type="vertical" />
+                <a-button type="primary" @click="() => openMainDrawer()">Новый перевозчик</a-button>
+            </template>
         </template>
         <a-table
             :loading="carriersStore.listLoading"
@@ -318,7 +338,7 @@ onBeforeUnmount(() => {
                     {{ record.orders.length === 0 ? '–' : record.orders.length}}
                 </template>
             </template>
-            <template #expandedRowRender="{ record }">
+            <template v-if="authStore.userCan('CARRIERS_REGISTRIES_VIEW')" #expandedRowRender="{ record }">
                 <template v-if="record.orders && record.orders.length > 0">
                     <a-table
                         :columns="columnsRegitries"
@@ -390,7 +410,7 @@ onBeforeUnmount(() => {
                                         :columns="columnsOrders"
                                         :data-source="registryOrdersList(record)"
                                         :pagination="false"
-                                        :row-selection="record.id === 0 ? { selectedRowKeys: carrierSelectedRowKeys(record.carrier_id), onChange: v => onCarrierOrderSelectChange(record.carrier_id, v) } : undefined"
+                                        :row-selection="record.id === 0 && (authStore.userCan('CARRIERS_REGISTRIES_CREATE')) ? { selectedRowKeys: carrierSelectedRowKeys(record.carrier_id), onChange: v => onCarrierOrderSelectChange(record.carrier_id, v) } : undefined"
                                     >
                                         <template #bodyCell="{ column, record }">
                                             <template v-if="column.key === 'carrier_sum'">
@@ -415,7 +435,7 @@ onBeforeUnmount(() => {
                                     <div v-if="record.id === 0" style="margin-top: 30px; margin-left: 32px; margin-bottom: 8px; display: flex; align-items: center;">
                                         <a-button
                                             type="primary"
-                                            :disabled="!carrierHasSelectedOrders(record.carrier_id)"
+                                            :disabled="!carrierHasSelectedOrders(record.carrier_id) || !authStore.userCan('CARRIERS_REGISTRIES_CREATE')"
                                             :loading="false"
                                             @click="() => openRegistryDrawer(null, record.carrier_id)"
                                         >
@@ -452,11 +472,20 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentCarrier.data.id === null ? 'Новый перевозчик' : `Перевозчик #${currentCarrier.data.id}`}${currentCarrier.modified ? '*' : ''}`"
             :ok-text="currentCarrier.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
-            :need-delete="currentCarrier.data.id !== null"
+            :need-ok="authStore.userCan('CARRIERS_ADD') || authStore.userCan('CARRIERS_EDIT')"
+            :need-delete="authStore.userCan('CARRIERS_DELETE') && currentCarrier.data.id !== null"
             need-deletion-confirm-text="Вы уверены? Перевозчик будет удален!"
             delete-text="Удалить"
         >
-            <Carrier v-model="currentCarrier.data" :loading="mainDrawer.isLoading" :errors="carriersStore.err?.errors"/>
+            <template v-if="(!authStore.userCan('CARRIERS_EDIT') && currentCarrier.data.id !== null) || (!authStore.userCan('CARRIERS_ADD') && currentCarrier.data.id === null)" #extra>
+                <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
+            <Carrier
+                v-model="currentCarrier.data"
+                :loading="mainDrawer.isLoading"
+                :errors="carriersStore.err?.errors"
+                :read-only="(!authStore.userCan('CARRIERS_EDIT') && currentCarrier.data.id !== null) || (!authStore.userCan('CARRIERS_ADD') && currentCarrier.data.id === null)"
+            />
         </drawer>
 
         <drawer
@@ -468,9 +497,10 @@ onBeforeUnmount(() => {
             :loading="registryDrawer.isLoading"
             :saving="registryDrawer.isSaving"
             :ok-loading="registryDrawer.isSaving"
+            :need-ok="authStore.userCan('CARRIERS_REGISTRIES_CREATE') || authStore.userCan('CARRIERS_REGISTRIES_EDIT')"
             :title="`${currentRegistry.data.id === null ? 'Новый реестр' : `Реестр #${currentRegistry.data.id}`}${currentRegistry.modified ? '*' : ''}`"
             ok-text="Сохранить и закрыть"
-            :need-delete="currentRegistry.data.id !== null"
+            :need-delete="currentRegistry.data.id !== null && authStore.userCan('CARRIERS_REGISTRIES_DELETE')"
             need-deletion-confirm-text="Вы уверены? Реестр будет удален!"
             delete-text="Удалить"
         >
@@ -478,6 +508,7 @@ onBeforeUnmount(() => {
                 v-model="currentRegistry.data"
                 :loading="registryDrawer.isLoading"
                 :errors="registriesStore.err?.errors"
+                :read-only="(!authStore.userCan('CARRIERS_REGISTRIES_EDIT') && currentRegistry.data.id !== null) || (!authStore.userCan('CARRIERS_REGISTRIES_CREATE') && currentRegistry.data.id === null)"
             />
         </drawer>
     </Layout>

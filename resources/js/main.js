@@ -30,12 +30,37 @@ axios.defaults.headers.common['Accept'] = 'application/json'
 
 
 const authStore = useAuthStore()
-
+const pagesPermissions = {
+    orders: 'ORDERS_SECTION',
+    carriers: 'CARRIERS_SECTION',
+    clients: 'CLIENTS_SECTION',
+    prices: 'PRICES_DIR',
+    'body-types': 'BODY_TYPES_DIR',
+    'car-capacities' : 'CAPACITIES_DIR',
+    tconditions: 'T_CONDITIONS_DIR',
+    tonnages: 'TONNAGES_DIR',
+    users: 'USERS_DIR',
+    roles: 'ROLES_DIR'
+}
 router.beforeEach(async (to, from) => {
     await authStore.refreshState()
+    if (pagesPermissions[to.name] && !authStore.userCan(pagesPermissions[to.name])) {
+        if (to.path === '/') {
+            const plist = Object.keys(pagesPermissions)
+            for (let i = 0; i < plist.length; i++) {
+                if (authStore.userCan(pagesPermissions[plist[i]])) {
+                    return {
+                        name: plist[i]
+                    }
+                }
+            }
+        }
+        return { path: '/403' }
+    }
+
     if (to.name === 'login' && authStore.isLoggedIn) {
         return {
-            name: 'dashboard'
+            path: '/'
         }
     }
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {

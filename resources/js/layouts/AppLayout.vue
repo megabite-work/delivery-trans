@@ -1,8 +1,8 @@
 <script setup>
-import { ref, watch} from 'vue';
+import {computed, ref, watch} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from "../stores/auth.js";
-
+import { CheckOutlined } from "@ant-design/icons-vue";
 import ruRU from 'ant-design-vue/locale/ru_RU';
 import 'dayjs/locale/ru';
 
@@ -25,51 +25,80 @@ const logout = async () => {
     }
 }
 
-const routes = [
-    // {
-    //     key: 'dashboard',
-    //     label: 'Dashboard',
-    // },
-    {
-        key: 'orders',
-        label: 'Заявки',
-    },
-    {
-        key: 'clients',
-        label: 'Заказчики',
-    },
-    {
-        key: 'carriers',
-        label: 'Перевозчики',
-    },
-]
+const avatarUserName = computed(() => auth.user.name.split(/\s/).reduce((response,word)=> response + word.slice(0, 1),''))
 
-const optRoutes = [
-    {
-        key: 'prices',
-        label: 'Прайс-листы'
-    },
-    {
-        key: 'body-types',
-        label: 'Типы кузовов'
-    },
-    {
-        key: 'car-capacities',
-        label: 'Вместительность авто'
-    },
-    {
-        key: 'tconditions',
-        label: 'Температурные условия'
-    },
-    {
-        key: 'tonnages',
-        label: 'Тоннаж'
-    },
-    {
-        key: 'users',
-        label: 'Пользователи'
-    },
-]
+const routes = computed(() => {
+    const res = [];
+    if (auth.userCan('ORDERS_SECTION')) {
+        res.push({
+            key: 'orders',
+            label: 'Заявки',
+        })
+    }
+
+    if (auth.userCan('CLIENTS_SECTION')) {
+        res.push({
+            key: 'clients',
+            label: 'Заказчики',
+        })
+    }
+
+    if (auth.userCan('CARRIERS_SECTION')) {
+        res.push({
+            key: 'carriers',
+            label: 'Перевозчики',
+        })
+    }
+    return res
+})
+
+const optRoutes = computed(() => {
+    const res = []
+
+    if (auth.userCan('PRICES_DIR')) {
+        res.push({
+            key: 'prices',
+            label: 'Прайс-листы'
+        })
+    }
+    if (auth.userCan('BODY_TYPES_DIR')) {
+        res.push({
+            key: 'body-types',
+            label: 'Типы кузовов'
+        })
+    }
+    if (auth.userCan('CAPACITIES_DIR')) {
+        res.push({
+            key: 'car-capacities',
+            label: 'Вместительность авто'
+        })
+    }
+    if (auth.userCan('T_CONDITIONS_DIR')) {
+        res.push({
+            key: 'tconditions',
+            label: 'Температурные условия'
+        })
+    }
+    if (auth.userCan('TONNAGES_DIR')) {
+        res.push({
+            key: 'tonnages',
+            label: 'Тоннаж'
+        })
+    }
+    if (auth.userCan('USERS_DIR')) {
+        res.push({
+            key: 'users',
+            label: 'Пользователи'
+        })
+    }
+    if (auth.userCan('ROLES_DIR')) {
+        res.push({
+            key: 'roles',
+            label: 'Роли'
+        })
+    }
+    return res
+})
 
 </script>
 
@@ -83,16 +112,28 @@ const optRoutes = [
             <a-dropdown :trigger="['click']">
                 <a-avatar
                     @click.prevent
-                    alt="User Name"
                     :style="{cursor: 'pointer', backgroundColor: '#172554'}"
+                    :alt="auth.user.name"
                     size="large"
                     class="avatar"
-                />
+                >{{avatarUserName}}</a-avatar>
                 <template #overlay>
                     <a-menu :style="{width: '170px'}">
                         <a-menu-item key="0">
                             <a>{{ auth.user.name }}</a>
                         </a-menu-item>
+                        <a-sub-menu :key="auth.user.roles" :title="auth.currentRole.name">
+                            <a-menu-item v-for="role in auth.user.roles" :key="`r${role.id}`" @click="() => auth.switchRole(role.id)">
+                                <template v-if="auth.currentRole.id === role.id" >
+                                    <div style="font-weight: 600; display: flex; gap: 8px">
+                                        <CheckOutlined /><div>{{ role.name }}</div>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    {{role.name}}
+                                </template>
+                            </a-menu-item>
+                        </a-sub-menu>
                         <a-menu-divider />
                         <a-menu-item key="1" @click="logout">
                             <a>Выход</a>
@@ -104,7 +145,7 @@ const optRoutes = [
                 <a-menu-item v-for="route in routes" :key="route.key">
                     <router-link :to="{name: route.key}">{{ route.label }}</router-link>
                 </a-menu-item>
-                <a-sub-menu key="options">
+                <a-sub-menu v-if="optRoutes.length > 0" key="options">
                     <template #title>Справочники</template>
                     <a-menu-item v-for="route in optRoutes" :key="route.key">
                         <router-link :to="{name: route.key}">{{ route.label }}</router-link>
@@ -133,7 +174,6 @@ const optRoutes = [
 </template>
 
 <style>
-
 .logo {
     color: #ffffff;
     font-family: 'Ubuntu', sans-serif;
@@ -147,6 +187,4 @@ const optRoutes = [
     float: right;
     margin: 12px;
 }
-
-
 </style>

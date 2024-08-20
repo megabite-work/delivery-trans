@@ -28,6 +28,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', Rules\Password::defaults()],
+            'roles' => ['array'],
         ]);
 
         $user = User::create([
@@ -35,6 +36,14 @@ class UserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+
+        if($request->has('roles')) {
+            $rid = [];
+            foreach ($request->get('roles', []) as $role) {
+                $rid[] = $role['id'];
+            }
+            $user->roles()->sync($rid);
+        }
 
         return response()->json(new UserResource($user), 201);
     }
@@ -56,6 +65,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255'],
             'password' => [Rules\Password::defaults()],
+            'roles' => ['array'],
         ]);
 
         $user->update([
@@ -67,6 +77,16 @@ class UserController extends Controller
             $user->forceFill([
                 'password' => Hash::make($request->password)
             ])->save();
+        }
+
+        if($request->has('roles')) {
+            $rid = [];
+            foreach ($request->get('roles', []) as $role) {
+                if($role['id'] > 0){
+                    $rid[] = $role['id'];
+                }
+            }
+            $user->roles()->sync($rid);
         }
 
         return response()->json(new UserResource($user));
@@ -82,6 +102,13 @@ class UserController extends Controller
                 [
                     "code" => 400,
                     "message" => "Пользователь не может удалить себя"
+                ], 400);
+        }
+        if ($user->is_superuser) {
+            return response()->json(
+                [
+                    "code" => 400,
+                    "message" => "Нельзя удалить этого пользователя"
                 ], 400);
         }
         $user->delete();

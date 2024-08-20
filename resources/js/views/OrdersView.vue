@@ -1,36 +1,16 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import {onBeforeUnmount, onMounted, reactive, ref, h, createVNode} from "vue";
+import {computed, createVNode, h, onBeforeUnmount, onMounted, reactive, ref} from "vue";
+import {ArrowRightOutlined, ExclamationCircleOutlined, FilterOutlined, SearchOutlined} from "@ant-design/icons-vue";
 import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
 import Order from "../components/models/Order.vue";
-import {FilterOutlined, SearchOutlined, ArrowRightOutlined, ExclamationCircleOutlined} from "@ant-design/icons-vue";
 import {isArray} from "radash";
 import dayjs from "dayjs";
-import {managerOrderStatuses, logistOrderStatuses} from "../helpers/index.js";
-
-const columnsOrders = ref([
-    { title: '#', key: 'id', width: 50, sorter: true, defaultSortOrder: 'descend' },
-    { title: 'Дата', key: 'created_at', sorter: true },
-    { title: 'Старт поездки', key: 'started_at', sorter: true },
-    {
-        title: 'Статус заявки',
-        children: [
-            { title: 'Менеджер', key: 'status_manager' },
-            { title: 'Логист', key: 'status_logist' }
-        ]
-    },
-    { title: 'Заказчик', key: 'client' },
-    { title: 'Перевозчик', key: 'carrier' },
-    { title: 'Водитель', key: 'driver' },
-    { title: 'Авто', key: 'vehicle' },
-    { title: 'Вес груза', key: 'weight'},
-    { title: 'Сумма', key: 'client_sum', fixed: 'right'},
-    { title: 'Себестоимость', key: 'carrier_sum', fixed: 'right'},
-    { title: 'Маржа ₽', key: 'margin_sum', fixed: 'right'},
-    { title: 'Маржа %', key: 'margin_percent', fixed: 'right'},
-])
+import {logistOrderStatuses, managerOrderStatuses} from "../helpers/index.js";
+import {useAuthStore} from "../stores/auth.js";
+import {permissionColumns} from "../helpers/permissions.js";
 
 const showModalCloseConfirm = () => {
     Modal.confirm({
@@ -44,6 +24,7 @@ const showModalCloseConfirm = () => {
     });
 };
 
+const authStore = useAuthStore()
 const ordersStore = useOrdersStore()
 const clientHeight = ref(document.documentElement.clientHeight)
 const currentOrder = reactive({ data:{ id: null }, modified: false })
@@ -85,15 +66,22 @@ const saveOrder = async () => {
     mainDrawer.isSaving = true
     try {
         if (currentOrder.data.id === null) {
-            currentOrder.data = await ordersStore.createOrder(currentOrder.data)
-            currentOrder.modified = false
-            message.success('Заказ создан')
+            if (authStore.userCan('ORDERS_ADD')) {
+                currentOrder.data = await ordersStore.createOrder(currentOrder.data)
+                currentOrder.modified = false
+                message.success('Заказ создан')
+                if (!authStore.userCan('ORDERS_EDIT')) {
+                    closeMainDrawer()
+                }
+            }
             return
         }
-        currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
-        currentOrder.modified = false
-        mainDrawer.isSaving = false
-        closeMainDrawer()
+        if (authStore.userCan('ORDERS_EDIT')) {
+            currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
+            currentOrder.modified = false
+            mainDrawer.isSaving = false
+            closeMainDrawer()
+        }
     } catch {
         message.error('Ошибка. Не удалось записать заказ')
     } finally {
@@ -103,7 +91,7 @@ const saveOrder = async () => {
 }
 
 const deleteOrder = async () => {
-    if (currentOrder.data.id === null) {
+    if (currentOrder.data.id === null || !authStore.userCan('ORDERS_DELETE')) {
         return
     }
     try {
@@ -128,12 +116,37 @@ const setOrderStatus = async (orderId, statusType, status) => {
     }
 }
 
+const columns = computed(() => {
+    return ordersStore.columnsOrders.filter(col => {
+        if (authStore.currentRole.permissions.includes("ALL")) {
+            return true
+        }
+        if (col.key === 'id') {
+            return true
+        }
+        if (!col.key) {
+            return true
+        }
+        let colsFromRole = []
+        authStore.currentRole.permissions.forEach(perm => {
+            if (Object.keys(permissionColumns).includes(perm)) {
+                colsFromRole = [...colsFromRole, ...permissionColumns[perm]]
+            }
+        })
+        return colsFromRole.includes(col.key)
+    })
+})
+
 const handleTableChange = async (pag, filters, sorter) => {
     await ordersStore.setSorter(sorter.column ? sorter.column.key : undefined, sorter.order)
 }
 
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
-const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
+const tableRowFn = record => ({ onClick: () => {
+    if (authStore.userCan('ORDERS_VIEW')){
+        openMainDrawer(record.id)
+    }
+} })
 
 onMounted(() => {
     ordersStore.refreshDataList()
@@ -151,7 +164,7 @@ onBeforeUnmount(() => {
             <a-badge :dot="ordersStore.filter.isFiltered">
                 <a-button :type="filterOpen ? 'primary' : 'dashed'" :icon="h(FilterOutlined)" @click="() => filterOpen = !filterOpen">Фильтры</a-button>
             </a-badge>
-            <a-button type="primary" @click="() => openMainDrawer()">Новая заявка</a-button>
+            <a-button v-if="authStore.userCan('ORDERS_ADD')" type="primary" @click="() => openMainDrawer()">Новая заявка</a-button>
         </template>
         <div v-if="filterOpen" style="padding: 20px 24px; background-color: #fafafa; border-bottom: 1px solid #f0f0f0">
             <a-form layout="inline" style="width: 600px">
@@ -236,7 +249,7 @@ onBeforeUnmount(() => {
         <a-table
             :loading="ordersStore.listLoading || listLoading"
             :custom-row="tableRowFn"
-            :columns="columnsOrders"
+            :columns="columns"
             :data-source="ordersStore.dataList"
             :pagination="{
                 ...ordersStore.paginator,
@@ -280,7 +293,7 @@ onBeforeUnmount(() => {
                         }">
                             {{ logistOrderStatuses[record.status_logist.status].label }}
                         </div>
-                        <template #overlay>
+                        <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE')" #overlay>
                             <a-menu>
                                 <template v-for="(v, key) in logistOrderStatuses">
                                     <a-menu-item v-if="key !== record.status_logist.status" @click="() => setOrderStatus(record.id, 'LOGIST', key)">
@@ -310,7 +323,7 @@ onBeforeUnmount(() => {
                         }">
                             {{ managerOrderStatuses[record.status_manager.status].label }}
                         </div>
-                        <template #overlay>
+                        <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE')" #overlay>
                             <a-menu>
                                 <template v-for="(v, key) in managerOrderStatuses">
                                     <a-menu-item v-if="key !== record.status_manager.status" @click="() => setOrderStatus(record.id, 'MANAGER', key)">
@@ -368,16 +381,16 @@ onBeforeUnmount(() => {
                     <div style="text-align: right; font-size: 12px; white-space: nowrap ">{{ parseFloat(record[column.key]).toLocaleString('ru-RU', {style: 'percent', minimumFractionDigits: 0}) }}</div>
                 </template>
             </template>
-            <template #expandedRowRender="{ record }">
+            <template v-if="authStore.userCan('ORDERS_LST_COLUMN_FROM') || authStore.userCan('ORDERS_LST_COLUMN_TO')" #expandedRowRender="{ record }">
                 <div style="display: flex; gap: 16px;">
-                    <div v-for="(loc, i) in record.from_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
+                    <div v-if="authStore.userCan('ORDERS_LST_COLUMN_FROM')" v-for="(loc, i) in record.from_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
                         <div>{{ dayjs(loc.arrive_date).format("DD.MM.YYYY") }} {{ dayjs(loc.arrive_time).format("HH:mm") }}</div>
                         <div>{{ loc.address }}</div>
                     </div>
-                    <div v-if="record.to_locations && record.to_locations.length > 0">
+                    <div v-if="authStore.userCan('ORDERS_LST_COLUMN_TO') && record.to_locations && record.to_locations.length > 0">
                         <ArrowRightOutlined />
                     </div>
-                    <div v-for="(loc, i) in record.to_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
+                    <div v-if="authStore.userCan('ORDERS_LST_COLUMN_TO')" v-for="(loc, i) in record.to_locations" :key="i" style="display: flex; gap: 16px; font-size: 13px">
                         <div>{{ dayjs(loc.arrive_date).format("DD.MM.YYYY") }} {{ dayjs(loc.arrive_time).format("HH:mm") }}</div>
                         <div>{{ loc.address }}</div>
                     </div>
@@ -395,13 +408,22 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentOrder.data.id === null ? 'Новая заявка' : `Заявка #${currentOrder.data.id}`}${currentOrder.modified ? '*' : ''}`"
             :ok-text="currentOrder.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
-            :need-delete="currentOrder.data.id !== null"
+            :need-delete="currentOrder.data.id !== null && authStore.userCan('ORDERS_DELETE')"
+            :need-ok="authStore.userCan('ORDERS_EDIT') || authStore.userCan('ORDERS_ADD')"
             need-deletion-confirm-text="Вы уверены? Заявка будет удалена!"
             delete-text="Удалить"
             :maskClosable="currentOrder.data.id !== null"
             :closable="currentOrder.data.id !== null"
         >
-            <Order v-model="currentOrder.data" :loading="mainDrawer.isLoading" :errors="ordersStore.err?.errors"/>
+            <template v-if="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)" #extra>
+                <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
+            <Order
+                :read-only="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)"
+                v-model="currentOrder.data"
+                :loading="mainDrawer.isLoading"
+                :errors="ordersStore.err?.errors"
+            />
         </drawer>
     </Layout>
 </template>

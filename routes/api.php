@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Registry\RegistryController;
 use Illuminate\Http\Request;
@@ -23,10 +24,11 @@ use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
 use App\Http\Controllers\Registry\CarrierRegistryController;
+use App\Http\Resources\UserResource;
 
 Route::middleware('auth:sanctum')->group(function (){
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return new UserResource($request->user());
     });
     Route::post('orders/{order}/status', [OrderController::class, 'setStatus'])->name('orders.status');
     Route::apiResource('carriers', CarrierController::class);
@@ -47,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('registries', RegistryController::class)->except(['index']);
     Route::apiResource('carrier-registries', CarrierRegistryController::class)->except(['index']);
     Route::apiResource('users', UserController::class);
+    Route::apiResource('roles', RoleController::class);
 
     Route::get('clients/{client_id}/contacts', [ContactController::class, 'clientContactsIndex'])->name('client.contacts.index');
     Route::get('clients/{client_id}/bank-accounts', [BankAccountController::class, 'clientBankAccountsIndex'])->name('client.bank-accounts.index');
@@ -79,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('suggest/additional-services/price', [AdditionalServiceController::class, 'priceSuggest'])->name("suggest.additional-services.price");
     Route::get('suggest/order-driver-car', [OrderController::class, 'getLastOrderDriverCars'])->name("suggest.order-driver-car");
     Route::get('suggest/expenses', [OrderController::class, 'getAdditionalExpensesSuggestions'])->name("suggest.expenses");
+    Route::get('suggest/roles', [RoleController::class, 'getRolesList'])->name("suggest.roles");
     Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 });
 

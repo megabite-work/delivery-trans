@@ -12,6 +12,7 @@ import Registry from "../components/models/Registry.vue";
 
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
 import {managerOrderStatuses, logistOrderStatuses, decl} from "../helpers/index.js";
+import {useAuthStore} from "../stores/auth.js";
 
 
 const columnsClients = [
@@ -42,6 +43,7 @@ const columnsOrders = [
 
 const vatArr = ['Без НДС', 'НДС', 'Нал'];
 
+const authStore = useAuthStore()
 const clientsStore = useClientsStore()
 const registriesStore = useRegistriesStore()
 
@@ -197,13 +199,18 @@ const saveClient = async () => {
             currentClient.data  = await clientsStore.createClient(currentClient.data)
             currentClient.modified = false
             message.success('Карточка заказчика создана')
+            if (!authStore.userCan('CLIENTS_EDIT')){
+                closeMainDrawer()
+            }
             return
         }
-        currentClient.data = await clientsStore.storeClient(currentClient.data)
-        currentClient.modified = false
-        message.success('Карточка заказчика записана')
-        mainDrawer.isSaving = false
-        closeMainDrawer()
+        if (authStore.userCan('CLIENTS_EDIT')) {
+            currentClient.data = await clientsStore.storeClient(currentClient.data)
+            currentClient.modified = false
+            message.success('Карточка заказчика записана')
+            mainDrawer.isSaving = false
+            closeMainDrawer()
+        }
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentClient.data.id === null ? 'создать' : 'сохранить'} карточку заказчика`)
     } finally {
@@ -215,17 +222,19 @@ const saveClient = async () => {
 const saveRegistry = async () => {
     registryDrawer.isSaving = true
     try {
-        if (currentRegistry.data.id === null) {
+        if (currentRegistry.data.id === null && authStore.userCan('CLIENTS_REGISTRIES_CREATE')) {
             currentRegistry.data  = await registriesStore.createRegistry(currentRegistry.data)
             currentRegistry.modified = false
             closeRegistryDrawer()
             message.success('Реестр создан')
             return
         }
-        currentRegistry.data = await registriesStore.storeRegistry(currentRegistry.data)
-        currentRegistry.modified = false
-        message.success('Изменения записаны')
-        registriesStore.isSaving = false
+        if (authStore.userCan('CLIENTS_REGISTRIES_EDIT')) {
+            currentRegistry.data = await registriesStore.storeRegistry(currentRegistry.data)
+            currentRegistry.modified = false
+            message.success('Изменения записаны')
+            registriesStore.isSaving = false
+        }
         closeRegistryDrawer()
     } catch (e) {
         message.error(`Ошибка. Не удалось ${currentClient.data.id === null ? 'создать' : 'сохранить'} реестр`)
@@ -236,7 +245,7 @@ const saveRegistry = async () => {
 }
 
 const deleteClient = async () => {
-    if (currentClient.data.id === null) {
+    if (currentClient.data.id === null || !authStore.userCan('CLIENTS_DELETE')) {
         return
     }
     try {
@@ -250,7 +259,7 @@ const deleteClient = async () => {
 }
 
 const deleteRegistry = async () => {
-    if (currentRegistry.data.id === null) {
+    if (currentRegistry.data.id === null || !authStore.userCan('CLIENTS_REGISTRIES_DELETE')) {
         return
     }
     try {
@@ -265,8 +274,18 @@ const deleteRegistry = async () => {
 
 const updateClientHeight = () => { clientHeight.value = document.documentElement.clientHeight }
 
-const tableRowFn = record => ({ onClick: () => openMainDrawer(record.id) })
-const registryTableRowFn = record => ({ onClick: () => {if (record.id > 0) {openRegistryDrawer(record.id)}}})
+const tableRowFn = record => ({ onClick: () => {
+        if (authStore.userCan('CLIENTS_VIEW')){
+            openMainDrawer(record.id)
+        }
+    } })
+const registryTableRowFn = record => ({ onClick: () =>
+    {
+        if (record.id > 0 && authStore.userCan('CLIENTS_REGISTRIES_VIEW')) {
+            openRegistryDrawer(record.id)
+        }
+    }
+})
 
 onMounted(() => {
     clientsStore.refreshDataList()
@@ -289,8 +308,10 @@ onBeforeUnmount(() => {
                 :allow-clear="true"
                 @search="clientsStore.applyFilter()"
             />
-            <a-divider type="vertical" />
-            <a-button type="primary" @click="() => openMainDrawer()">Новый заказчик</a-button>
+            <template v-if="authStore.userCan('CLIENTS_ADD')">
+                <a-divider type="vertical" />
+                <a-button type="primary" @click="() => openMainDrawer()">Новый заказчик</a-button>
+            </template>
         </template>
         <a-table
             :loading="clientsStore.listLoading"
@@ -325,7 +346,7 @@ onBeforeUnmount(() => {
                     {{ record.orders.length === 0 ? '–' : record.orders.length}}
                 </template>
             </template>
-            <template #expandedRowRender="{ record }">
+            <template v-if="authStore.userCan('CLIENTS_REGISTRIES_VIEW')" #expandedRowRender="{ record }">
                 <template v-if="record.orders && record.orders.length > 0">
                     <a-table
                         :columns="columnsRegitries"
@@ -397,7 +418,7 @@ onBeforeUnmount(() => {
                                         :columns="columnsOrders"
                                         :data-source="registryOrdersList(record)"
                                         :pagination="false"
-                                        :row-selection="record.id === 0 ? { selectedRowKeys: clientSelectedRowKeys(record.client_id), onChange: v => onClientOrderSelectChange(record.client_id, v) } : undefined"
+                                        :row-selection="record.id === 0 && (authStore.userCan('CLIENTS_REGISTRIES_CREATE')) ? { selectedRowKeys: clientSelectedRowKeys(record.client_id), onChange: v => onClientOrderSelectChange(record.client_id, v) } : undefined"
                                     >
                                         <template #bodyCell="{ column, record }">
                                             <template v-if="column.key === 'client_sum'">
@@ -422,7 +443,7 @@ onBeforeUnmount(() => {
                                     <div v-if="record.id === 0" style="margin-top: 30px; margin-left: 32px; margin-bottom: 8px; display: flex; align-items: center;">
                                         <a-button
                                             type="primary"
-                                            :disabled="!clientHasSelectedOrders(record.client_id)"
+                                            :disabled="!clientHasSelectedOrders(record.client_id) || !authStore.userCan('CLIENTS_REGISTRIES_CREATE')"
                                             :loading="false"
                                             @click="() => openRegistryDrawer(null, record.client_id)"
                                         >
@@ -459,14 +480,19 @@ onBeforeUnmount(() => {
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentClient.data.id === null ? 'Новый заказчик' : `Заказчик #${currentClient.data.id}`}${currentClient.modified ? '*' : ''}`"
             :ok-text="currentClient.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
-            :need-delete="currentClient.data.id !== null"
+            :need-ok="authStore.userCan('CLIENTS_ADD') || authStore.userCan('CLIENTS_EDIT')"
+            :need-delete="authStore.userCan('CLIENTS_DELETE') && currentClient.data.id !== null"
             need-deletion-confirm-text="Вы уверены? Заказчик будет удален!"
             delete-text="Удалить"
         >
+            <template v-if="(!authStore.userCan('CLIENTS_EDIT') && currentClient.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentClient.data.id === null)" #extra>
+                <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
             <Client
                 v-model="currentClient.data"
                 :loading="mainDrawer.isLoading"
                 :errors="clientsStore.err?.errors"
+                :read-only="(!authStore.userCan('CLIENTS_EDIT') && currentClient.data.id !== null) || (!authStore.userCan('CLIENTS_ADD') && currentClient.data.id === null)"
             />
         </drawer>
 
@@ -481,7 +507,8 @@ onBeforeUnmount(() => {
             :ok-loading="registryDrawer.isSaving"
             :title="`${currentRegistry.data.id === null ? 'Новый реестр' : `Реестр #${currentRegistry.data.id}`}${currentRegistry.modified ? '*' : ''}`"
             ok-text="Сохранить и закрыть"
-            :need-delete="currentRegistry.data.id !== null"
+            :need-ok="authStore.userCan('CLIENTS_REGISTRIES_CREATE') || authStore.userCan('CLIENTS_REGISTRIES_EDIT')"
+            :need-delete="currentRegistry.data.id !== null && authStore.userCan('CLIENTS_REGISTRIES_DELETE')"
             need-deletion-confirm-text="Вы уверены? Реестр будет удален!"
             delete-text="Удалить"
         >
@@ -489,6 +516,7 @@ onBeforeUnmount(() => {
                 v-model="currentRegistry.data"
                 :loading="registryDrawer.isLoading"
                 :errors="registriesStore.err?.errors"
+                :read-only="(!authStore.userCan('CLIENTS_REGISTRIES_EDIT') && currentRegistry.data.id !== null) || (!authStore.userCan('CLIENTS_REGISTRIES_CREATE') && currentRegistry.data.id === null)"
             />
         </drawer>
     </Layout>
