@@ -82,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('suggest/additional-services/price', [AdditionalServiceController::class, 'priceSuggest'])->name("suggest.additional-services.price");
     Route::get('suggest/order-driver-car', [OrderController::class, 'getLastOrderDriverCars'])->name("suggest.order-driver-car");
     Route::get('suggest/expenses', [OrderController::class, 'getAdditionalExpensesSuggestions'])->name("suggest.expenses");
+    Route::get('suggest/roles', [RoleController::class, 'getRolesList'])->name("suggest.roles");
     Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
 });
 

@@ -46,6 +46,7 @@ const closeMainDrawer = () => {
 }
 
 const saveUser = async () => {
+    console.log(currentUser.data)
     mainDrawer.isSaving = true
     try {
         if (currentUser.data.id === null) {

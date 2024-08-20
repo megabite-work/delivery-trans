@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\Permissions;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
+use App\Http\Resources\RolesForUserResource;
 use App\Models\Role;
 use Illuminate\Http\Request;
 
@@ -16,6 +17,10 @@ class RoleController extends Controller
     public function index()
     {
         return RoleResource::collection(Role::all());
+    }
+    public function getRolesList()
+    {
+        return RolesForUserResource::collection(Role::all());
     }
 
     /**

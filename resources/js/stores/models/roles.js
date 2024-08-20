@@ -20,6 +20,19 @@ export const useRolesStore = defineStore('roles', () => {
         }
     }
 
+    async function getRoles() {
+        try {
+            listLoading.value = true
+            const { data } = await axios.get('api/suggest/roles')
+            return data.data
+        } catch (e) {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
     async function getRole(roleId) {
         try {
             const { data } = await axios.get(`api/roles/${roleId}`)
@@ -69,6 +82,6 @@ export const useRolesStore = defineStore('roles', () => {
 
     return {
         dataList, err, listLoading,
-        refreshDataList, getRole, createRole, storeRole, deleteRole,
+        refreshDataList, getRoles, getRole, createRole, storeRole, deleteRole,
     }
 })
