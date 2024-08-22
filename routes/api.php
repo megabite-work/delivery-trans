@@ -3,7 +3,6 @@
 use App\Http\Controllers\Auth\RoleController;
 use App\Http\Controllers\Auth\UserController;
 use App\Http\Controllers\Registry\RegistryController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Dir\BankAccountController;
@@ -24,12 +23,9 @@ use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
 use App\Http\Controllers\Registry\CarrierRegistryController;
-use App\Http\Resources\UserResource;
 
 Route::middleware('auth:sanctum')->group(function (){
-    Route::get('/user', function (Request $request) {
-        return new UserResource($request->user());
-    });
+    Route::get('user', [UserController::class, 'getCurrentUser'])->name('user');
     Route::post('orders/{order}/status', [OrderController::class, 'setStatus'])->name('orders.status');
     Route::apiResource('carriers', CarrierController::class);
     Route::apiResource('clients', ClientController::class);
