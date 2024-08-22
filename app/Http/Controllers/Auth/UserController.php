@@ -11,6 +11,10 @@ use Illuminate\Validation\Rules;
 
 class UserController extends Controller
 {
+    public function getCurrentUser(Request $request)
+    {
+        return new UserResource($request->user());
+    }
     /**
      * Display a listing of the resource.
      */
