@@ -22,10 +22,10 @@ export const useAuthStore = defineStore('auth', () => {
         }
     })
     async function refreshState() {
-        currentRoleId.value = parseInt(localStorage.getItem("auth__currentRoleId"))
         try {
             const res = await axios.get('api/user')
             user.value = res.data
+            currentRoleId.value = parseInt(localStorage.getItem("auth__currentRoleId"))
         } catch (e) {
             user.value = null
         }

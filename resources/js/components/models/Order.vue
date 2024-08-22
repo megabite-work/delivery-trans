@@ -352,16 +352,14 @@ const carsOptions = computed(() => {
             ...model.value.carrier_car,
         }, ...res]
     }
-    const currentCap = carCapacitiesOptions.value.find((el) => el.id === model.value.car_capacity_id)
     return res.filter(
         car => car.type === 'TRACTOR'
-            || !currentCap
-            || (!!currentCap
-                && (parseFloat(car.tonnage) >= parseFloat(currentCap.tonnage))
-                && (!model.value.cargo_in_pallets || parseFloat(currentCap.pallets_count) <= parseFloat(car.pallets_count))
-            )
-            || car.id === model.value.carrier_car_id
-    )
+            || ((parseFloat(car.tonnage) >= parseFloat(model.value.cargo_weight) / 1000)
+                && (!model.value.cargo_in_pallets || (parseFloat(model.value.cargo_pallets_count) || 0) <= (parseFloat(car.pallets_count) || 0))
+                && ((car.loading_lateral && model.value.vehicle_loading_lateral)
+                    || (car.loading_rear && model.value.vehicle_loading_rear)
+                    || (car.loading_upper && model.value.vehicle_loading_upper))
+            || car.id === model.value.carrier_car_id))
 })
 
 const fetchTrailersByCarrier = async () => {
