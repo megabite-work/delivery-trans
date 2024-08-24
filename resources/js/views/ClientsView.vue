@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, onBeforeUnmount, ref, reactive, computed} from 'vue';
+import {onMounted, onBeforeUnmount, ref, reactive, computed, h} from 'vue';
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 
@@ -10,6 +10,7 @@ import Drawer from "../components/Drawer.vue";
 import Client from "../components/models/Client.vue";
 import Registry from "../components/models/Registry.vue";
 
+import { DownloadOutlined } from "@ant-design/icons-vue";
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
 import {managerOrderStatuses, logistOrderStatuses, decl} from "../helpers/index.js";
 import {useAuthStore} from "../stores/auth.js";
@@ -30,6 +31,7 @@ const columnsRegitries = [
     { key: 'client_sum', title: 'Сумма, ₽' },
     { key: 'client_paid', title: 'Оплачено, ₽' },
     { key: 'client_vat', title: 'НДС' },
+    { key: '__download' }
 ];
 
 const columnsOrders = [
@@ -408,6 +410,9 @@ onBeforeUnmount(() => {
                                     {{ vatArr[record.vat] }}
                                 </template>
                                 <template v-else>–</template>
+                            </template>
+                            <template v-if="column.key === '__download' && record.id !== 0">
+                                <a-button :icon="h(DownloadOutlined)" type="dashed" />
                             </template>
                         </template>
                         <template #expandedRowRender="{ record }">

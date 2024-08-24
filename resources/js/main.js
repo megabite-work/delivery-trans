@@ -44,7 +44,7 @@ const pagesPermissions = {
 }
 router.beforeEach(async (to, from) => {
     await authStore.refreshState()
-    if (pagesPermissions[to.name] && !authStore.userCan(pagesPermissions[to.name])) {
+    if (!!pagesPermissions[to.name] && !authStore.userCan(pagesPermissions[to.name])) {
         if (to.path === '/') {
             const plist = Object.keys(pagesPermissions)
             for (let i = 0; i < plist.length; i++) {
