@@ -64,5 +64,9 @@ export const useRegistriesStore = defineStore('registries', () => {
         }
     }
 
-    return { err, createRegistry, storeRegistry, deleteRegistry, getRegistry }
+    async function downloadRegistry(registryId) {
+        console.log(`downloading client regestry ${registryId}`)
+    }
+
+    return { err, createRegistry, storeRegistry, deleteRegistry, getRegistry, downloadRegistry }
 })

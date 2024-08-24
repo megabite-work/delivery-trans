@@ -71,6 +71,7 @@ export const permissions = {
     CAPACITIES_DIR: 'Справочник \'Вместительность авто\'',
     T_CONDITIONS_DIR: 'Справочник \'Температурные условия\'',
     TONNAGES_DIR: 'Справочник \'Тоннаж\'',
+    COMPANIES_DIR: 'Справочник \'Компании\'',
 
     USERS_DIR: 'Справочник \'Пользователи\'',
     USERS_CREATE: 'Добавление пользователей',
@@ -176,6 +177,7 @@ export const permissionsSections = [
             'CAPACITIES_DIR',
             'T_CONDITIONS_DIR',
             'TONNAGES_DIR',
+            'COMPANIES_DIR',
         ]
     },
     {

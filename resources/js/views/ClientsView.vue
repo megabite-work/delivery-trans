@@ -412,7 +412,7 @@ onBeforeUnmount(() => {
                                 <template v-else>–</template>
                             </template>
                             <template v-if="column.key === '__download' && record.id !== 0">
-                                <a-button :icon="h(DownloadOutlined)" type="dashed" />
+                                <a-button :icon="h(DownloadOutlined)" type="dashed" @click="(e) => {e.stopPropagation(); registriesStore.downloadRegistry(record.id)}"/>
                             </template>
                         </template>
                         <template #expandedRowRender="{ record }">

@@ -85,6 +85,12 @@ const optRoutes = computed(() => {
             label: 'Тоннаж'
         })
     }
+    if (auth.userCan('COMPANIES_DIR')) {
+        res.push({
+            key: 'companies',
+            label: 'Компании'
+        })
+    }
     if (auth.userCan('USERS_DIR')) {
         res.push({
             key: 'users',

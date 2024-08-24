@@ -77,6 +77,7 @@ enum Permissions: string
     case CAPACITIES_DIR = 'CAPACITIES_DIR';
     case T_CONDITIONS_DIR = 'T_CONDITIONS_DIR';
     case TONNAGES_DIR = 'TONNAGES_DIR';
+    case COMPANIES_DIR = 'COMPANIES_DIR';
 
     case USERS_DIR = 'USERS_DIR';
     case USERS_CREATE = 'USERS_CREATE';

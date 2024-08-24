@@ -39,6 +39,7 @@ const pagesPermissions = {
     'car-capacities' : 'CAPACITIES_DIR',
     tconditions: 'T_CONDITIONS_DIR',
     tonnages: 'TONNAGES_DIR',
+    companies: 'COMPANIES_DIR',
     users: 'USERS_DIR',
     roles: 'ROLES_DIR'
 }
