@@ -1,9 +1,8 @@
 <script setup>
-import {reactive, onMounted, ref} from 'vue';
+import {reactive, ref} from 'vue';
 import { useRoute, useRouter } from "vue-router";
 import axios from 'axios';
 import {useAuthStore} from "../../stores/auth.js";
-import {message} from "ant-design-vue";
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -45,11 +44,6 @@ const onFinishFailed = () => {
     }, 1000)
 }
 
-onMounted(async () => {
-    await axios.get('sanctum/csrf-cookie').catch(() => {
-        message.error("Ошибка получения CSRF-токена")
-    })
-})
 </script>
 
 <template>
