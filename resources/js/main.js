@@ -44,19 +44,6 @@ const pagesPermissions = {
 }
 router.beforeEach(async (to, from) => {
     await authStore.refreshState()
-    if (!!pagesPermissions[to.name] && !authStore.userCan(pagesPermissions[to.name])) {
-        if (to.path === '/') {
-            const plist = Object.keys(pagesPermissions)
-            for (let i = 0; i < plist.length; i++) {
-                if (authStore.userCan(pagesPermissions[plist[i]])) {
-                    return {
-                        name: plist[i]
-                    }
-                }
-            }
-        }
-        return { path: '/403' }
-    }
 
     if (to.name === 'login' && authStore.isLoggedIn) {
         return {
@@ -68,6 +55,19 @@ router.beforeEach(async (to, from) => {
             path: '/login',
             query: { redirect: to.fullPath }
         }
+    }
+    if (authStore.isLoggedIn && !!pagesPermissions[to.name] && !authStore.userCan(pagesPermissions[to.name])) {
+        if (to.path === '/') {
+            const plist = Object.keys(pagesPermissions)
+            for (let i = 0; i < plist.length; i++) {
+                if (authStore.userCan(pagesPermissions[plist[i]])) {
+                    return {
+                        name: plist[i]
+                    }
+                }
+            }
+        }
+        return { path: '/403' }
     }
 })
 
