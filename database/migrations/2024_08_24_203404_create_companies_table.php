@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string("name_short");
             $table->string("name_full");
-            $table->string("inn", 10)->nullable();
+            $table->string("inn", 12)->nullable();
             $table->string("kpp", 9)->nullable();
             $table->string("ogrn", 13)->nullable();
             $table->smallInteger("vat")->default(0);

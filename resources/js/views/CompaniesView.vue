@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
             :loading="mainDrawer.isLoading"
             :saving="mainDrawer.isSaving"
             :ok-loading="mainDrawer.isSaving"
-            title="Компания"
+            :title="`Компания ${currentCompany.data.vat === 0 ? 'без' : 'с'} НДС`"
             ok-text="Сохранить и закрыть"
             :need-delete="false"
         >
