@@ -32,6 +32,8 @@ class CompanyController extends Controller
             "payment_city" => "nullable|string",
             "account_correspondent" => "nullable|string",
             "account_payment" => "nullable|string",
+            "sign_position" => "nullable|string",
+            "sign_name" => "nullable|string",
         ]);
         $company->update($data);
         return response()->json(new CompanyResource($company));

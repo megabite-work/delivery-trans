@@ -24,6 +24,8 @@ class ClientRegistryResource extends JsonResource
             'client_sum' => $this->client_sum,
             'client_paid' => $this->client_paid,
             'vat' => $this->vat,
+            "bill_number" => $this->bill_number,
+            "bill_date" => $this->bill_date,
             'orders' => ClientRegistryOrderResource::collection($this->orders),
         ];
     }

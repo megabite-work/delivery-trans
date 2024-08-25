@@ -18,6 +18,8 @@ class RegistryController extends Controller
             'client_sum' => 'numeric',
             'client_paid' => 'numeric',
             'vat' => 'required|integer',
+            'bill_number' => 'nullable|string',
+            'bill_date' => 'nullable|date',
             'order_ids' => 'required|array',
         ]);
         $orders = Order::findMany($data['order_ids'])->where("registry_id", null);
@@ -41,7 +43,9 @@ class RegistryController extends Controller
             "date" => "required|date",
             "client_sum" => "numeric",
             "client_paid" => "numeric",
-            "vat" => "integer"
+            "vat" => "integer",
+            'bill_number' => 'nullable|string',
+            'bill_date' => 'nullable|date',
         ]);
         $registry->update($data);
         return response()->json(new ClientRegistryResource($registry),200);

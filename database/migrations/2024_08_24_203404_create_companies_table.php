@@ -26,6 +26,9 @@ return new class extends Migration
             $table->string("payment_city")->nullable();
             $table->string("account_correspondent")->nullable();
             $table->string("account_payment")->nullable();
+
+            $table->string("sign_position")->nullable();
+            $table->string("sign_name")->nullable();
         });
         DB::table('companies')->insert(array(
             'name_short' => 'Компания с НДС',
@@ -39,6 +42,8 @@ return new class extends Migration
             'payment_city' => '',
             'account_correspondent' => '',
             'account_payment' => '',
+            'sign_position' => 'Генеральный директор',
+            'sign_name' => '',
         ));
         DB::table('companies')->insert(array(
             'name_short' => 'Компания без НДС',
@@ -52,6 +57,8 @@ return new class extends Migration
             'payment_city' => '',
             'account_correspondent' => '',
             'account_payment' => '',
+            'sign_position' => 'Генеральный директор',
+            'sign_name' => '',
         ));
     }
 

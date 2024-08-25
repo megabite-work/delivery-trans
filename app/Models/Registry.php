@@ -15,6 +15,8 @@ class Registry extends Model
         "client_sum",
         "client_paid",
         "vat",
+        "bill_number",
+        "bill_date",
     ];
 
     protected $table = "registries";

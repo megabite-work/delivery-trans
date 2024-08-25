@@ -130,6 +130,19 @@ const bankOptions = computed(() => {
                 :maxlength="9"
             />
         </a-form-item>
+        <a-divider orientation="left">Подписант</a-divider>
+        <a-form-item label="ФИО" name="sign_name" :validate-status="err.sign_name ? 'error': undefined" :help="err.sign_name">
+            <a-input
+                v-model:value="model.sign_name"
+                placeholder="ФИО подписанта"
+            />
+        </a-form-item>
+        <a-form-item label="Должность" name="sign_position" :validate-status="err.sign_position ? 'error': undefined" :help="err.sign_position">
+            <a-input
+                v-model:value="model.sign_position"
+                placeholder="Должность"
+            />
+        </a-form-item>
         <a-divider orientation="left">Банковские реквизиты</a-divider>
         <a-form-item label="БИК" name="bik" :validate-status="err.bik ? 'error': undefined" :help="err.bik">
             <a-select

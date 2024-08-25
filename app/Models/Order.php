@@ -10,7 +10,17 @@ class Order extends Model
 {
     use HasFactory;
 
-    protected $appends = ["margin_sum", "margin_percent", "started_at", "status_manager", "status_logist"];
+    protected $appends = [
+        "margin_sum",
+        "margin_percent",
+        "started_at",
+        "status_manager",
+        "status_logist",
+        "client_hours",
+        "carrier_hours",
+        "time_start",
+        "time_end",
+    ];
 
     protected $fillable = [
         "cargo_name",
@@ -166,4 +176,110 @@ class Order extends Model
         return $this->statuses->where("type", "LOGIST")->sortByDesc("created_at")->first();
     }
 
+    public function getClientHoursAttribute()
+    {
+        $hh = 0;
+        $fromLocations = $this->from_locations ? json_decode($this->from_locations) : [];
+        $toLocations = $this->to_locations ? json_decode($this->to_locations) : [];
+        if (is_array($fromLocations) && (is_array($toLocations) || $this->ended_at)) {
+            $mt = null;
+            $gt = null;
+            foreach ($fromLocations as $from) {
+                if (property_exists($from, 'arrive_date') && property_exists($from, 'arrive_time') && is_array($from->arrive_time) && count($from->arrive_time) > 0) {
+                    $d = Date::parse($from->arrive_date)->timezone("Europe/Moscow");
+                    $t = Date::parse($from->arrive_time[0])->timezone("Europe/Moscow");
+                    $d->hour = $t->hour;
+                    $d->minute = $t->minute;
+                    $d->second = 0;
+                    if ($mt === null || $d->lessThan($mt)) {
+                        $mt = $d;
+                    }
+                }
+            }
+            if($this->ended_at && $this->ended_at != null) {
+                $gt = Date::parse($this->ended_at)->timezone("Europe/Moscow");
+            } else {
+                foreach ($toLocations as $to) {
+                    if (property_exists($to, 'arrive_date') && property_exists($to, 'arrive_time') && is_array($to->arrive_time) && count($to->arrive_time) > 0) {
+                        $d = Date::parse($to->arrive_date)->timezone("Europe/Moscow");
+                        $t = Date::parse($to->arrive_time[0])->timezone("Europe/Moscow");
+                        $d->hour = $t->hour;
+                        $d->minute = $t->minute;
+                        $d->second = 0;
+                        if ($gt === null || $d->greaterThan($gt)) {
+                            $gt = $d;
+                        }
+                    }
+                }
+            }
+            if($mt !== null && $gt !== null) {
+                $hh = $mt->diffInHours($gt);
+            }
+            $hh = max($hh, $this->client_tariff_min_hours) + ($this->client_tariff_hours_for_coming ? $this->client_tariff_hours_for_coming : 0);
+        }
+        return $hh;
+    }
+
+    public function getCarrierHoursAttribute()
+    {
+        return 0;
+    }
+
+    public function getTimeStartAttribute()
+    {
+        return $this->getTimes()["start"];
+    }
+
+    public function getTimeEndAttribute()
+    {
+        return $this->getTimes()["end"];
+    }
+
+    private function getTimes()
+    {
+        $res = [
+            "start" => "",
+            "end" => "",
+        ];
+        $fromLocations = $this->from_locations ? json_decode($this->from_locations) : [];
+        $toLocations = $this->to_locations ? json_decode($this->to_locations) : [];
+
+        if (is_array($fromLocations)) {
+            $mt = null;
+            foreach ($fromLocations as $from) {
+                if (property_exists($from, 'arrive_date') && property_exists($from, 'arrive_time') && is_array($from->arrive_time) && count($from->arrive_time) > 0) {
+                    $d = Date::parse($from->arrive_date)->timezone("Europe/Moscow");
+                    $t = Date::parse($from->arrive_time[0])->timezone("Europe/Moscow");
+                    $d->hour = $t->hour;
+                    $d->minute = $t->minute;
+                    $d->second = 0;
+                    if ($mt === null || $d->lessThan($mt)) {
+                        $mt = $d;
+                    }
+                }
+            }
+            $res["start"] = $mt;
+        }
+        if (is_array($toLocations)) {
+            $gt = null;
+            foreach ($toLocations as $to) {
+                if (property_exists($to, 'arrive_date') && property_exists($to, 'arrive_time') && is_array($to->arrive_time) && count($to->arrive_time) > 0) {
+                    $d = Date::parse($to->arrive_date)->timezone("Europe/Moscow");
+                    $t = Date::parse($to->arrive_time[0])->timezone("Europe/Moscow");
+                    $d->hour = $t->hour;
+                    $d->minute = $t->minute;
+                    $d->second = 0;
+                    if ($gt === null || $d->greaterThan($gt)) {
+                        $gt = $d;
+                    }
+                }
+            }
+            $res["end"] = $gt;
+        }
+        if($this->ended_at && $this->ended_at != null) {
+            $res["end"] = Date::parse($this->ended_at)->timezone("Europe/Moscow");
+        }
+
+        return $res;
+    }
 }

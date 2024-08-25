@@ -411,7 +411,7 @@ onBeforeUnmount(() => {
                                 </template>
                                 <template v-else>–</template>
                             </template>
-                            <template v-if="column.key === '__download' && record.id !== 0">
+                            <template v-if="column.key === '__download' && authStore.userCan('CLIENTS_REGISTRIES_DOWNLOAD') && record.id !== 0">
                                 <a-button :icon="h(DownloadOutlined)" type="dashed" @click="(e) => {e.stopPropagation(); registriesStore.downloadRegistry(record.id)}"/>
                             </template>
                         </template>

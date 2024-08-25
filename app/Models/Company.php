@@ -22,6 +22,8 @@ class Company extends Model
         "payment_city",
         "account_correspondent",
         "account_payment",
+        "sign_position",
+        "sign_name",
     ];
 
 }

@@ -24,6 +24,8 @@ class CarrierRegistryResource extends JsonResource
             'carrier_sum' => $this->carrier_sum,
             'carrier_paid' => $this->carrier_paid,
             'vat' => $this->vat,
+            "bill_number" => $this->bill_number,
+            "bill_date" => $this->bill_date,
             'orders' => CarrierRegistryOrderResource::collection($this->orders),
         ];
     }

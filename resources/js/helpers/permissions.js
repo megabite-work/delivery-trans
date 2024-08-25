@@ -55,6 +55,7 @@ export const permissions = {
     CLIENTS_REGISTRIES_EDIT: 'Редактирование реестров заказчика',
     CLIENTS_REGISTRIES_DELETE: 'Удаление реестров заказчика',
     CLIENTS_REGISTRIES_CREATE: 'Создание реестра заказчика',
+    CLIENTS_REGISTRIES_DOWNLOAD: 'Скачивание PDF-реестра для клиента',
 
     CARRIERS_SECTION: 'Доступ к разделу \'Перевозчики\'',
     CARRIERS_VIEW: 'Просмотр перевозчика',
@@ -65,6 +66,8 @@ export const permissions = {
     CARRIERS_REGISTRIES_EDIT: 'Редактирование реестров перевозчика',
     CARRIERS_REGISTRIES_DELETE: 'Удаление реестров перевозчика',
     CARRIERS_REGISTRIES_CREATE: 'Создание реестра перевозчика',
+    CARRIERS_REGISTRIES_DOWNLOAD: 'Скачивание PDF-реестра для перевозчика',
+
 
     PRICES_DIR: 'Справочник \'Прайс-листы\'',
     BODY_TYPES_DIR: 'Справочник \'Типы кузовов\'',
@@ -153,6 +156,7 @@ export const permissionsSections = [
             'CLIENTS_REGISTRIES_EDIT',
             'CLIENTS_REGISTRIES_DELETE',
             'CLIENTS_REGISTRIES_CREATE',
+            'CLIENTS_REGISTRIES_DOWNLOAD',
         ]
     },
     {
@@ -167,6 +171,7 @@ export const permissionsSections = [
             'CARRIERS_REGISTRIES_EDIT',
             'CARRIERS_REGISTRIES_DELETE',
             'CARRIERS_REGISTRIES_CREATE',
+            'CARRIERS_REGISTRIES_DOWNLOAD',
         ]
     },
     {
