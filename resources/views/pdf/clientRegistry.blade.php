@@ -15,7 +15,7 @@ function getAddressString($from, $to) {
 function gatAdditionalExpenses($exp) {
     $a = json_decode($exp);
     $res = [];
-    foreach ($a as $expense) {
+    foreach ($a == null ? [] : $a as $expense) {
         $res[] = $expense->k.' - '.$expense->v.'₽';
     }
     return implode(', ', $res);
@@ -84,7 +84,7 @@ function gatAdditionalExpenses($exp) {
         </tr>
         </thead>
         <tbody>
-            @foreach($orders as $order)
+            @foreach($orders == null ? [] : $orders as $order)
                 <tr>
                     <td style="text-align: right">{{ $loop->index + 1 }}.</td>
                     <td>{{ $order->created_at->format("d.m.Y") }}<br/># {{ $order->id }}</td>
