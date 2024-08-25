@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\Auth\RoleController;
-use App\Http\Controllers\Auth\UserController;
-use App\Http\Controllers\Registry\RegistryController;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Auth\RoleController;
+use App\Http\Controllers\Auth\UserController;
+use App\Http\Controllers\Dir\CompanyController;
 use App\Http\Controllers\Dir\BankAccountController;
 use App\Http\Controllers\Dir\CarBodyTypeController;
 use App\Http\Controllers\Dir\ContactController;
@@ -22,6 +22,7 @@ use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Price\DefaultPriceController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\CalculationController;
+use App\Http\Controllers\Registry\RegistryController;
 use App\Http\Controllers\Registry\CarrierRegistryController;
 
 Route::middleware('auth:sanctum')->group(function (){
@@ -44,6 +45,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::apiResource('orders', OrderController::class);
     Route::apiResource('registries', RegistryController::class)->except(['index']);
     Route::apiResource('carrier-registries', CarrierRegistryController::class)->except(['index']);
+    Route::apiResource('companies', CompanyController::class)->except(['store', 'destroy']);
     Route::apiResource('users', UserController::class);
     Route::apiResource('roles', RoleController::class);
 

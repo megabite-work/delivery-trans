@@ -25,7 +25,7 @@ const logout = async () => {
     }
 }
 
-const avatarUserName = computed(() => auth.user.name.split(/\s/).reduce((response,word)=> response + word.slice(0, 1),''))
+const avatarUserName = computed(() => !!auth.user ? auth.user.name.split(/\s/).reduce((response,word)=> response + word.slice(0, 1),'') : '!')
 
 const routes = computed(() => {
     const res = [];
@@ -85,6 +85,12 @@ const optRoutes = computed(() => {
             label: 'Тоннаж'
         })
     }
+    if (auth.userCan('COMPANIES_DIR')) {
+        res.push({
+            key: 'companies',
+            label: 'Компании'
+        })
+    }
     if (auth.userCan('USERS_DIR')) {
         res.push({
             key: 'users',
@@ -113,17 +119,17 @@ const optRoutes = computed(() => {
                 <a-avatar
                     @click.prevent
                     :style="{cursor: 'pointer', backgroundColor: '#172554'}"
-                    :alt="auth.user.name"
+                    :alt="!!auth.user ? auth.user.name || '' : ''"
                     size="large"
                     class="avatar"
                 >{{avatarUserName}}</a-avatar>
                 <template #overlay>
                     <a-menu :style="{width: '170px'}">
                         <a-menu-item key="0">
-                            <a>{{ auth.user.name }}</a>
+                            <a>{{ !!auth.user ? auth.user.name : 'Без имени'}}</a>
                         </a-menu-item>
-                        <a-sub-menu :key="auth.user.roles" :title="auth.currentRole.name">
-                            <a-menu-item v-for="role in auth.user.roles" :key="`r${role.id}`" @click="() => auth.switchRole(role.id)">
+                        <a-sub-menu :key="!!auth.user ? auth.user.roles : '_'" :title="!!auth.currentRole ? auth.currentRole.name : 'Без роли'">
+                            <a-menu-item v-for="role in !!auth.user ? auth.user.roles : []" :key="`r${role.id}`" @click="() => auth.switchRole(role.id)">
                                 <template v-if="auth.currentRole.id === role.id" >
                                     <div style="font-weight: 600; display: flex; gap: 8px">
                                         <CheckOutlined /><div>{{ role.name }}</div>

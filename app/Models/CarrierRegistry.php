@@ -15,6 +15,8 @@ class CarrierRegistry extends Model
         "carrier_sum",
         "carrier_paid",
         "vat",
+        "bill_number",
+        "bill_date",
     ];
 
     protected $table = "carrier_registries";

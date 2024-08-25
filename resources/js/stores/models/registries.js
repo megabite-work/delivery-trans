@@ -11,6 +11,7 @@ export const useRegistriesStore = defineStore('registries', () => {
             const res = await axios.post('api/registries', {
                 ...registry,
                 date: registry.date.format("YYYY-MM-DD"),
+                bill_date: registry.bill_date ? registry.bill_date.format("YYYY-MM-DD") : undefined,
             })
             return res.data
         } catch (e) {
@@ -26,6 +27,8 @@ export const useRegistriesStore = defineStore('registries', () => {
             const res = await axios.put(`api/registries/${registry.id}`, {
                 ...registry,
                 date: registry.date.format("YYYY-MM-DD"),
+                bill_date: registry.bill_date ? registry.bill_date.format("YYYY-MM-DD") : undefined,
+
             })
             return res.data
         } catch (e) {
@@ -55,6 +58,7 @@ export const useRegistriesStore = defineStore('registries', () => {
                 client_sum: parseFloat(data.client_sum),
                 client_paid: parseFloat(data.client_paid),
                 date: dayjs(data.date),
+                bill_date: data.bill_date ? dayjs(data.bill_date) : undefined
             }
         } catch (e) {
             if (e.response) {
@@ -64,5 +68,10 @@ export const useRegistriesStore = defineStore('registries', () => {
         }
     }
 
-    return { err, createRegistry, storeRegistry, deleteRegistry, getRegistry }
+    async function downloadRegistry(registryId) {
+        window.open(`/download/client-registry/${registryId}`, '_blank')
+        // await axios.get(`/download/client-registry/${registryId}`)
+    }
+
+    return { err, createRegistry, storeRegistry, deleteRegistry, getRegistry, downloadRegistry }
 })

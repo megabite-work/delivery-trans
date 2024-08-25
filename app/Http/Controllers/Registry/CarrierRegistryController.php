@@ -18,6 +18,8 @@ class CarrierRegistryController extends Controller
             'carrier_sum' => 'numeric',
             'carrier_paid' => 'numeric',
             'vat' => 'required|integer',
+            'bill_number' => 'nullable|string',
+            'bill_date' => 'nullable|date',
             'order_ids' => 'required|array',
         ]);
         $orders = Order::findMany($data['order_ids'])->where("carrier_registry_id", null);
@@ -41,7 +43,9 @@ class CarrierRegistryController extends Controller
             "date" => "required|date",
             "carrier_sum" => "numeric",
             "carrier_paid" => "numeric",
-            "vat" => "integer"
+            "vat" => "integer",
+            'bill_number' => 'nullable|string',
+            'bill_date' => 'nullable|date',
         ]);
         $carrierRegistry->update($data);
         return response()->json(new CarrierRegistryResource($carrierRegistry),200);

@@ -27,7 +27,7 @@ const makePaid = (v) => {
     }
 }
 
-const err = reactive({ date: null, vat: null, carrier_sum: null, carrier_paid: null })
+const err = reactive({ date: null, vat: null, carrier_sum: null, carrier_paid: null, bill_number: null, bill_date: null })
 watch(() => prop.errors, () => {
     Object.keys(err).forEach((key) => {
         if (prop.errors[key]) {
@@ -58,6 +58,27 @@ watch(() => prop.errors, () => {
             <a-select-option :value="2">Наличные</a-select-option>
         </a-select>
     </a-form-item>
+    <a-row :gutter="16">
+        <a-col :span="12">
+            <a-form-item label="Номер счета" name="bill_number" :validate-status="err.bill_number ? 'error': undefined" :help="err.bill_number">
+                <a-input
+                    v-model:value="model.bill_number"
+                    style="width: 100%"
+                    placeholder="Номер счета"
+                />
+            </a-form-item>
+        </a-col>
+        <a-col :span="12">
+            <a-form-item label="Дата счета" name="bill_date" :validate-status="err.bill_date ? 'error': undefined" :help="err.bill_date">
+                <a-date-picker
+                    v-model:value="model.bill_date"
+                    format="DD.MM.YYYY"
+                    style="width: 100%"
+                    placeholder="Дата счета"
+                />
+            </a-form-item>
+        </a-col>
+    </a-row>
     <a-row :gutter="16">
         <a-col :span="12">
             <a-form-item label="Сумма" name="carrier_sum" :validate-status="err.carrier_sum ? 'error': undefined" :help="err.carrier_sum">

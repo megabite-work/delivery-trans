@@ -2,6 +2,7 @@ import {computed, ref} from 'vue'
 import {defineStore} from 'pinia'
 import axios from "axios";
 import {isArray} from "radash";
+import {message} from "ant-design-vue";
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref(null)
@@ -22,6 +23,9 @@ export const useAuthStore = defineStore('auth', () => {
         }
     })
     async function refreshState() {
+        await axios.get('sanctum/csrf-cookie').catch(() => {
+            message.error("Ошибка получения CSRF-токена")
+        })
         try {
             const res = await axios.get('api/user')
             user.value = res.data

@@ -48,7 +48,7 @@ class CalculationController extends Controller
                 }
             }
             if($request->has('ended_at') && $request->get('ended_at') != null) {
-                $gt = Date::parse($request->get('ended_at'), null);
+                $gt = Date::parse($request->get('ended_at'))->timezone("Europe/Moscow");
             } else {
                 foreach ($request->get('to_locations') as $to) {
                     if (array_key_exists('arrive_date', $to) && array_key_exists('arrive_time', $to) && is_array($to['arrive_time']) && count($to['arrive_time']) > 0) {
