@@ -67,5 +67,10 @@ export const useCarrierRegistriesStore = defineStore('carrier-registries', () =>
         }
     }
 
-    return { err, createRegistry, storeRegistry, deleteRegistry, getRegistry }
+    async function downloadRegistry(registryId) {
+        window.open(`/download/carrier-registry/${registryId}`, '_blank')
+        // await axios.get(`/download/client-registry/${registryId}`)
+    }
+
+    return { err, createRegistry, storeRegistry, deleteRegistry, getRegistry, downloadRegistry }
 })

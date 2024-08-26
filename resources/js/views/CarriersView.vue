@@ -1,7 +1,7 @@
 <script setup>
 import Layout from '../layouts/AppLayout.vue';
 import {useCarriersStore} from "../stores/models/carriers.js";
-import {computed, onBeforeUnmount, onMounted, reactive, ref} from "vue";
+import {computed, h, onBeforeUnmount, onMounted, reactive, ref} from "vue";
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
 import Drawer from "../components/Drawer.vue";
 import {message} from "ant-design-vue";
@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import {decl, logistOrderStatuses, managerOrderStatuses} from "../helpers/index.js";
 import CarrierRegistry from "../components/models/CarrierRegistry.vue";
 import {useAuthStore} from "../stores/auth.js";
+import {DownloadOutlined} from "@ant-design/icons-vue";
 
 const columnsCarriers = [
     { key: 'type', width: 50 },
@@ -27,6 +28,7 @@ const columnsRegitries = [
     { key: 'carrier_sum', title: 'Сумма, ₽' },
     { key: 'carrier_paid', title: 'Оплачено, ₽' },
     { key: 'carrier_vat', title: 'НДС' },
+    { key: '__download' },
 ];
 
 const columnsOrders = [
@@ -400,6 +402,9 @@ onBeforeUnmount(() => {
                                     {{ vatArr[record.vat] }}
                                 </template>
                                 <template v-else>–</template>
+                            </template>
+                            <template v-if="column.key === '__download' && authStore.userCan('CARRIERS_REGISTRIES_DOWNLOAD') && record.id !== 0">
+                                <a-button :icon="h(DownloadOutlined)" type="dashed" @click="(e) => {e.stopPropagation(); registriesStore.downloadRegistry(record.id)}"/>
                             </template>
                         </template>
                         <template #expandedRowRender="{ record }">

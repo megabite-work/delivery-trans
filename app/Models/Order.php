@@ -16,8 +16,7 @@ class Order extends Model
         "started_at",
         "status_manager",
         "status_logist",
-        "client_hours",
-        "carrier_hours",
+        "hours",
         "time_start",
         "time_end",
     ];
@@ -176,9 +175,15 @@ class Order extends Model
         return $this->statuses->where("type", "LOGIST")->sortByDesc("created_at")->first();
     }
 
-    public function getClientHoursAttribute()
+    public function getHoursAttribute()
     {
         $hh = 0;
+
+        $res = [
+            "client" => 0,
+            "carrier" => 0,
+        ];
+
         $fromLocations = $this->from_locations ? json_decode($this->from_locations) : [];
         $toLocations = $this->to_locations ? json_decode($this->to_locations) : [];
         if (is_array($fromLocations) && (is_array($toLocations) || $this->ended_at)) {
@@ -215,14 +220,10 @@ class Order extends Model
             if($mt !== null && $gt !== null) {
                 $hh = $mt->diffInHours($gt);
             }
-            $hh = max($hh, $this->client_tariff_min_hours) + ($this->client_tariff_hours_for_coming ? $this->client_tariff_hours_for_coming : 0);
+            $res["client"] = max($hh, $this->client_tariff_min_hours) + ($this->client_tariff_hours_for_coming ? $this->client_tariff_hours_for_coming : 0);
+            $res["carrier"] = max($hh, $this->carrier_tariff_min_hours) + ($this->carrier_tariff_hours_for_coming ? $this->carrier_tariff_hours_for_coming : 0);
         }
-        return $hh;
-    }
-
-    public function getCarrierHoursAttribute()
-    {
-        return 0;
+        return $res;
     }
 
     public function getTimeStartAttribute()
