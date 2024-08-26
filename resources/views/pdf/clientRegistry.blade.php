@@ -1,26 +1,31 @@
 @php
-
-function getAddressString($from, $to) {
-    $from = json_decode($from);
-    $to = json_decode($to);
-    $res = [];
-    foreach ([...$from, ...$to] as $a) {
-        if(property_exists($a, 'address') && trim($a->address) !== '') {
-            $res[] = trim($a->address);
+    function getAddressString($from, $to) {
+        $from = json_decode($from);
+        $to = json_decode($to);
+        $res = [];
+        $arr = [];
+        if (is_array($from)) {
+            $arr = $from;
         }
+        if (is_array($to)) {
+            $arr = [...$arr, ...$to];
+        }
+        foreach ($arr as $a) {
+            if(property_exists($a, 'address') && trim($a->address) !== '') {
+                $res[] = trim($a->address);
+            }
+        }
+        return implode(' – ', $res);
     }
-    return implode(' – ', $res);
-}
 
-function gatAdditionalExpenses($exp) {
-    $a = json_decode($exp);
-    $res = [];
-    foreach ($a == null ? [] : $a as $expense) {
-        $res[] = $expense->k.' - '.$expense->v.'₽';
+    function gatAdditionalExpenses($exp) {
+        $a = json_decode($exp);
+        $res = [];
+        foreach ($a == null ? [] : $a as $expense) {
+            $res[] = $expense->k.' - '.$expense->v.'₽';
+        }
+        return implode(', ', $res);
     }
-    return implode(', ', $res);
-}
-
 @endphp
 <!DOCTYPE html>
 <html lang="ru">
@@ -28,9 +33,6 @@ function gatAdditionalExpenses($exp) {
     <meta charset="UTF-8">
     <title>{{ $title }}</title>
     <style>
-        html {
-            font-family: DejaVu Sans;
-        }
         table, th, td {
             border: 1px solid black;
             border-collapse: collapse;
@@ -94,12 +96,10 @@ function gatAdditionalExpenses($exp) {
                     <td>{{ $order->time_start->format("H:i") }}</td>
                     <td>{{ $order->time_end->format("H:i") }}</td>
                     <td style="text-align: right">{{ $order->client_tariff_hours_for_coming }}</td>
-                    <td>
-                        {{ getAddressString($order['from_locations'], $order['to_locations'])  }}
-                    </td>
-                    <td style="text-align: right">{{ $order->client_tariff_hourly }} ₽</td>
-                    <td style="text-align: right">{{ $order->clientHours }}</td>
-                    <td style="text-align: right">{{ $order->client_tariff_mkad_price }} ₽</td>
+                    <td>{{ getAddressString($order['from_locations'], $order['to_locations']) }}</td>
+                    <td style="text-align: right">{{ $order->client_tariff_hourly ?? 0 }} ₽</td>
+                    <td style="text-align: right">{{ $order->hours['client'] }}</td>
+                    <td style="text-align: right">{{ $order->client_tariff_mkad_price ?? 0 }} ₽</td>
                     <td style="text-align: right">{{ $order->client_tariff_mkad_rate > 0 ? $order->client_tariff_mkad_rate : 0 }}</td>
                     <td>{{ gatAdditionalExpenses($order->client_expenses) }}</td>
                     <td style="text-align: right">{{ $order->client_sum }} ₽</td>

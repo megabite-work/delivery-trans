@@ -13,7 +13,10 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/download/client-registry/{registry}', [PDFController::class, 'getClientRegestry'])->middleware('auth:sanctum');
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/download/client-registry/{registry}', [PDFController::class, 'getClientRegistry']);
+    Route::get('/download/carrier-registry/{carrierRegistry}', [PDFController::class, 'getCarrierRegistry']);
+});
 Route::get('{any?}', function () {
     return view('main');
 })->where('any', '.*');
