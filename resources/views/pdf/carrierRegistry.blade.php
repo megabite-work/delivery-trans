@@ -1,4 +1,6 @@
 @php
+use Illuminate\Support\Facades\Date;
+
     function getAddressString($from, $to) {
         $from = json_decode($from);
         $to = json_decode($to);
@@ -62,7 +64,7 @@
 <body>
 <h2 style="text-align: center; font-size: 20px; line-height: 28px">
     Сведения о работе перевозчика<br/>
-    реестр № {{ $registry->id }} от {{ $registry->created_at->format("d.m.Y") }} к счету № {{ $registry->bill_number }} от {{ Illuminate\Support\Facades\Date::parse($registry->bill_date)->format("d.m.Y") }}
+    реестр № {{ $registry->id }} от {{ $registry->created_at->format("d.m.Y") }} к счету № {{ $registry->bill_number }} от {{ $registry->bill_date ? Date::parse($registry->bill_date)->format("d.m.Y") : 'без даты' }}
 </h2>
 <div style="font-size: 18px; line-height: 32px; padding-top: 20px">
     <div style="display: flex; flex-direction: row">
