@@ -1,4 +1,6 @@
 @php
+    use Illuminate\Support\Facades\Date;
+
     function getAddressString($from, $to) {
         $from = json_decode($from);
         $to = json_decode($to);
@@ -49,7 +51,7 @@
 <body>
 <h2 style="text-align: center; font-size: 20px; line-height: 28px">
     Сведения о работе автотранспорта<br/>
-    реестр № {{ $registry->id }} от {{ $registry->created_at->format("d.m.Y") }} к счету № {{ $registry->bill_number }} от {{ Illuminate\Support\Facades\Date::parse($registry->bill_date)->format("d.m.Y") }}
+    реестр № {{ $registry->id }} от {{ $registry->created_at->format("d.m.Y") }} к счету № {{ $registry->bill_number }} от {{ Date::parse($registry->bill_date)->format("d.m.Y") }}
 </h2>
 <div style="font-size: 18px; line-height: 32px; padding-top: 20px">
     <div style="display: flex; flex-direction: row">
@@ -93,8 +95,8 @@
                     <td style="text-align: center">{{ $order->driver ? $order->driver->surname." ".$order->driver->name." ".$order->driver->patronymic : "–" }} </td>
                     <td>{{$order->car ? $order->car->plate_number : "–"}}</td>
                     <td style="text-wrap: nowrap">{{$order->carCapacity ? $order->carCapacity->tonnage."т. – ".$order->carCapacity->volume."м³. – ".$order->carCapacity->pallets_count."п." : "-"}}</td>
-                    <td>{{ $order->time_start->format("H:i") }}</td>
-                    <td>{{ $order->time_end->format("H:i") }}</td>
+                    <td>{{ $order->time_start ? $order->time_start->format("H:i") : "–" }}</td>
+                    <td>{{ $order->time_end ? $order->time_end->format("H:i") : "-" }}</td>
                     <td style="text-align: right">{{ $order->client_tariff_hours_for_coming }}</td>
                     <td>{{ getAddressString($order['from_locations'], $order['to_locations']) }}</td>
                     <td style="text-align: right">{{ $order->client_tariff_hourly ?? 0 }} ₽</td>
