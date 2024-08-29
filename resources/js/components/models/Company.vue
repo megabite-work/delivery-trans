@@ -2,6 +2,7 @@
 import {computed, reactive, ref, watch} from "vue";
 import {debounce} from "radash";
 import {useSuggests} from "../../stores/models/suggests.js";
+import axios from "axios";
 
 const model = defineModel()
 const prop = defineProps({
@@ -73,6 +74,36 @@ const bankOptions = computed(() => {
     let res = [...bankList.value]
     return res.map(el => ({value: el.bik, ...el}))
 })
+
+const uploadFile = async fileObject => {
+    const formData = new FormData();
+    formData.append('file', fileObject.file)
+    try {
+        const { data } = await axios.post(fileObject.action, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            onUploadProgress(progressEvent) {
+                fileObject.onProgress({
+                    percent: parseInt((progressEvent.loaded / progressEvent.total) * 100)
+                })
+            }
+        });
+        fileObject.onSuccess(data)
+    } catch (e) {
+        fileObject.onError(e)
+        console.log(e)
+    } finally {
+
+    }
+}
+
+const templateClientFileList = ref([]);
+
+const handleTemplateClientChange = (p) => {
+    templateClientFileList.value = p.fileList
+    console.log(p)
+}
 
 </script>
 
@@ -193,6 +224,22 @@ const bankOptions = computed(() => {
                 v-model:value="model.account_payment"
                 placeholder="Расчетный счет"
             />
+        </a-form-item>
+        <a-divider orientation="left">Файлы шаблонов заявок</a-divider>
+        <a-form-item label="Шаблон для клиента" name="template_client" :validate-status="err.template_client ? 'error': undefined" :help="err.template_client">
+            <a-upload
+                action="/upload/order-template"
+                accept="*.dotx"
+                list-type="text"
+                :file-list="templateClientFileList"
+                :with-credentials="true"
+                :custom-request="uploadFile"
+                @change="handleTemplateClientChange"
+            >
+                <a-button>
+                    Загрузить шаблон
+                </a-button>
+            </a-upload>
         </a-form-item>
     </a-form>
 </template>

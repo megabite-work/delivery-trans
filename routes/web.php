@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Dir\CompanyController;
 use App\Http\Controllers\PDFController;
 use Illuminate\Support\Facades\Route;
 
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/upload/order-template', [CompanyController::class, 'uploadTemplate']);
     Route::get('/download/client-registry/{registry}', [PDFController::class, 'getClientRegistry']);
     Route::get('/download/carrier-registry/{carrierRegistry}', [PDFController::class, 'getCarrierRegistry']);
 });

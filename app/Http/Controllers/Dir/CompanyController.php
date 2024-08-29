@@ -35,31 +35,35 @@ class CompanyController extends Controller
             "account_payment" => "nullable|string",
             "sign_position" => "nullable|string",
             "sign_name" => "nullable|string",
-            "template_client" => "nullable|file|mimes:dotx",
-            "template_carrier" => "nullable|file|mimes:dotx",
+            "template_client" => "nullable|string",
+            "template_carrier" => "nullable|string",
         ]);
-
-        if($request->has("template_client")) {
-            $file = $request->file("template_client");
-            if ($file->isValid()) {
-                $file_name = $file->getClientOriginalName();
-                $file_name = Str::random(16).'.'.Str::of($file_name)->afterLast('.');
-                $file->storeAs('', $file_name, 'templates');
-                $data["template_client"] = $file_name;
-            }
-        }
-
-        if($request->has("template_carrier")) {
-            $file = $request->file("template_carrier");
-            if ($file->isValid()) {
-                $file_name = $file->getClientOriginalName();
-                $file_name = Str::random(16).'.'.Str::of($file_name)->afterLast('.');
-                $file->storeAs('', $file_name, 'templates');
-                $data["template_carrier"] = $file_name;
-            }
-        }
 
         $company->update($data);
         return response()->json(new CompanyResource($company));
+    }
+
+    public function uploadTemplate(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file'
+        ]);
+
+        $file = $request->file('file');
+        if ($file->isValid()) {
+            $file_name = $file->getClientOriginalName();
+            $file_name = Str::random(16).'.'.Str::of($file_name)->afterLast('.');
+            $file->storeAs('', $file_name, 'templates');
+
+            return response()->json([
+                'name' => $file_name,
+                'status' => 'done',
+                'url' => "/storage/templates/{$file_name}",
+            ], 201);
+        }
+
+        return response()->json([
+            'status' => 'error'
+        ], 400);
     }
 }
