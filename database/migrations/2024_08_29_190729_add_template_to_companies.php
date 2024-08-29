@@ -12,7 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('companies', function (Blueprint $table) {
-            $table->string('template')->nullable();
+            $table->string('template_client')->nullable();
+            $table->string('template_carrier')->nullable();
         });
     }
 
@@ -22,7 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('companies', function (Blueprint $table) {
-            $table->dropColumn('template');
+            $table->dropColumn(['template_client', 'template_carrier']);
         });
     }
 };

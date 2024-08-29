@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CompanyController extends Controller
 {
@@ -34,15 +35,27 @@ class CompanyController extends Controller
             "account_payment" => "nullable|string",
             "sign_position" => "nullable|string",
             "sign_name" => "nullable|string",
-            "template" => "nullable|file|mimes:dotx",
+            "template_client" => "nullable|file|mimes:dotx",
+            "template_carrier" => "nullable|file|mimes:dotx",
         ]);
 
-        if($request->has("template")) {
-            $file = $request->file("template");
+        if($request->has("template_client")) {
+            $file = $request->file("template_client");
             if ($file->isValid()) {
-                $fileName = $file->getClientOriginalName();
-                $file->storeAs('', $fileName, 'templates');
-                $data["template"] = $fileName;
+                $file_name = $file->getClientOriginalName();
+                $file_name = Str::random(16).'.'.Str::of($file_name)->afterLast('.');
+                $file->storeAs('', $file_name, 'templates');
+                $data["template_client"] = $file_name;
+            }
+        }
+
+        if($request->has("template_carrier")) {
+            $file = $request->file("template_carrier");
+            if ($file->isValid()) {
+                $file_name = $file->getClientOriginalName();
+                $file_name = Str::random(16).'.'.Str::of($file_name)->afterLast('.');
+                $file->storeAs('', $file_name, 'templates');
+                $data["template_carrier"] = $file_name;
             }
         }
 
