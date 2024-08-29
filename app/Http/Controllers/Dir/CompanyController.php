@@ -34,7 +34,18 @@ class CompanyController extends Controller
             "account_payment" => "nullable|string",
             "sign_position" => "nullable|string",
             "sign_name" => "nullable|string",
+            "template" => "nullable|file|mimes:dotx",
         ]);
+
+        if($request->has("template")) {
+            $file = $request->file("template");
+            if ($file->isValid()) {
+                $fileName = $file->getClientOriginalName();
+                $file->storeAs('', $fileName, 'templates');
+                $data["template"] = $fileName;
+            }
+        }
+
         $company->update($data);
         return response()->json(new CompanyResource($company));
     }
