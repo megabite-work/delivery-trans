@@ -24,6 +24,8 @@ class Company extends Model
         "account_payment",
         "sign_position",
         "sign_name",
+        "template_client",
+        "template_carrier",
     ];
 
 }

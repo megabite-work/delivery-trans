@@ -3,6 +3,7 @@ import {computed, reactive, ref, watch} from "vue";
 import {debounce} from "radash";
 import {useSuggests} from "../../stores/models/suggests.js";
 import axios from "axios";
+import {UploadOutlined} from "@ant-design/icons-vue";
 
 const model = defineModel()
 const prop = defineProps({
@@ -75,7 +76,7 @@ const bankOptions = computed(() => {
     return res.map(el => ({value: el.bik, ...el}))
 })
 
-const uploadFile = async fileObject => {
+const uploadFile = async (fileObject) => {
     const formData = new FormData();
     formData.append('file', fileObject.file)
     try {
@@ -98,13 +99,55 @@ const uploadFile = async fileObject => {
     }
 }
 
-const templateClientFileList = ref([]);
+const clientFileObjects = ref([])
+const carrierFileObjects = ref([])
 
-const handleTemplateClientChange = (p) => {
-    templateClientFileList.value = p.fileList
-    console.log(p)
+const templateClientFileList = computed(() => {
+    if (clientFileObjects.value.length > 0) {
+        return clientFileObjects.value
+    }
+    if (model.value.template_client) {
+        return [{name: model.value.template_client}]
+    }
+    return []
+})
+
+const templateCarrierFileList = computed(() => {
+    if (carrierFileObjects.value.length > 0) {
+        return carrierFileObjects.value
+    }
+    if (model.value.template_carrier) {
+        return [{name: model.value.template_carrier}]
+    }
+    return []
+})
+
+
+const handleTemplateChange = (p, t) => {
+    if (t === 'client') {
+        if (!!p.file.response) {
+            model.value.template_client = p.file.response.name
+        }
+        clientFileObjects.value = p.fileList
+    }
+    if (t === 'carrier') {
+        if (!!p.file.response) {
+            model.value.template_carrier = p.file.response.name
+        }
+        carrierFileObjects.value = p.fileList
+    }
 }
 
+const handleTemplateRemove = t => {
+    if (t === 'client') {
+        model.value.template_client = null
+        clientFileObjects.value = []
+    }
+    if (t === 'carrier') {
+        model.value.template_carrier = null
+        carrierFileObjects.value = []
+    }
+}
 </script>
 
 <template>
@@ -226,21 +269,44 @@ const handleTemplateClientChange = (p) => {
             />
         </a-form-item>
         <a-divider orientation="left">Файлы шаблонов заявок</a-divider>
-        <a-form-item label="Шаблон для клиента" name="template_client" :validate-status="err.template_client ? 'error': undefined" :help="err.template_client">
-            <a-upload
-                action="/upload/order-template"
-                accept="*.dotx"
-                list-type="text"
-                :file-list="templateClientFileList"
-                :with-credentials="true"
-                :custom-request="uploadFile"
-                @change="handleTemplateClientChange"
-            >
-                <a-button>
-                    Загрузить шаблон
-                </a-button>
-            </a-upload>
-        </a-form-item>
+        <a-row :gutter="16">
+            <a-col :span="12">
+                <a-form-item label="Шаблон для клиента" name="template_client" :validate-status="err.template_client ? 'error': undefined" :help="err.template_client">
+                    <a-upload
+                        action="/upload/order-template"
+                        accept="*.dotx"
+                        list-type="text"
+                        :file-list="templateClientFileList"
+                        :with-credentials="true"
+                        :custom-request="uploadFile"
+                        @change="(files) => handleTemplateChange(files, 'client')"
+                        @remove="() => handleTemplateRemove('client')"
+                    >
+                        <a-button v-if="!model.template_client">
+                            <UploadOutlined /> Загрузить шаблон
+                        </a-button>
+                    </a-upload>
+                </a-form-item>
+            </a-col>
+            <a-col :span="12">
+                <a-form-item label="Шаблон для перевозчика" name="template_carrier" :validate-status="err.template_carrier ? 'error': undefined" :help="err.template_carrier">
+                    <a-upload
+                        action="/upload/order-template"
+                        accept="*.dotx"
+                        list-type="text"
+                        :file-list="templateCarrierFileList"
+                        :with-credentials="true"
+                        :custom-request="uploadFile"
+                        @change="(files) => handleTemplateChange(files, 'carrier')"
+                        @remove="() => handleTemplateRemove('carrier')"
+                    >
+                        <a-button v-if="!model.template_carrier">
+                            <UploadOutlined /> Загрузить шаблон
+                        </a-button>
+                    </a-upload>
+                </a-form-item>
+            </a-col>
+        </a-row>
     </a-form>
 </template>
 

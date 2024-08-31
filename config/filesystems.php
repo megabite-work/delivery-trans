@@ -45,9 +45,8 @@ return [
         ],
         'templates' => [
             'driver' => 'local',
-            'root' => storage_path('app/public/templates'),
-            'url' => env('APP_URL').'/storage/templates',
-            'visibility' => 'public',
+            'root' => storage_path('app/templates'),
+            'throw' => false,
         ],
         's3' => [
             'driver' => 's3',
