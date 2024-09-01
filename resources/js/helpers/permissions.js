@@ -20,6 +20,8 @@ export const permissions = {
     ORDERS_ADD: 'Добавление заявок',
     ORDERS_EDIT: 'Редактирование заявок',
     ORDERS_DELETE: 'Удаление заявок',
+    CLIENTS_ORDERS_DOWNLOAD: 'Скачиваение заявок для клиентов',
+    CARRIERS_ORDERS_DOWNLOAD: 'Скачивание заявок для перевозчиков',
 
     ORDER_CARGO_SECTION: 'Секция \'Груз\'',
     ORDER_CAR_SECTION: 'Секция \'Машина\'',
@@ -96,6 +98,8 @@ export const permissionsSections = [
             'ORDERS_ADD',
             'ORDERS_EDIT',
             'ORDERS_DELETE',
+            'CLIENTS_ORDERS_DOWNLOAD',
+            'CARRIERS_ORDERS_DOWNLOAD',
         ]
     },
     {

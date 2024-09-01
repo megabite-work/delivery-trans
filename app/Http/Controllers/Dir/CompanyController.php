@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\CompanyResource;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CompanyController extends Controller
 {
@@ -34,8 +35,35 @@ class CompanyController extends Controller
             "account_payment" => "nullable|string",
             "sign_position" => "nullable|string",
             "sign_name" => "nullable|string",
+            "template_client" => "nullable|string",
+            "template_carrier" => "nullable|string",
         ]);
+
         $company->update($data);
         return response()->json(new CompanyResource($company));
+    }
+
+    public function uploadTemplate(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file'
+        ]);
+
+        $file = $request->file('file');
+        if ($file->isValid()) {
+            $file_name = $file->getClientOriginalName();
+            $file_name = Str::random(16).'.'.Str::of($file_name)->afterLast('.');
+            $file->storeAs('', $file_name, 'templates');
+
+            return response()->json([
+                'name' => $file_name,
+                'status' => 'done',
+                'url' => "/storage/templates/{$file_name}",
+            ], 201);
+        }
+
+        return response()->json([
+            'status' => 'error'
+        ], 400);
     }
 }
