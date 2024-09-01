@@ -12,7 +12,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "movemoveapp/laravel-dadata": "^1.0",
-        "wrklst/docxmustache": "^0.0.35"
+        "phpoffice/phpword": "^1.2"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
