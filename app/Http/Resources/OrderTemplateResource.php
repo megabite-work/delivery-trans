@@ -43,7 +43,7 @@ class OrderTemplateResource extends JsonResource
         };
 
         $address_reducer = function ($r, $item) {
-            $a = $item->address;
+            $a = $item->address ?? "";
             if($r !== "") {
                 $a = ", ".$a;
             }
@@ -51,7 +51,7 @@ class OrderTemplateResource extends JsonResource
         };
 
         $address_contacts_name_reducer = function ($r, $item) {
-            $a = $item->contact_person;
+            $a = $item->contact_person ?? "";
             if($r !== "") {
                 $a = ", ".$a;
             }
@@ -59,23 +59,23 @@ class OrderTemplateResource extends JsonResource
         };
 
         $address_contacts_phone_reducer = function ($r, $item) {
-            $a = $item->contact_phone;
+            $a = $item->contact_phone ?? "";
             if($r !== "") {
                 $a = ", ".$a;
             }
             return $r.$a;
         };
 
-        $client_bank = $this->client->bankAccounts->first();
-        $carrier_bank = $this->carrier->bankAccounts->first();
+        $client_bank = $this->client ? $this->client->bankAccounts->first() : null;
+        $carrier_bank = $this->carrier ? $this->carrier->bankAccounts->first() : null;
 
-        $client_addres_yur = $this->client->contacts->where("type", "ADDRESS")->where("note", "Юридический адрес")->first();
-        $client_addres_real = $this->client->contacts->where("type", "ADDRESS")->where("note", "Фактический адрес")->first();
-        $client_addres_post = $this->client->contacts->where("type", "ADDRESS")->where("note", "Почтовый адрес")->first();
+        $client_addres_yur = $this->client ? $this->client->contacts->where("type", "ADDRESS")->where("note", "Юридический адрес")->first() : null;
+        $client_addres_real = $this->client ? $this->client->contacts->where("type", "ADDRESS")->where("note", "Фактический адрес")->first() : null;
+        $client_addres_post = $this->client ? $this->client->contacts->where("type", "ADDRESS")->where("note", "Почтовый адрес")->first() : null;
 
-        $carrier_addres_yur = $this->carrier->contacts->where("type", "ADDRESS")->where("note", "Юридический адрес")->first();
-        $carrier_addres_real = $this->carrier->contacts->where("type", "ADDRESS")->where("note", "Фактический адрес")->first();
-        $carrier_addres_post = $this->carrier->contacts->where("type", "ADDRESS")->where("note", "Почтовый адрес")->first();
+        $carrier_addres_yur = $this->carrier ? $this->carrier->contacts->where("type", "ADDRESS")->where("note", "Юридический адрес")->first() : null;
+        $carrier_addres_real = $this->carrier ? $this->carrier->contacts->where("type", "ADDRESS")->where("note", "Фактический адрес")->first() : null;
+        $carrier_addres_post = $this->carrier ? $this->carrier->contacts->where("type", "ADDRESS")->where("note", "Почтовый адрес")->first() : null;
 
         $bank_string = function ($bank) {
             if ($bank === null) {
@@ -92,7 +92,7 @@ class OrderTemplateResource extends JsonResource
             'cargo_temp' => $this->cargo_temp ?? "",
             'cargo_pallets' => $this->cargo_pallets_count ?? "",
 
-            'car_capacity' => $this->carCapacity->tonnage.'т. – '.$this->carCapacity->volume.'м³. – '.$this->carCapacity->pallets_count.'п.',
+            'car_capacity' => $this->carCapacity ? $this->carCapacity->tonnage.'т. – '.$this->carCapacity->volume.'м³. – '.$this->carCapacity->pallets_count.'п.' : '',
             'car_body_type' => $this->vehicle_body_type ?? "",
             'car_loading' => implode(', ', $loading_types),
 
@@ -101,7 +101,7 @@ class OrderTemplateResource extends JsonResource
             'client_inn' => $this->client->inn ?? "",
             'client_kpp' => $this->client->kpp ?? "",
             'client_ogrn' => $this->client->ogrn ?? "",
-            'client_vat' => $vat[$this->client->vat],
+            'client_vat' => $this->client ? $vat[$this->client->vat] : "",
 
             'client_bank' => $bank_string($client_bank),
             'client_bank_bik' => $client_bank->bik ?? "",
@@ -119,7 +119,7 @@ class OrderTemplateResource extends JsonResource
             'carrier_inn' => $this->carrier->inn ?? "",
             'carrier_kpp' => $this->carrier->kpp ?? "",
             'carrier_ogrn' => $this->carrier->ogrn ?? "",
-            'carrier_vat' => $vat[$this->carrier->vat],
+            'carrier_vat' => $this->carrier ? $vat[$this->carrier->vat] : "",
 
             'carrier_bank' => $bank_string($carrier_bank),
             'carrier_bank_bik' => $carrier_bank->bik ?? "",
@@ -133,35 +133,35 @@ class OrderTemplateResource extends JsonResource
             'carrier_address_post' => $carrier_addres_post->value ?? "",
 
 
-            'driver_name_full' => implode(' ', [$this->driver->surname, $this->driver->name, $this->driver->patronymic]),
-            'driver_name_short' => $this->driver->surname.' '
+            'driver_name_full' => $this->driver ? implode(' ', [$this->driver->surname, $this->driver->name, $this->driver->patronymic]) : "",
+            'driver_name_short' => $this->driver ? $this->driver->surname.' '
                 .($this->driver->name ? mb_substr($this->driver->name, 0, 1).'.' : '')
-                .($this->driver->patronymic ? mb_substr($this->driver->patronymic, 0, 1).'.' : ''),
+                .($this->driver->patronymic ? mb_substr($this->driver->patronymic, 0, 1).'.' : '') : "",
             'driver_inn' => $this->driver->inn ?? "",
-            'driver_passport' => $this->driver->passport_number
+            'driver_passport' => $this->driver ? $this->driver->passport_number
                 .($this->driver->passport_issuer ? ', выдан '.$this->driver->passport_issuer : '')
                 .($this->driver->passport_issue_date ? ', '.Date::parse($this->driver->passport_issue_date)->timezone("Europe/Moscow")->format('d.m.Y') : '')
-                .($this->driver->passport_issuer_code ? ', код подразделения '.$this->driver->passport_issuer_code : ''),
+                .($this->driver->passport_issuer_code ? ', код подразделения '.$this->driver->passport_issuer_code : '') : "",
             'driver_passport_issuer' => $this->driver->passport_issuer ?? "",
-            'driver_passport_issue_date' => Date::parse($this->driver->passport_issue_date)->timezone("Europe/Moscow")->format('d.m.Y'),
+            'driver_passport_issue_date' => $this->driver ? Date::parse($this->driver->passport_issue_date)->timezone("Europe/Moscow")->format('d.m.Y') : "",
             'driver_passport_issuer_code' => $this->driver->passport_issuer_code ?? "",
             'driver_phone' => $this->driver->phone ?? "",
             'driver_email' => $this->driver->email ?? "",
             'driver_license_number' => $this->driver->license_number ?? "",
-            'driver_license_expiration' => Date::parse($this->driver->license_expiration)->timezone("Europe/Moscow")->format('d.m.Y'),
+            'driver_license_expiration' => $this->driver ? Date::parse($this->driver->license_expiration)->timezone("Europe/Moscow")->format('d.m.Y') : "",
 
             'car_name' => $this->car->name ?? '',
             'car_type' => $car_types[$this->car->type ?? '-'],
             'car_plate' => $this->car->plate_number ?? '',
             'car_sts_number' => $this->car->sts_number ?? '',
-            'car_sts_date' => $this->car->sts_date ? Date::parse($this->car->sts_date)->timezone("Europe/Moscow")->format('d.m.Y') : '',
+            'car_sts_date' => $this->car ? Date::parse($this->car->sts_date)->timezone("Europe/Moscow")->format('d.m.Y') : '',
             'car_b_type' => $this->car->body_type ?? '',
 
             'trailer_name' => $this->trailer->name ?? '',
             'trailer_type' => $car_types[$this->trailer->type ?? '-'],
             'trailer_plate' => $this->trailer->plate_number ?? '',
             'trailer_sts_number' => $this->trailer->sts_number ?? '',
-            'trailer_sts_date' => $this->trailer->sts_date ? Date::parse($this->trailer->sts_date)->timezone("Europe/Moscow")->format('d.m.Y') : '',
+            'trailer_sts_date' => $this->trailer ? Date::parse($this->trailer->sts_date)->timezone("Europe/Moscow")->format('d.m.Y') : '',
             'trailer_b_type' => $this->trailer->body_type ?? '',
 
             'client_tariff_hourly' => $this->client_tariff_hourly ?? "",
