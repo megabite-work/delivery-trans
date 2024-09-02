@@ -1397,6 +1397,7 @@ const downloadForCarrier = () => {
         <a-divider orientation="left">Дополнительные услуги</a-divider>
         <SelectValueTableWithCnt
             v-model="model.additional_service"
+            :cid="model.client_id"
             header-key-text="Услуга"
             header-count-text="Кол-во"
             header-value-text="Сумма"

@@ -15,6 +15,7 @@ const emit = defineEmits(["change"]);
 
 const prop = defineProps({
     selectFetcher: {type: Function, default: () => []},
+    cid: {type: Number, default: 0},
     withoutSelected: {type: Boolean, default: true},
     scroll: { type: Object, required: false },
     headerKeyText: { type: String, default: 'Ключ' },
@@ -41,7 +42,7 @@ const loading = ref(false)
 const handleFocus = async () => {
     try {
         loading.value = true
-        optionsList.value = await prop.selectFetcher()
+        optionsList.value = await prop.selectFetcher('', prop.cid)
     } finally {
         loading.value = false
     }
