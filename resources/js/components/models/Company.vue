@@ -4,6 +4,7 @@ import {debounce} from "radash";
 import {useSuggests} from "../../stores/models/suggests.js";
 import axios from "axios";
 import {UploadOutlined, QuestionOutlined} from "@ant-design/icons-vue";
+import Drawer from "../Drawer.vue";
 
 const model = defineModel()
 const prop = defineProps({
@@ -313,122 +314,129 @@ const helpOpened = ref(false)
             </a-col>
         </a-row>
     </a-form>
-    <a-modal v-model:open="helpOpened" title="Справка для шаблонов">
+    <drawer
+        v-model:open="helpOpened"
+        @close="() => {helpOpened = false}"
+        :width="736"
+        title="Справка для шаблонов"
+        :need-ok="false"
+        :need-delete="false"
+    >
         <p>Атрибут в .dotx шаблоне задается плейсхолдером <b>${attribute}</b></p>
         <h4>Доступные атрибуты</h4>
-            <div><b>id</b> - Номер заявки</div>
-            <div><b>cargo_name</b> - Наименование груза</div>
-            <div><b>cargo_weight</b> - Вес груза</div>
-            <div><b>cargo_temp</b> - Температурные условия</div>
-            <div><b>cargo_pallets</b> - Количество палет</div>
-            <div><b>car_capacity</b> - Параметры вместимости авто (объем / вес / палет)</div>
-            <div><b>car_body_type</b> - Тип авто</div>
-            <div><b>car_loading</b> - Варианты загрузки</div>
-            <div><b>client_name_short</b> - Краткое наименование клиента</div>
-            <div><b>client_name_full</b> - Полное наименование клиента</div>
-            <div><b>client_inn</b> - ИНН клиента</div>
-            <div><b>client_kpp</b> - КПП клиента</div>
-            <div><b>client_ogrn</b> - ОГРН клиента</div>
-            <div><b>client_vat</b> - Условия НДС клиента</div>
-            <div><b>client_bank</b> - Банковские реквизиты клиента строкой</div>
-            <div><b>client_bank_bik</b> - БИК банка клиента</div>
-            <div><b>client_bank_name</b> - Наименование банка клиента</div>
-            <div><b>client_bank_city</b> - Город банка</div>
-            <div><b>client_bank_correspondent</b> - Корреспондентский счет банка клиента</div>
-            <div><b>client_bank_account</b> - Номер счета клиента</div>
-            <div><b>client_address_yur</b> - Юридический адрес клиента</div>
-            <div><b>client_address_real</b> - Фактически адрес клиента</div>
-            <div><b>client_address_post</b> - Почтовый адрес клиента</div>
-            <div><b>carrier_name_short</b> - Краткое наименование перевозчика</div>
-            <div><b>carrier_name_full</b> - Полное наименование перевозчика</div>
-            <div><b>carrier_inn</b> - ИНН перевозчика</div>
-            <div><b>carrier_kpp</b> - КПП перевозчика</div>
-            <div><b>carrier_ogrn</b> - ОГРН перевозчика</div>
-            <div><b>carrier_vat</b> - Условия НДС перевозчика</div>
-            <div><b>carrier_bank</b> - Банковские реквизиты перевозчика строкой</div>
-            <div><b>carrier_bank_bik</b> - БИК банка перевозчика</div>
-            <div><b>carrier_bank_name</b> - Наименование банка перевозчика</div>
-            <div><b>carrier_bank_city</b> - Город банка</div>
-            <div><b>carrier_bank_correspondent</b> - Корреспондентский счет банка перевозчика</div>
-            <div><b>carrier_bank_account</b> - Номер счета перевозчика</div>
-            <div><b>carrier_address_yur</b> - Юридический адрес перевозчика</div>
-            <div><b>carrier_address_real</b> - Фактический адрес перевозчика</div>
-            <div><b>carrier_address_post</b> - Почтовый адрес перевозчика</div>
-            <div><b>driver_name_full</b> - ФИО водителя</div>
-            <div><b>driver_name_short</b> - Фимилия И.О. водителя</div>
-            <div><b>driver_inn</b> - ИНН водителя</div>
-            <div><b>driver_passport</b> - Паспортные данные водителя</div>
-            <div><b>driver_passport_issuer</b> - Кем выдан паспорт</div>
-            <div><b>driver_passport_issue_date</b> - Когда выдан паспорт</div>
-            <div><b>driver_passport_issuer_code</b> - Код подразделения</div>
-            <div><b>driver_phone</b> - Номер телефона водителя</div>
-            <div><b>driver_email</b> - Электропочта водителя</div>
-            <div><b>driver_license_number</b> - Номер водительского удостоверения</div>
-            <div><b>driver_license_expiration</b> - Срок действия водительского удостоверения</div>
-            <div><b>car_name</b> - Наименование авто</div>
-            <div><b>car_type</b> - Тип авто</div>
-            <div><b>car_plate</b> - Госномер авто</div>
-            <div><b>car_sts_number</b> - Номер СТС</div>
-            <div><b>car_sts_date</b> - Дата СТС</div>
-            <div><b>car_b_type</b> - Тип кузова</div>
-            <div><b>trailer_name</b> - Наименование прицепа</div>
-            <div><b>trailer_type</b> - Тип прицепа</div>
-            <div><b>trailer_plate</b> - Госномер прицепа</div>
-            <div><b>trailer_sts_number</b> - Номер СТС прицепа</div>
-            <div><b>trailer_sts_date</b> - Дата СТС прицепа</div>
-            <div><b>trailer_b_type</b> - Тип кузова прицепа</div>
-            <div><b>client_tariff_hourly</b> - Тариф для клиента в час</div>
-            <div><b>client_tariff_min_hours</b> - Минимум часов в тарифе</div>
-            <div><b>client_tariff_hours_for_coming</b> - Чесов на подачу</div>
-            <div><b>client_tariff_mkad_rate</b> - Количество км. за МКАД</div>
-            <div><b>client_tariff_mkad_price</b> - Тариф за км за МКАД</div>
-            <div><b>carrier_tariff_hourly</b> - Тариф для поставщика в час</div>
-            <div><b>carrier_tariff_min_hours</b> - Минимум часов в тарифе</div>
-            <div><b>carrier_tariff_hours_for_coming</b> - Часов на подачу</div>
-            <div><b>carrier_tariff_mkad_rate</b> - Количество км. за МКАД</div>
-            <div><b>carrier_tariff_mkad_price</b> - Тариф за км за МКАД</div>
-            <div><b>client_expenses</b> - Расходы клиента</div>
-            <div><b>client_discounts</b> - Скидки клиента</div>
-            <div><b>carrier_expenses</b> - Расходы перевозчика</div>
-            <div><b>carrier_fines</b> - Штрафы перевозчика</div>
-            <div><b>from_location_address</b> - Адрез отправки</div>
-            <div><b>from_location_contact_name</b> - Контактное лицо</div>
-            <div><b>from_location_contact_phone</b> - Телефон контактного лица</div>
-            <div><b>to_location_address</b> - Адрес доставки</div>
-            <div><b>to_location_contact_name</b> - Контактное лицо</div>
-            <div><b>to_location_contact_phone</b> - Телефон контактного лица</div>
-            <div><b>additional_service</b> - Дополнительные услуги</div>
-            <div><b>client_sum</b> - Сумма для клиента</div>
-            <div><b>carrier_sum</b> - Сумма для поставщика</div>
-            <div><b>started_at</b> - Дата и время старта</div>
-            <div><b>created_at</b> - Дата и время заявки</div>
-            <div><b>updated_at</b> - Дата и время последнего изменения заявки</div>
-            <div><b>ended_at</b> - Дата и время завершения</div>
-            <div><b>client_sum_author</b> - Автор суммы для клиента</div>
-            <div><b>carrier_sum_author</b> - Автор суммы для поставщика</div>
-            <div><b>margin_sum</b> - Маржа ₽</div>
-            <div><b>margin_percent</b> - Маржа в %</div>
-            <div><b>hours_client</b> - Часов к оплате клиенту</div>
-            <div><b>hours_carrier</b> - Часов к оплате перевозчику</div>
-            <div><b>date_start</b> - Дата начала выполнения</div>
-            <div><b>date_end</b> - Дата окончания выполнения</div>
-            <div><b>time_start</b> - Время начала выполнеия</div>
-            <div><b>time_end</b> - Время окончания выполнения</div>
-            <div><b>company_name_short</b> - Краткое наименовании компании</div>
-            <div><b>company_name_full</b> - Полное наименование компании</div>
-            <div><b>company_inn</b> - ИНН компании</div>
-            <div><b>company_kpp</b> - КПП компании</div>
-            <div><b>company_ogrn</b> - ОГРН компании</div>
-            <div><b>company_vat</b> - Налоговый режим компании</div>
-            <div><b>company_bank</b> - Банковские реквизиты компании</div>
-            <div><b>company_bank_bik</b> - БИК банка</div>
-            <div><b>company_bank_name</b> - Наименование банка</div>
-            <div><b>company_bank_city</b> - Город банка</div>
-            <div><b>company_bank_correspondent</b> - Корреспондентский счет</div>
-            <div><b>company_bank_account</b> - Расчетный счет</div>
-            <div><b>company_sign_position</b> - Должность подписанта</div>
-            <div><b>company_sign_name</b> - Имя подписанта</div>
-    </a-modal>
+        <div><b>id</b> - Номер заявки</div>
+        <div><b>cargo_name</b> - Наименование груза</div>
+        <div><b>cargo_weight</b> - Вес груза</div>
+        <div><b>cargo_temp</b> - Температурные условия</div>
+        <div><b>cargo_pallets</b> - Количество палет</div>
+        <div><b>car_capacity</b> - Параметры вместимости авто (объем / вес / палет)</div>
+        <div><b>car_body_type</b> - Тип авто</div>
+        <div><b>car_loading</b> - Варианты загрузки</div>
+        <div><b>client_name_short</b> - Краткое наименование клиента</div>
+        <div><b>client_name_full</b> - Полное наименование клиента</div>
+        <div><b>client_inn</b> - ИНН клиента</div>
+        <div><b>client_kpp</b> - КПП клиента</div>
+        <div><b>client_ogrn</b> - ОГРН клиента</div>
+        <div><b>client_vat</b> - Условия НДС клиента</div>
+        <div><b>client_bank</b> - Банковские реквизиты клиента строкой</div>
+        <div><b>client_bank_bik</b> - БИК банка клиента</div>
+        <div><b>client_bank_name</b> - Наименование банка клиента</div>
+        <div><b>client_bank_city</b> - Город банка</div>
+        <div><b>client_bank_correspondent</b> - Корреспондентский счет банка клиента</div>
+        <div><b>client_bank_account</b> - Номер счета клиента</div>
+        <div><b>client_address_yur</b> - Юридический адрес клиента</div>
+        <div><b>client_address_real</b> - Фактически адрес клиента</div>
+        <div><b>client_address_post</b> - Почтовый адрес клиента</div>
+        <div><b>carrier_name_short</b> - Краткое наименование перевозчика</div>
+        <div><b>carrier_name_full</b> - Полное наименование перевозчика</div>
+        <div><b>carrier_inn</b> - ИНН перевозчика</div>
+        <div><b>carrier_kpp</b> - КПП перевозчика</div>
+        <div><b>carrier_ogrn</b> - ОГРН перевозчика</div>
+        <div><b>carrier_vat</b> - Условия НДС перевозчика</div>
+        <div><b>carrier_bank</b> - Банковские реквизиты перевозчика строкой</div>
+        <div><b>carrier_bank_bik</b> - БИК банка перевозчика</div>
+        <div><b>carrier_bank_name</b> - Наименование банка перевозчика</div>
+        <div><b>carrier_bank_city</b> - Город банка</div>
+        <div><b>carrier_bank_correspondent</b> - Корреспондентский счет банка перевозчика</div>
+        <div><b>carrier_bank_account</b> - Номер счета перевозчика</div>
+        <div><b>carrier_address_yur</b> - Юридический адрес перевозчика</div>
+        <div><b>carrier_address_real</b> - Фактический адрес перевозчика</div>
+        <div><b>carrier_address_post</b> - Почтовый адрес перевозчика</div>
+        <div><b>driver_name_full</b> - ФИО водителя</div>
+        <div><b>driver_name_short</b> - Фимилия И.О. водителя</div>
+        <div><b>driver_inn</b> - ИНН водителя</div>
+        <div><b>driver_passport</b> - Паспортные данные водителя</div>
+        <div><b>driver_passport_issuer</b> - Кем выдан паспорт</div>
+        <div><b>driver_passport_issue_date</b> - Когда выдан паспорт</div>
+        <div><b>driver_passport_issuer_code</b> - Код подразделения</div>
+        <div><b>driver_phone</b> - Номер телефона водителя</div>
+        <div><b>driver_email</b> - Электропочта водителя</div>
+        <div><b>driver_license_number</b> - Номер водительского удостоверения</div>
+        <div><b>driver_license_expiration</b> - Срок действия водительского удостоверения</div>
+        <div><b>car_name</b> - Наименование авто</div>
+        <div><b>car_type</b> - Тип авто</div>
+        <div><b>car_plate</b> - Госномер авто</div>
+        <div><b>car_sts_number</b> - Номер СТС</div>
+        <div><b>car_sts_date</b> - Дата СТС</div>
+        <div><b>car_b_type</b> - Тип кузова</div>
+        <div><b>trailer_name</b> - Наименование прицепа</div>
+        <div><b>trailer_type</b> - Тип прицепа</div>
+        <div><b>trailer_plate</b> - Госномер прицепа</div>
+        <div><b>trailer_sts_number</b> - Номер СТС прицепа</div>
+        <div><b>trailer_sts_date</b> - Дата СТС прицепа</div>
+        <div><b>trailer_b_type</b> - Тип кузова прицепа</div>
+        <div><b>client_tariff_hourly</b> - Тариф для клиента в час</div>
+        <div><b>client_tariff_min_hours</b> - Минимум часов в тарифе</div>
+        <div><b>client_tariff_hours_for_coming</b> - Чесов на подачу</div>
+        <div><b>client_tariff_mkad_rate</b> - Количество км. за МКАД</div>
+        <div><b>client_tariff_mkad_price</b> - Тариф за км за МКАД</div>
+        <div><b>carrier_tariff_hourly</b> - Тариф для поставщика в час</div>
+        <div><b>carrier_tariff_min_hours</b> - Минимум часов в тарифе</div>
+        <div><b>carrier_tariff_hours_for_coming</b> - Часов на подачу</div>
+        <div><b>carrier_tariff_mkad_rate</b> - Количество км. за МКАД</div>
+        <div><b>carrier_tariff_mkad_price</b> - Тариф за км за МКАД</div>
+        <div><b>client_expenses</b> - Расходы клиента</div>
+        <div><b>client_discounts</b> - Скидки клиента</div>
+        <div><b>carrier_expenses</b> - Расходы перевозчика</div>
+        <div><b>carrier_fines</b> - Штрафы перевозчика</div>
+        <div><b>from_location_address</b> - Адрез отправки</div>
+        <div><b>from_location_contact_name</b> - Контактное лицо</div>
+        <div><b>from_location_contact_phone</b> - Телефон контактного лица</div>
+        <div><b>to_location_address</b> - Адрес доставки</div>
+        <div><b>to_location_contact_name</b> - Контактное лицо</div>
+        <div><b>to_location_contact_phone</b> - Телефон контактного лица</div>
+        <div><b>additional_service</b> - Дополнительные услуги</div>
+        <div><b>client_sum</b> - Сумма для клиента</div>
+        <div><b>carrier_sum</b> - Сумма для поставщика</div>
+        <div><b>started_at</b> - Дата и время старта</div>
+        <div><b>created_at</b> - Дата и время заявки</div>
+        <div><b>updated_at</b> - Дата и время последнего изменения заявки</div>
+        <div><b>ended_at</b> - Дата и время завершения</div>
+        <div><b>client_sum_author</b> - Автор суммы для клиента</div>
+        <div><b>carrier_sum_author</b> - Автор суммы для поставщика</div>
+        <div><b>margin_sum</b> - Маржа ₽</div>
+        <div><b>margin_percent</b> - Маржа в %</div>
+        <div><b>hours_client</b> - Часов к оплате клиенту</div>
+        <div><b>hours_carrier</b> - Часов к оплате перевозчику</div>
+        <div><b>date_start</b> - Дата начала выполнения</div>
+        <div><b>date_end</b> - Дата окончания выполнения</div>
+        <div><b>time_start</b> - Время начала выполнеия</div>
+        <div><b>time_end</b> - Время окончания выполнения</div>
+        <div><b>company_name_short</b> - Краткое наименовании компании</div>
+        <div><b>company_name_full</b> - Полное наименование компании</div>
+        <div><b>company_inn</b> - ИНН компании</div>
+        <div><b>company_kpp</b> - КПП компании</div>
+        <div><b>company_ogrn</b> - ОГРН компании</div>
+        <div><b>company_vat</b> - Налоговый режим компании</div>
+        <div><b>company_bank</b> - Банковские реквизиты компании</div>
+        <div><b>company_bank_bik</b> - БИК банка</div>
+        <div><b>company_bank_name</b> - Наименование банка</div>
+        <div><b>company_bank_city</b> - Город банка</div>
+        <div><b>company_bank_correspondent</b> - Корреспондентский счет</div>
+        <div><b>company_bank_account</b> - Расчетный счет</div>
+        <div><b>company_sign_position</b> - Должность подписанта</div>
+        <div><b>company_sign_name</b> - Имя подписанта</div>
+    </drawer>
 </template>
 
 <style>
