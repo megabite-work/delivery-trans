@@ -207,10 +207,10 @@ export const useSuggests = defineStore('suggests', () => {
         }
     }
 
-    const getAdditionalServices = async () => {
+    const getAdditionalServices = async (q='', client_id= 0) => {
         try {
             isLoading.value = true
-            const {data} = await axios.get('api/suggest/additional-services/price')
+            const {data} = await axios.get('api/suggest/additional-services/price', {params: {q, client_id}})
             return data.map(el => ({
                 value: el.name,
                 label: `${el.name}${el.price === null ? '' : ` – ${el.price}₽`}`,
