@@ -910,7 +910,7 @@ const downloadForCarrier = () => {
                                                 <a-menu-item
                                                     key="cp"
                                                     v-if="!!model.client_id"
-                                                    @click="()=>applyClientPrice('CLIENT')"
+                                                    @click="async ()=>{applyClientPrice('CLIENT'); await orderCalculate(false)}"
                                                 >
                                                     Прайс заказчика
                                                 </a-menu-item>
@@ -1236,7 +1236,7 @@ const downloadForCarrier = () => {
                                                 <a-menu-item
                                                     key="cp"
                                                     v-if="!!model.client_id"
-                                                    @click="()=>applyClientPrice('CARRIER')"
+                                                    @click="async ()=>{applyClientPrice('CARRIER'); await orderCalculate(false)}"
                                                 >
                                                     Прайс заказчика
                                                 </a-menu-item>
