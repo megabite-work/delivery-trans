@@ -64,7 +64,7 @@ class CalculationController extends Controller
                 }
             }
             if($mt !== null && $gt !== null) {
-                $hh = $mt->diffInHours($gt);
+                $hh = floatval(number_format($mt->diffInMinutes($gt) / 60, 2));
             }
         }
 
