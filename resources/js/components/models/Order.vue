@@ -1027,7 +1027,7 @@ const downloadForCarrier = () => {
                         :suggests="suggest.expensesSuggest"
                         :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
-                        @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift(el) : model.carrier_expenses = [el]"
+                        @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift({...el}) : model.carrier_expenses = [{...el}]"
                     />
                 </a-tab-pane>
                 <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_DISCOUNT_SECTION')" key="discount" tab="Скидки">
@@ -1351,7 +1351,7 @@ const downloadForCarrier = () => {
                         :suggests="suggest.expensesSuggest"
                         :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
-                        @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift(el) : model.client_expense = [el]"
+                        @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift({...el}) : model.client_expense = [{...el}]"
                     />
                 </a-tab-pane>
                 <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_FINES_SECTION')" key="fines" tab="Штрафы">
