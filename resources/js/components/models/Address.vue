@@ -1,7 +1,7 @@
 <script setup>
 import {ref} from "vue";
 import {useSuggests} from "../../stores/models/suggests.js";
-import {debounce} from "radash";
+import {debounce, isArray} from "radash";
 import axios from "axios";
 
 const prop = defineProps({
@@ -22,7 +22,10 @@ const onAddressSearch = debounce({delay: 500}, async (q = '') => {
     if (q !== '') {
         suggest = await suggests.addressSuggest(q)
     }
-    const clientAddresses = await getClientSuggest("ADDRESS", q)
+    let clientAddresses = await getClientSuggest("ADDRESS", q)
+    if (!isArray(clientAddresses)) {
+        clientAddresses = []
+    }
     addressOptions.value = [...clientAddresses, ...suggest.map(el => ({value: el, note: 'Из адресного классификатора'}))].map((el, idx) => ({key: idx, ...el}))
 })
 
