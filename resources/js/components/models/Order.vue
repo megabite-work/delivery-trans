@@ -450,7 +450,7 @@ const resetCustomCarrierPrice = async () => {
 
 const handleTempChange = () => {
     if (!model.value.vehicle_body_type) {
-        model.value.vehicle_body_type = 'Рефрежератор'
+        model.value.vehicle_body_type = 'Рефрижератор'
     }
 }
 
