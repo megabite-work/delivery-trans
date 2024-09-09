@@ -18,7 +18,7 @@ return new class extends Migration
         DB::table('car_body_types')->insert(array('type' => 'Тент'));
         DB::table('car_body_types')->insert(array('type' => 'Изотерм'));
         DB::table('car_body_types')->insert(array('type' => 'Фургон'));
-        DB::table('car_body_types')->insert(array('type' => 'Рефрежератор'));
+        DB::table('car_body_types')->insert(array('type' => 'Рефрижератор'));
         DB::table('car_body_types')->insert(array('type' => 'Борт'));
     }
 

@@ -450,7 +450,7 @@ const resetCustomCarrierPrice = async () => {
 
 const handleTempChange = () => {
     if (!model.value.vehicle_body_type) {
-        model.value.vehicle_body_type = 'Рефрежератор'
+        model.value.vehicle_body_type = 'Рефрижератор'
     }
 }
 
@@ -910,7 +910,7 @@ const downloadForCarrier = () => {
                                                 <a-menu-item
                                                     key="cp"
                                                     v-if="!!model.client_id"
-                                                    @click="()=>applyClientPrice('CLIENT')"
+                                                    @click="async ()=>{applyClientPrice('CLIENT'); await orderCalculate(false)}"
                                                 >
                                                     Прайс заказчика
                                                 </a-menu-item>
@@ -1027,7 +1027,7 @@ const downloadForCarrier = () => {
                         :suggests="suggest.expensesSuggest"
                         :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
-                        @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift(el) : model.carrier_expenses = [el]"
+                        @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift({...el}) : model.carrier_expenses = [{...el}]"
                     />
                 </a-tab-pane>
                 <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_DISCOUNT_SECTION')" key="discount" tab="Скидки">
@@ -1236,7 +1236,7 @@ const downloadForCarrier = () => {
                                                 <a-menu-item
                                                     key="cp"
                                                     v-if="!!model.client_id"
-                                                    @click="()=>applyClientPrice('CARRIER')"
+                                                    @click="async ()=>{applyClientPrice('CARRIER'); await orderCalculate(false)}"
                                                 >
                                                     Прайс заказчика
                                                 </a-menu-item>
@@ -1351,7 +1351,7 @@ const downloadForCarrier = () => {
                         :suggests="suggest.expensesSuggest"
                         :read-only="prop.readOnly"
                         @update="() => orderCalculate(false)"
-                        @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift(el) : model.client_expense = [el]"
+                        @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift({...el}) : model.client_expense = [{...el}]"
                     />
                 </a-tab-pane>
                 <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_FINES_SECTION')" key="fines" tab="Штрафы">
