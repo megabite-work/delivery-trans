@@ -33,41 +33,48 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>{{ $title }}</title>
+
     <style>
+        body {
+            font-family: "DejaVu Sans";
+            font-size: 9pt;
+        }
         table, th, td {
             border: 1px solid black;
             border-collapse: collapse;
         }
         th {
             padding: 5px;
+            font-size: 7pt;
         }
         td {
             padding: 5px;
-            font-size: 14px;
+            font-size: 7pt;
         }
     </style>
 </head>
 <body>
-<h2 style="text-align: center; font-size: 20px; line-height: 28px">
+<h2 style="text-align: center; font-size: 9pt">
     Сведения о работе автотранспорта<br/>
     реестр № {{ $registry->id }} от {{ $registry->created_at->format("d.m.Y") }} к счету № {{ $registry->bill_number }} от {{ Date::parse($registry->bill_date)->format("d.m.Y") }}
 </h2>
-<div style="font-size: 18px; line-height: 32px; padding-top: 20px">
-    <div style="display: flex; flex-direction: row">
-        <div style="width: 130px">Заказчик:</div>
-        <div style="font-weight: bold">{{ $registry->client->name_short }} (ИНН: {{ $registry->client->inn }})</div>
+<div style="font-size: 9pt; padding-top: 20px">
+    <div>
+        <span>Заказчик:</span>
+        <span style="font-weight: bold">{{ $registry->client->name_short }} (ИНН: {{ $registry->client->inn }})</span>
     </div>
-    <div style="display: flex; flex-direction: row">
-        <div style="width: 130px">Исполнитель:</div>
-        <div style="font-weight: bold">{{ $company->name_short }} (ИНН: {{ $company->inn }})</div>
+    <div>
+        <span>Исполнитель:</span>
+        <span style="font-weight: bold">{{ $company->name_short }} (ИНН: {{ $company->inn }})</span>
     </div>
 </div>
 <div style="padding-top: 20px">
     <table style="width: 100%">
         <thead>
         <tr>
-            <th style="text-wrap: nowrap" rowspan="2">№ п/п</th>
+            <th style="text-wrap: nowrap" rowspan="2"></th>
             <th rowspan="2">Дата</th>
             <th rowspan="2">Водитель</th>
             <th style="text-wrap: nowrap" rowspan="2">Номер а/тр</th>
@@ -99,27 +106,27 @@
                     <td>{{ $order->time_end ? $order->time_end->format("H:i") : "-" }}</td>
                     <td style="text-align: right">{{ $order->client_tariff_hours_for_coming }}</td>
                     <td>{{ getAddressString($order['from_locations'], $order['to_locations']) }}</td>
-                    <td style="text-align: right">{{ $order->client_tariff_hourly ?? 0 }} ₽</td>
+                    <td style="text-align: right">{{ $order->client_tariff_hourly ?? 0 }}₽</td>
                     <td style="text-align: right">{{ $order->hours['client'] }}</td>
-                    <td style="text-align: right">{{ $order->client_tariff_mkad_price ?? 0 }} ₽</td>
+                    <td style="text-align: right">{{ $order->client_tariff_mkad_price ?? 0 }}₽</td>
                     <td style="text-align: right">{{ $order->client_tariff_mkad_rate > 0 ? $order->client_tariff_mkad_rate : 0 }}</td>
                     <td>{{ gatAdditionalExpenses($order->client_expenses) }}</td>
-                    <td style="text-align: right">{{ $order->client_sum }} ₽</td>
+                    <td style="text-align: right">{{ $order->client_sum }}₽</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
         <tr>
             <th colspan="14" scope="row" style="text-align: right;">ИТОГО:</th>
-            <td style="text-align: right; font-size: 16px; font-weight: bold">{{ $registry->client_sum }} ₽</td>
+            <td style="text-align: right; font-size: 9pt; font-weight: bold"><nobr>{{ $registry->client_sum }} ₽</nobr></td>
         </tr>
         </tfoot>
     </table>
 </div>
-<div style="padding-top: 48px; font-size: 18px; display: flex; flex-direction: row">
-    <div>От исполнителя: {{ $company->sign_position }}</div>
-    <div style="width: 150px; border-bottom: 1px solid; margin-left: 8px"></div>
-    <div>{{ $company->sign_name }}</div>
+<div style="padding-top: 48px; font-size: 9pt;">
+    <span>От исполнителя: {{ $company->sign_position }}</span>
+    <span style="border-bottom: 1px solid; margin-left: 8px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <span>{{ $company->sign_name }}</span>
 </div>
 </body>
 </html>
