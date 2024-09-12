@@ -47,36 +47,41 @@ use Illuminate\Support\Facades\Date;
     <meta charset="UTF-8">
     <title>{{ $title }}</title>
     <style>
+        body {
+            font-family: "DejaVu Sans";
+            font-size: 9pt;
+        }
         table, th, td {
             border: 1px solid black;
             border-collapse: collapse;
         }
         th {
             padding: 5px;
-            font-size: 14px;
+            font-size: 7pt;
         }
         td {
             padding: 5px;
-            font-size: 14px;
+            font-size: 7pt;
         }
     </style>
 </head>
 <body>
-<h2 style="text-align: center; font-size: 20px; line-height: 28px">
+
+<h2 style="text-align: center; font-size: 9pt;">
     Сведения о работе перевозчика<br/>
     реестр № {{ $registry->id }} от {{ $registry->created_at->format("d.m.Y") }} к счету № {{ $registry->bill_number }} от {{ $registry->bill_date ? Date::parse($registry->bill_date)->format("d.m.Y") : 'без даты' }}
 </h2>
-<div style="font-size: 18px; line-height: 32px; padding-top: 20px">
-    <div style="display: flex; flex-direction: row">
-        <div style="width: 130px">Перевозчик:</div>
-        <div style="font-weight: bold">{{ $registry->carrier->name_short }} (ИНН: {{ $registry->carrier->inn }})</div>
+<div style="font-size: 9pt; padding-top: 20px">
+    <div>
+        <span>Перевозчик:</span>
+        <span style="font-weight: bold">{{ $registry->carrier?->name_short ?? '' }} (ИНН: {{ $registry->carrier->inn ?? '-' }})</span>
     </div>
 </div>
 <div style="padding-top: 20px">
     @foreach($obd as $orderGroup)
-        <div style="display: flex; flex-direction: row; padding-top: 50px; padding-bottom: 8px; font-size: 16px;">
-            <div style="width: 130px">Водитель:</div>
-            <div style="font-weight: bold">{{ $orderGroup["driver"] }}</div>
+        <div style="padding-top: 20px; padding-bottom: 8px; font-size: 9pt;">
+            <span>Водитель:</span>
+            <span style="font-weight: bold">{{ $orderGroup["driver"] }}</span>
         </div>
         <table style="width: 100%">
             <thead>
@@ -107,7 +112,7 @@ use Illuminate\Support\Facades\Date;
                 <tr>
                     <td style="text-align: right">{{ $loop->index + 1 }}.</td>
                     <td>{{ $order->created_at->format("d.m.Y") }}<br/># {{ $order->id }}</td>
-                    <td>{{ $order->client->name_short ?? '' }}</td>
+                    <td>{{ $order->client?->name_short ?? '' }}</td>
                     <td>{{$order->car ? $order->car->plate_number : "–"}}</td>
                     <td style="text-wrap: nowrap">{{$order->carCapacity ? $order->carCapacity->tonnage."т. – ".$order->carCapacity->volume."м³. – ".$order->carCapacity->pallets_count."п." : "-"}}</td>
                     <td>{{ $order->time_start ? $order->time_start->format("H:i") : "–" }}</td>
@@ -125,20 +130,20 @@ use Illuminate\Support\Facades\Date;
             @endforeach
             <tr>
                 <td colspan="15"></td>
-                <td style="text-align: right; font-size: 18px;">{{ $orderGroup["sum"] }} ₽</td>
+                <td style="text-align: right; font-size: 9pt;">{{ $orderGroup["sum"] }} ₽</td>
             </tr>
             </tbody>
 
         </table>
     @endforeach
-    <div style="padding: 20px 0; font-size: 18px; font-weight: bold; text-align: right">
+    <div style="padding: 10px 0; font-size: 9pt; font-weight: bold; text-align: right">
         ИТОГО: {{ $registry->carrier_sum }} ₽
     </div>
 </div>
-<div style="padding-top: 48px; font-size: 18px; display: flex; flex-direction: row">
-    <div>От исполнителя: {{ $company->sign_position }}</div>
-    <div style="width: 150px; border-bottom: 1px solid; margin-left: 8px"></div>
-    <div>{{ $company->sign_name }}</div>
+<div style="padding-top: 48px; font-size: 9pt;">
+    <span>От исполнителя: {{ $company->sign_position }}</span>
+    <span style="border-bottom: 1px solid; margin-left: 8px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+    <span>{{ $company->sign_name }}</span>
 </div>
 </body>
 </html>
