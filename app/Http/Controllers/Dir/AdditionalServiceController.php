@@ -35,12 +35,13 @@ class AdditionalServiceController extends Controller
     public function priceSuggest(Request $request)
     {
         $q = <<<SQL
-            select distinct on (a.name) a.name, p.price
+            select distinct on (a.name) a.name, p.price, p.carrier_price
             from additional_services a
                      left join
                  (select distinct on (asf.name) asf.id,
                                                 asf.name                                                           as name,
                                                 asf.price                                                          as price,
+                                                asf.carrier_price                                                  as carrier_price,
                                                 coalesce(dp.is_default, false)                                     as is_default,
                                                 asf.owner_type = 'App\Models\Client' AND asf.owner_id = :client_id as is_client
                   from additional_services asf
@@ -66,6 +67,7 @@ class AdditionalServiceController extends Controller
         $data = $request->validate([
             "name" => "string|required",
             "price" => "numeric|nullable",
+            "carrier_price" => "numeric|nullable",
         ]);
         $data["owner_type"] = Client::class;
         $data["owner_id"] = $request["client_id"];
@@ -79,6 +81,7 @@ class AdditionalServiceController extends Controller
         $data = $request->validate([
             'name' => 'string|required',
             'price' => 'numeric|nullable',
+            'carrier_price' => 'numeric|nullable',
         ]);
         $data["owner_type"] = DefaultPrice::class;
         $data["owner_id"] = $request["price_id"];
@@ -101,6 +104,7 @@ class AdditionalServiceController extends Controller
         $data = $request->validate([
             "name" => "string|required",
             "price" => "numeric:2|nullable",
+            "carrier_price" => "numeric:2|nullable",
         ]);
         $additional_service->update($data);
         return response()->json(new DTApiResource($additional_service));

@@ -22,6 +22,7 @@ class CalculationController extends Controller
             "carrier" => [
                 "sum" => 0,
                 "expenses" => 0,
+                "service" => 0,
                 "fine" => 0,
                 "total" => 0,
                 "calculated" => true,
@@ -134,6 +135,9 @@ class CalculationController extends Controller
                 if (array_key_exists('v', $item)) {
                     $res["client"]["service"] += $item['v'] * (key_exists('c', $item) ? $item['c'] : 1);
                 }
+                if (array_key_exists('vp', $item)) {
+                    $res["carrier"]["service"] += $item['vp'] * (key_exists('c', $item) ? $item['c'] : 1);
+                }
             }
         }
 
@@ -161,6 +165,7 @@ class CalculationController extends Controller
             $res["carrier"]["total"] =
                 $res["carrier"]["sum"] +
                 $res["carrier"]["expenses"] +
+                $res["carrier"]["service"] +
                 $res["carrier"]["fine"];
         } else {
             if ($request->has("carrier_sum")) {

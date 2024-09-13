@@ -21,7 +21,8 @@ const prop = defineProps({
 const columns = [
     {key: 'id', title: '#'},
     {key: 'name', title: "Наименование услуги"},
-    {key: 'price', title: "Цена", width: 150},
+    {key: 'price', title: "Цена для клиента", width: 150},
+    {key: 'carrier_price', title: "Цена для перевозчика", width: 150},
 ]
 
 const optionsList = ref([])
@@ -43,7 +44,7 @@ const addRow = () => {
     if (currentRowIdx.value >= 0) {
         applyRow(null)
     }
-    model.value = Array({ name: '', price: 0 }, ...model.value)
+    model.value = Array({ name: '', price: 0, carrier_price: 0 }, ...model.value)
     editRow(0)
 }
 const tableRowFn = (record, idx) => ({ onClick: () => editRow(idx) })
@@ -104,6 +105,16 @@ const deleteRow = (e, idx) => {
                             v-model:value="model[currentRowIdx].price"
                             :min="0"
                             placeholder="Цена"
+                            style="width: 100%"
+                        />
+                    </div>
+                </template>
+                <template v-if="rec.column.key === 'carrier_price'">
+                    <div style="display: flex">
+                        <a-input-number
+                            v-model:value="model[currentRowIdx].carrier_price"
+                            :min="0"
+                            placeholder="Цена для перевозчика"
                         />
                         <a-button shape="circle" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="applyRow"/>
                         <a-button shape="circle" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="(e) => deleteRow(e, rec.index)"/>
@@ -115,7 +126,10 @@ const deleteRow = (e, idx) => {
                     {{ rec.record.name }}
                 </template>
                 <template v-if="rec.column.key === 'price'">
-                    <div style="text-align: right">{{ rec.record.price }} ₽</div>
+                    <div style="text-align: right">{{ rec.record.price || 0 }} ₽</div>
+                </template>
+                <template v-if="rec.column.key === 'carrier_price'">
+                    <div style="text-align: right">{{ rec.record.carrier_price || 0 }} ₽</div>
                 </template>
             </template>
         </template>
