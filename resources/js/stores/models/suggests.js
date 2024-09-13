@@ -213,7 +213,8 @@ export const useSuggests = defineStore('suggests', () => {
             const {data} = await axios.get('api/suggest/additional-services/price', {params: {q, client_id}})
             return data.map(el => ({
                 value: el.name,
-                label: `${el.name}${el.price === null ? '' : ` – ${el.price}₽ / ${el.carrier_price}₽`}`,
+                label: `${el.name}${el.price || el.carrier_price ? ' - ' : ''}${el.price ? `${el.price}₽` : ' – ' } / ${el.carrier_price ? `${el.carrier_price}₽` : ' – ' }`,
+                //label: `${el.name}${el.price === null ? '' : ` – ${el.price}₽ / ${el.carrier_price}₽`}`,
                 v: el.price,
                 vp: el.carrier_price,
             }))
