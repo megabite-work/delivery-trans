@@ -21,8 +21,8 @@ import {useAuthStore} from "../../stores/auth.js";
 
 import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
-import SelectValueTableWithCnt from "../SelectValueTableWithCnt.vue";
 import dayjs from "dayjs";
+import SelectAdditionalServicesTable from "../SelectAdditionalServicesTable.vue";
 
 
 const authStore = useAuthStore()
@@ -462,6 +462,14 @@ const getTotal = arr => {
     return total
 }
 
+const getVPTotal = arr => {
+    let total = 0
+    if (isArray(arr)) {
+        arr.forEach(v => total += parseFloat(v.vp))
+    }
+    return total
+}
+
 const clientExpensesTotal = computed(() => {
     return getTotal(model.value.client_expenses)
 })
@@ -472,6 +480,10 @@ const clientDiscountsTotal = computed(() => {
 
 const additionalServiceTotal = computed(() => {
     return getTotal(model.value.additional_service)
+})
+
+const additionalServiceCarrierTotal = computed(() => {
+    return getVPTotal(model.value.additional_service)
 })
 
 const carrierExpensesTotal = computed(() => {
@@ -751,6 +763,8 @@ const downloadForCarrier = () => {
                                 color: '#404040'
                             }">
                         Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                        <a-divider type="vertical" />
+                        Допуслуги: {{additionalServiceCarrierTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                         <a-divider type="vertical" />
                         Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                     </div>
@@ -1395,19 +1409,14 @@ const downloadForCarrier = () => {
     </a-row>
     <template v-if="authStore.userCan('ORDER_ADDITIONAL_SERVICES')">
         <a-divider orientation="left">Дополнительные услуги</a-divider>
-        <SelectValueTableWithCnt
+        <SelectAdditionalServicesTable
             v-model="model.additional_service"
             :cid="model.client_id"
-            header-key-text="Услуга"
-            header-count-text="Кол-во"
-            header-value-text="Сумма"
-            add-button-text="Добавить допуслугу"
-            key-placeholder-text="Выберите допуслугу"
-            value-placeholder-text="Сумма"
             value-postfix-text="₽"
             :select-fetcher="suggest.getAdditionalServices"
             @change="() => orderCalculate(false)"
             :read-only="prop.readOnly"
+            :without-selected="false"
         />
     </template>
 </a-form>

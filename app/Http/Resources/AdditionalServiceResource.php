@@ -18,6 +18,7 @@ class AdditionalServiceResource extends JsonResource
             "id" => $this->id,
             "name" => $this->name,
             "price" => $this->price,
+            "carrier_price" => $this->carrier_price,
         ];
     }
 }

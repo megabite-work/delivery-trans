@@ -16,6 +16,7 @@ class AdditionalService extends Model
         "owner_id",
         "name",
         "price",
+        "carrier_price",
     ];
 
     public function owner()
