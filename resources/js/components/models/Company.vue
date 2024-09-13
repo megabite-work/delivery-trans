@@ -405,7 +405,8 @@ const helpOpened = ref(false)
         <div><b>to_location_address</b> - Адрес доставки</div>
         <div><b>to_location_contact_name</b> - Контактное лицо</div>
         <div><b>to_location_contact_phone</b> - Телефон контактного лица</div>
-        <div><b>additional_service</b> - Дополнительные услуги</div>
+        <div><b>additional_service</b> - Дополнительные услуги клиенту</div>
+        <div><b>additional_service_carrier</b> - Дополнительные услуги перевозчику</div>
         <div><b>client_sum</b> - Сумма для клиента</div>
         <div><b>carrier_sum</b> - Сумма для поставщика</div>
         <div><b>started_at</b> - Дата и время старта</div>

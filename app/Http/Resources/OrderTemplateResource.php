@@ -35,7 +35,15 @@ class OrderTemplateResource extends JsonResource
             return $r.$a;
         };
         $kcv_reducer = function ($r, $item) {
-            $a = $item->k.' x '.($item->c ?? 1).' – '.$item->v;
+            $a = $item->k.' x '.($item->c ?? 1).' – '.$item->v ?? 0;
+            if($r !== "") {
+                $a = ", ".$a;
+            }
+            return $r.$a;
+        };
+
+        $kcvp_reducer = function ($r, $item) {
+            $a = $item->k.' x '.($item->c ?? 1).' – '.$item->vp ?? 0;
             if($r !== "") {
                 $a = ", ".$a;
             }
@@ -191,6 +199,7 @@ class OrderTemplateResource extends JsonResource
             'to_location_contact_phone' => array_reduce(json_decode($this->to_locations ?? '[]'), $address_contacts_phone_reducer, ""),
 
             'additional_service' => array_reduce(json_decode($this->additional_service ?? '[]'), $kcv_reducer, ""),
+            'additional_service_carrier' => array_reduce(json_decode($this->additional_service ?? '[]'), $kcvp_reducer, ""),
 
             'client_sum' => $this->client_sum ?? "",
             'carrier_sum' => $this->carrier_sum ?? "",
