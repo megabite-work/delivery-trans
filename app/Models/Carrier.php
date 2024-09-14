@@ -16,6 +16,7 @@ class Carrier extends Model
         "inn",
         "kpp",
         "ogrn",
+        "ogrnip_date",
         "vat",
         "is_resident",
         "is_active"

@@ -4,7 +4,9 @@ import dayjs from 'dayjs';
 const dateFormat = 'DD.MM.YYYY'
 const model = defineModel()
 
-const handleDateChange = val => model.value = val.format('YYYY-MM-DD')
+const handleDateChange = val => {
+    model.value = val ? val.format('YYYY-MM-DD') : null
+}
 </script>
 
 <template>
