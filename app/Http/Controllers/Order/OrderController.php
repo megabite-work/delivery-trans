@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Order;
 
+use App\Models\Registry;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Support\Facades\DB;

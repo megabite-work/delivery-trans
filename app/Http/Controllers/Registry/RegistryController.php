@@ -46,7 +46,13 @@ class RegistryController extends Controller
             "vat" => "integer",
             'bill_number' => 'nullable|string',
             'bill_date' => 'nullable|date',
+            'order_ids' => 'required|array',
         ]);
+        foreach ($registry->orders as $order) {
+            if (!in_array($order->id, $data['order_ids'])) {
+                $order->update(['registry_id' => null]);
+            }
+        }
         $registry->update($data);
         return response()->json(new ClientRegistryResource($registry),200);
     }

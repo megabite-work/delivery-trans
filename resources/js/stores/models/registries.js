@@ -70,7 +70,6 @@ export const useRegistriesStore = defineStore('registries', () => {
 
     async function downloadRegistry(registryId) {
         window.open(`/download/client-registry/${registryId}`, '_blank')
-        // await axios.get(`/download/client-registry/${registryId}`)
     }
 
     return { err, createRegistry, storeRegistry, deleteRegistry, getRegistry, downloadRegistry }

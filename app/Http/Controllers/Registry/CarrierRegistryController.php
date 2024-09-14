@@ -46,7 +46,13 @@ class CarrierRegistryController extends Controller
             "vat" => "integer",
             'bill_number' => 'nullable|string',
             'bill_date' => 'nullable|date',
+            'order_ids' => 'required|array',
         ]);
+        foreach ($carrierRegistry->orders as $order) {
+            if (!in_array($order->id, $data['order_ids'])) {
+                $order->update(['carrier_registry_id' => null]);
+            }
+        }
         $carrierRegistry->update($data);
         return response()->json(new CarrierRegistryResource($carrierRegistry),200);
     }

@@ -233,6 +233,7 @@ const saveRegistry = async () => {
             return
         }
         if (authStore.userCan('CLIENTS_REGISTRIES_EDIT')) {
+            currentRegistry.data.order_ids = currentRegistry.data.orders.map((order) => order.id)
             currentRegistry.data = await registriesStore.storeRegistry(currentRegistry.data)
             currentRegistry.modified = false
             message.success('Изменения записаны')
