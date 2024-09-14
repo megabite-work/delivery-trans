@@ -518,6 +518,9 @@ onBeforeUnmount(() => {
             need-deletion-confirm-text="Вы уверены? Реестр будет удален!"
             delete-text="Удалить"
         >
+            <template v-if="authStore.userCan('CARRIERS_REGISTRIES_DOWNLOAD') && currentRegistry.data.id !== 0" #extra>
+                <a-button :icon="h(DownloadOutlined)" type="dashed" @click="(e) => {e.stopPropagation(); registriesStore.downloadRegistry(currentRegistry.data.id)}">Скачать</a-button>
+            </template>
             <CarrierRegistry
                 v-model="currentRegistry.data"
                 :loading="registryDrawer.isLoading"
