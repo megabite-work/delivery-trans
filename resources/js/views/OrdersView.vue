@@ -78,9 +78,9 @@ const saveOrder = async () => {
         }
         if (authStore.userCan('ORDERS_EDIT')) {
             currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
+            message.success('Заказ записан')
             currentOrder.modified = false
             mainDrawer.isSaving = false
-            closeMainDrawer()
         }
     } catch {
         message.error('Ошибка. Не удалось записать заказ')
@@ -409,7 +409,7 @@ onBeforeUnmount(() => {
             :saving="mainDrawer.isSaving"
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentOrder.data.id === null ? 'Новая заявка' : `Заявка #${currentOrder.data.id}`}${currentOrder.modified ? '*' : ''}`"
-            :ok-text="currentOrder.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
+            ok-text="Сохранить"
             :need-delete="currentOrder.data.id !== null && authStore.userCan('ORDERS_DELETE')"
             :need-ok="authStore.userCan('ORDERS_EDIT') || authStore.userCan('ORDERS_ADD')"
             need-deletion-confirm-text="Вы уверены? Заявка будет удалена!"
