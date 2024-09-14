@@ -4,6 +4,8 @@ import axios from "axios";
 import {message} from "ant-design-vue";
 import DatePicker from "../DatePicker.vue";
 import { useIMask } from "vue-imask";
+import {useSuggests} from "../../stores/models/suggests.js";
+import {debounce} from "radash";
 
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
@@ -24,6 +26,17 @@ const getCitizenshipOptionsList = async () => {
         citizenshipOptionsLoading.value = false
     }
 }
+
+const addressOptions = ref([])
+const suggests = useSuggests()
+
+const onAddressSearch = debounce({delay: 500}, async (q = '') => {
+    let suggest = []
+    if (q !== '') {
+        suggest = await suggests.addressSuggest(q)
+    }
+    addressOptions.value = [...suggest.map(el => ({value: el, note: 'Из адресного классификатора'}))].map((el, idx) => ({key: idx, ...el}))
+})
 
 const err = reactive({
     surname: null,
@@ -160,7 +173,19 @@ watch(() => prop.errors, () => {
         </a-col>
     </a-row>
     <a-form-item label="Адрес регистрации" name="registration_address" :validate-status="err.registration_address ? 'error': undefined" :help="err.registration_address">
-        <a-input placeholder="Адрес регистрации" v-model:value="model.registration_address" />
+        <a-auto-complete
+            v-model:value="model.registration_address"
+            :options="addressOptions"
+            placeholder="Адрес регистрации"
+            @search="onAddressSearch"
+        >
+            <template #option="opt">
+                <div>
+                    <div style="font-weight: 500">{{ opt.value }}</div>
+                    <div style="font-size: 12px">{{ opt.note }}</div>
+                </div>
+            </template>
+        </a-auto-complete>
     </a-form-item>
 </a-form>
 </template>

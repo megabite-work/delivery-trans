@@ -1,6 +1,8 @@
 <script setup>
-import {reactive, watch} from "vue";
+import {reactive, ref, watch} from "vue";
 import {useIMask} from "vue-imask";
+import {useSuggests} from "../../stores/models/suggests.js";
+import {debounce} from "radash";
 
 const model = defineModel()
 const prop = defineProps({ errors: { type: Object, default: null } })
@@ -30,7 +32,16 @@ const contactTypes = {
     "WEB": "веб-адрес",
     "OTHER": "контакт",
 }
+const addressOptions = ref([])
+const suggests = useSuggests()
 
+const onAddressSearch = debounce({delay: 500}, async (q = '') => {
+    let suggest = []
+    if (q !== '') {
+        suggest = await suggests.addressSuggest(q)
+    }
+    addressOptions.value = [...suggest.map(el => ({value: el, note: 'Из адресного классификатора'}))].map((el, idx) => ({key: idx, ...el}))
+})
 </script>
 
 <template>
@@ -110,6 +121,20 @@ const contactTypes = {
                 class="dt-input"
                 :placeholder="`Введите ${contactTypes[model.type] ? contactTypes[model.type] : contactTypes['OTHER']}`"
             />
+            <a-auto-complete
+                v-else-if="model.type === 'ADDRESS'"
+                v-model:value="model.registration_address"
+                :options="addressOptions"
+                placeholder="Введите адрес"
+                @search="onAddressSearch"
+            >
+                <template #option="opt">
+                    <div>
+                        <div style="font-weight: 500">{{ opt.value }}</div>
+                        <div style="font-size: 12px">{{ opt.note }}</div>
+                    </div>
+                </template>
+            </a-auto-complete>
             <a-textarea
                 v-else
                 v-model:value="model.value"
