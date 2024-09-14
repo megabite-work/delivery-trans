@@ -26,6 +26,7 @@ const columnsClients = [
 const columnsRegitries = [
     { key: 'id', title: 'Номер' },
     { key: 'date', title: 'Дата реестра' },
+    { key: 'bill', title: 'Счет' },
     { key: 'orders_count', title: 'Заказов'},
     { key: 'status', title: 'Стaтус' },
     { key: 'client_sum', title: 'Сумма, ₽' },
@@ -369,6 +370,14 @@ onBeforeUnmount(() => {
                                 </template>
                                 <template v-else>
                                     Заказы без реестра
+                                </template>
+                            </template>
+                            <template v-if="column.key === 'bill'">
+                                <template v-if="record.id !== 0">
+                                    {{ record.bill_number ? `#${record.bill_number}` : 'б/н' }}{{ record.bill_date ? ` от ${dayjs(record.bill_date).format('DD.MM.YY')}` : '' }}
+                                </template>
+                                <template v-else>
+                                    –
                                 </template>
                             </template>
                             <template v-if="column.key === 'orders_count'">
