@@ -24,7 +24,7 @@ const columnsClients = [
 ];
 
 const columnsRegitries = [
-    { key: 'id', title: '#' },
+    { key: 'id', title: 'Номер' },
     { key: 'date', title: 'Дата реестра' },
     { key: 'orders_count', title: 'Заказов'},
     { key: 'status', title: 'Стaтус' },
@@ -35,7 +35,7 @@ const columnsRegitries = [
 ];
 
 const columnsOrders = [
-    { key: 'id', title: '#' },
+    { key: 'id', title: 'Номер' },
     { key: 'created_at', title: 'Дата заказа' },
     { key: 'status_manager', title: 'Статус менеджер' },
     { key: 'status_logist', title: 'Статус логист' },
