@@ -329,6 +329,15 @@ const handleCarChange = () => {
 const handleClientChange = async (e) => {
     const selectedClient = clientOptions.value.find((el) => el.value === e)
     model.value.client_vat = selectedClient.vat
+    model.value.from_locations = []
+    try {
+        const fromLocation = await suggest.getLastOrderFromLocation(e)
+        if (!!fromLocation.address) {
+            model.value.from_locations = [{
+                address: fromLocation.address
+            }]
+        }
+    } catch (e) {}
     await handlePRefresh()
 }
 
