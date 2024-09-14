@@ -580,7 +580,8 @@ const downloadForCarrier = () => {
                                         </div>
 
                                         <template #title>
-                                            <UserOutlined />&nbsp;&nbsp;{{ model.status_manager.user }}
+                                            <UserOutlined />&nbsp;&nbsp;{{ model.status_manager.user }}<br/>
+                                            <span style="font-size: 12px">{{ dayjs(model.status_manager.created_at).format('DD.MM.YY HH:mm') }}</span>
                                         </template>
                                     </a-tooltip>
                                 </template>
@@ -686,7 +687,8 @@ const downloadForCarrier = () => {
                                     </div>
 
                                     <template #title>
-                                        <UserOutlined />&nbsp;&nbsp;{{ model.status_logist.user }}
+                                        <UserOutlined />&nbsp;&nbsp;{{ model.status_logist.user }}<br/>
+                                        <span style="font-size: 12px">{{ dayjs(model.status_logist.created_at).format('DD.MM.YY HH:mm') }}</span>
                                     </template>
                                 </a-tooltip>
                             </template>
