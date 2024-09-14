@@ -1,5 +1,5 @@
 <script setup>
-import {ref, h, watch, computed, onMounted} from "vue";
+import {ref, h, watch, computed, onMounted, reactive} from "vue";
 import axios from "axios";
 import {debounce, isArray, trim} from "radash";
 
@@ -10,7 +10,8 @@ import {
     EditOutlined,
     ReloadOutlined,
     UserOutlined,
-    DownloadOutlined
+    DownloadOutlined,
+    SelectOutlined
 } from '@ant-design/icons-vue';
 import {useSuggests} from "../../stores/models/suggests.js";
 import {usePricesStore} from "../../stores/models/prices.js";
@@ -23,6 +24,10 @@ import KeyValueTable from "../KeyValueTable.vue";
 import AddressList from "../AddressList.vue";
 import dayjs from "dayjs";
 import SelectAdditionalServicesTable from "../SelectAdditionalServicesTable.vue";
+import Client from "./Client.vue";
+import Drawer from "../Drawer.vue";
+import {useCarriersStore} from "../../stores/models/carriers.js";
+import Carrier from "./Carrier.vue";
 
 
 const authStore = useAuthStore()
@@ -545,6 +550,119 @@ onMounted(() => {
     })
 })
 
+const clientsStore = useClientsStore()
+const currentClient = reactive({ data:{ id: null }, modified: false })
+const clientDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+
+const openCurrentClient = async () => {
+    clientDrawer.isOpen = true
+    try {
+        clientDrawer.isLoading = true
+        currentClient.data = await clientsStore.getClient(model.value.client_id)
+    } catch (e) {
+        clientDrawer.isOpen = false
+        message.error('Ошибка загрузки')
+    } finally {
+        clientDrawer.isLoading = false
+    }
+}
+
+const closeClientDrawer = () => {
+    if (clientDrawer.isSaving) {
+        return
+    }
+    clientDrawer.isOpen = false
+    currentClient.data = { id: null }
+}
+
+const saveClient = async () => {
+    clientDrawer.isSaving = true
+    try {
+        if (authStore.userCan('CLIENTS_EDIT')) {
+            currentClient.data = await clientsStore.storeClient(currentClient.data)
+            currentClient.modified = false
+            message.success('Карточка заказчика записана')
+            clientDrawer.isSaving = false
+            closeClientDrawer()
+        }
+    } catch (e) {
+        message.error(`Ошибка. Не удалось сохранить карточку заказчика`)
+    } finally {
+        clientDrawer.isSaving = false
+    }
+}
+
+const deleteClient = async () => {
+    if (!authStore.userCan('CLIENTS_DELETE')) {
+        return
+    }
+    try {
+        await clientsStore.deleteClient(currentClient.data.id)
+        model.value.client_id = undefined
+        message.success('Заказчик успешно удален')
+        closeClientDrawer()
+    } catch (e) {
+        message.error('Ошибка. Не удалось удалить заказчика')
+    }
+}
+
+const carriersStore = useCarriersStore()
+const currentCarrier = reactive({ data:{ id: null }, modified: false })
+const carrierDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+
+const openCurrentCarrier = async () => {
+    currentCarrier.data = { id: null, is_active: true }
+    currentCarrier.modified = false
+    carrierDrawer.isOpen = true
+    try {
+        carrierDrawer.isLoading = true
+        currentCarrier.data = await carriersStore.getCarrier(model.value.carrier_id)
+    } catch (e) {
+        carrierDrawer.isOpen = false
+        message.error('Ошибка загрузки')
+    } finally {
+        carrierDrawer.isLoading = false
+    }
+}
+
+const closeCarrierDrawer = () => {
+    if (carrierDrawer.isSaving) {
+        return
+    }
+    carrierDrawer.isOpen = false
+    currentCarrier.data = { id: null, is_active: true }
+}
+
+const saveCarrier = async () => {
+    carrierDrawer.isSaving = true
+    try {
+        if (authStore.userCan('CARRIERS_EDIT')) {
+            currentCarrier.data = await carriersStore.storeCarrier(currentCarrier.data)
+            currentCarrier.modified = false
+            message.success('Карточка перевозчика записана')
+            carrierDrawer.isSaving = false
+            closeCarrierDrawer()
+        }
+    } catch (e) {
+        message.error(`Ошибка. Не удалось сохранить карточку перевозчика`)
+    } finally {
+        carrierDrawer.isSaving = false
+    }
+}
+
+const deleteCarrier = async () => {
+    if (!authStore.userCan('CARRIERS_DELETE')) {
+        return
+    }
+    try {
+        await carriersStore.deleteCarrier(currentCarrier.data.id)
+        message.success('Перевозчик успешно удален')
+        closeCarrierDrawer()
+    } catch (e) {
+        message.error('Ошибка. Не удалось удалить перевозчика')
+    }
+}
+
 const downloadForClient = () => {
     window.open(`/download/client-order/${model.value.id}`, '_blank')
 }
@@ -871,34 +989,37 @@ const downloadForCarrier = () => {
     <a-row :gutter="16">
         <a-col :span="12">
             <a-tabs v-model:activeKey="currentClientTab">
-                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_SECTION')" key="client" tab="Заказчик">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_SECTION')" key="client" tab="Заказчик" style="margin-top: -16px">
                     <a-space direction="vertical" :style="{ width: '100%' }">
-                        <a-select
-                            show-search
-                            v-model:value="model.client_id"
-                            placeholder="Выберите заказчика"
-                            :style="{ width: '100%' }"
-                            :filter-option="false"
-                            :not-found-content="suggest.isLoading ? undefined : null"
-                            @search="handleClientSearch"
-                            @focus="handleClientSearchFocus"
-                            @change="handleClientChange"
-                            :options="clientOptions"
-                        >
-                            <template #option="{ label, inn }">
-                                <div style="display: flex; justify-content: space-between; align-items: center">
-                                    <div>{{ label }}</div>
-                                    <div style="font-size: 11px; font-weight: 500">
-                                        {{ inn }}
+                        <a-input-group compact>
+                            <a-select
+                                show-search
+                                v-model:value="model.client_id"
+                                placeholder="Выберите заказчика"
+                                :filter-option="false"
+                                :not-found-content="suggest.isLoading ? undefined : null"
+                                @search="handleClientSearch"
+                                @focus="handleClientSearchFocus"
+                                @change="handleClientChange"
+                                :options="clientOptions"
+                                style="width: calc(100% - 32px)"
+                            >
+                                <template #option="{ label, inn }">
+                                    <div style="display: flex; justify-content: space-between; align-items: center">
+                                        <div>{{ label }}</div>
+                                        <div style="font-size: 11px; font-weight: 500">
+                                            {{ inn }}
+                                        </div>
                                     </div>
-                                </div>
-                            </template>
-                            <template v-if="suggest.isLoading" #notFoundContent>
-                                <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
-                                    <a-spin size="small" />
-                                </div>
-                            </template>
-                        </a-select>
+                                </template>
+                                <template v-if="suggest.isLoading" #notFoundContent>
+                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                        <a-spin size="small" />
+                                    </div>
+                                </template>
+                            </a-select>
+                            <a-button :icon="h(SelectOutlined)" :disabled="!model.client_id" @click="openCurrentClient"/>
+                        </a-input-group>
                         <a-select
                             v-model:value="model.client_vat"
                             placeholder="Выбор НДС"
@@ -1065,34 +1186,38 @@ const downloadForCarrier = () => {
         </a-col>
         <a-col :span="12">
             <a-tabs v-model:activeKey="currentCarrierTab">
-                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_SECTION')" key="carrier" tab="Перевозчик">
+                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_SECTION')" key="carrier" tab="Перевозчик" style="margin-top: -16px">
                     <a-space direction="vertical" :style="{ width: '100%' }">
-                        <a-select
-                            show-search
-                            v-model:value="model.carrier_id"
-                            placeholder="Выберите перевозчика"
-                            :style="{ width: '100%' }"
-                            :filter-option="false"
-                            :not-found-content="suggest.isLoading ? undefined : null"
-                            @search="handleCarrierSearch"
-                            @focus="handleCarrierSearchFocus"
-                            @change="handleCarrierChange"
-                            :options="carrierOptions"
-                        >
-                            <template #option="{ label, inn }">
-                                <div style="display: flex; justify-content: space-between; align-items: center">
-                                    <div>{{ label }}</div>
-                                    <div style="font-size: 11px; font-weight: 500">
-                                        {{ inn }}
+                        <a-input-group compact>
+                            <a-select
+                                show-search
+                                v-model:value="model.carrier_id"
+                                placeholder="Выберите перевозчика"
+                                :style="{ width: '100%' }"
+                                :filter-option="false"
+                                :not-found-content="suggest.isLoading ? undefined : null"
+                                @search="handleCarrierSearch"
+                                @focus="handleCarrierSearchFocus"
+                                @change="handleCarrierChange"
+                                :options="carrierOptions"
+                                style="width: calc(100% - 32px)"
+                            >
+                                <template #option="{ label, inn }">
+                                    <div style="display: flex; justify-content: space-between; align-items: center">
+                                        <div>{{ label }}</div>
+                                        <div style="font-size: 11px; font-weight: 500">
+                                            {{ inn }}
+                                        </div>
                                     </div>
-                                </div>
-                            </template>
-                            <template v-if="suggest.isLoading" #notFoundContent>
-                                <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
-                                    <a-spin size="small" />
-                                </div>
-                            </template>
-                        </a-select>
+                                </template>
+                                <template v-if="suggest.isLoading" #notFoundContent>
+                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                        <a-spin size="small" />
+                                    </div>
+                                </template>
+                            </a-select>
+                            <a-button :icon="h(SelectOutlined)" :disabled="!model.carrier_id" @click="openCurrentCarrier"/>
+                        </a-input-group>
                         <a-select
                             v-model:value="model.carrier_vat"
                             placeholder="Выбор НДС"
@@ -1422,6 +1547,60 @@ const downloadForCarrier = () => {
         />
     </template>
 </a-form>
+
+<drawer
+    v-model:open="clientDrawer.isOpen"
+    @save="saveClient"
+    @delete="deleteClient"
+    @close="() => {clientDrawer.isOpen = false}"
+    :width="800"
+    :loading="clientDrawer.isLoading"
+    :saving="clientDrawer.isSaving"
+    :ok-loading="clientDrawer.isSaving"
+    :title="`${currentClient.data.id === null ? 'Новый заказчик' : `Заказчик #${currentClient.data.id}`}${currentClient.modified ? '*' : ''}`"
+    :ok-text="currentClient.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
+    :need-ok="authStore.userCan('CLIENTS_ADD') || authStore.userCan('CLIENTS_EDIT')"
+    :need-delete="authStore.userCan('CLIENTS_DELETE') && currentClient.data.id !== null"
+    need-deletion-confirm-text="Вы уверены? Заказчик будет удален!"
+    delete-text="Удалить"
+>
+    <template v-if="(!authStore.userCan('CLIENTS_EDIT') && currentClient.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentClient.data.id === null)" #extra>
+        <div style="color: #9ca3af">Только для просмотра</div>
+    </template>
+    <Client
+        v-model="currentClient.data"
+        :loading="clientDrawer.isLoading"
+        :errors="clientsStore.err?.errors"
+        :read-only="(!authStore.userCan('CLIENTS_EDIT') && currentClient.data.id !== null) || (!authStore.userCan('CLIENTS_ADD') && currentClient.data.id === null)"
+    />
+</drawer>
+
+<drawer
+    v-model:open="carrierDrawer.isOpen"
+    @save="saveCarrier"
+    @delete="deleteCarrier"
+    @close="() => {carrierDrawer.isOpen = false}"
+    :width="736"
+    :loading="carrierDrawer.isLoading"
+    :saving="carrierDrawer.isSaving"
+    :ok-loading="carrierDrawer.isSaving"
+    :title="`${currentCarrier.data.id === null ? 'Новый перевозчик' : `Перевозчик #${currentCarrier.data.id}`}${currentCarrier.modified ? '*' : ''}`"
+    :ok-text="currentCarrier.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
+    :need-ok="authStore.userCan('CARRIERS_ADD') || authStore.userCan('CARRIERS_EDIT')"
+    :need-delete="authStore.userCan('CARRIERS_DELETE') && currentCarrier.data.id !== null"
+    need-deletion-confirm-text="Вы уверены? Перевозчик будет удален!"
+    delete-text="Удалить"
+>
+    <template v-if="(!authStore.userCan('CARRIERS_EDIT') && currentCarrier.data.id !== null) || (!authStore.userCan('CARRIERS_ADD') && currentCarrier.data.id === null)" #extra>
+        <div style="color: #9ca3af">Только для просмотра</div>
+    </template>
+    <Carrier
+        v-model="currentCarrier.data"
+        :loading="carrierDrawer.isLoading"
+        :errors="carriersStore.err?.errors"
+        :read-only="(!authStore.userCan('CARRIERS_EDIT') && currentCarrier.data.id !== null) || (!authStore.userCan('CARRIERS_ADD') && currentCarrier.data.id === null)"
+    />
+</drawer>
 
 </template>
 
