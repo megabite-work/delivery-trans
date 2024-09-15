@@ -57,7 +57,7 @@ const registryDrawer = reactive({ isOpen: false, isSaving: false, isLoading: fal
 
 const registrySelectionState = ref({})
 
-if (authStore.userCan('')) {
+if (authStore.userCan('CLIENTS_REGISTRIES_VIEW')) {
     columnsClients.value.push(...[
         { title: 'Без реестра', children: [
                 {title: 'Кол-во', key: 'count_without_registry', width: 100},
@@ -359,15 +359,6 @@ onBeforeUnmount(() => {
                         </a-tooltip>
                     </div>
                 </template>
-<!--                "statistics": [-->
-<!--                {-->
-<!--                "client_id": 1741511356,-->
-<!--                "count_without_registry": 2,-->
-<!--                "sum_without_registry": "57250.00",-->
-<!--                "count_with_doc": 2,-->
-<!--                "sum_with_doc": "57250.00",-->
-<!--                "debt_with_bill": "16553.00"-->
-<!--                }-->
                 <template v-if="record.statistics && column.key === 'count_without_registry'">
                     <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
                         {{ record.statistics.count_without_registry ?? '–' }}
