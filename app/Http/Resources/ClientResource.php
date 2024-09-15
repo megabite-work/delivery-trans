@@ -53,7 +53,7 @@ class ClientResource extends JsonResource
         SQL;
 
             $query = DB::select($query, ["client_id" => $this->id]);
-            if (count($query)>0) {
+            if (count($query) > 0) {
                 $query = $query[0];
             }
         }

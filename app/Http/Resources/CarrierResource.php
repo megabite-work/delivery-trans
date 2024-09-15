@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 class CarrierResource extends JsonResource
 {
@@ -16,6 +17,27 @@ class CarrierResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
+        $query = null;
+        if ($request->user()->canDo("CARRIERS_REGISTRIES_VIEW")) {
+            $query = <<<SQL
+                select carrier_id, count(*) as count_with_docs, sum(c.carrier_sum) as sum_with_docs
+                from (select distinct on (o.id) o.carrier_id as carrier_id, o.carrier_sum
+                      from orders o
+                               left join order_statuses os on os.order_id = o.id
+                      where o.carrier_id = :carrier_id
+                        and os.type = 'LOGIST'
+                        and os.status = 'DOCUMENTS_SUBMITTED') c
+                group by carrier_id
+            SQL;
+
+            $query = DB::select($query, ["carrier_id" => $this->id]);
+            if (count($query)>0) {
+                $query = $query[0];
+            }
+        }
+
+
         return [
             'id' => $this->id,
             'name_short' => $this->name_short,
@@ -34,6 +56,7 @@ class CarrierResource extends JsonResource
             'drivers' => DriverResource::collection($this->drivers),
             'orders' => CarrierRegistryOrderResource::collection($this->orders),
             'registries' => CarrierRegistryResource::collection($this->registries),
+            'statistics' => $query,
         ];
     }
 }
