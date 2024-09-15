@@ -239,10 +239,26 @@ export const useSuggests = defineStore('suggests', () => {
         }
     }
 
+    const getLastOrderFromLocation = async (client_id) => {
+        try {
+            isLoading.value = true
+            const res = await axios.get('/api/suggest/order-from-location', {params: { client_id }})
+            if (res.status === 204) {
+                return null
+            }
+            return res.data
+        } catch {
+            message.error("Ошибка получения последнего заказа")
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+
     return {
         err, isLoading,
         getCargoNameSuggest, getTonnages, getCarBodyTypes, getTConditions, searchClient, searchCarrier,
         getDriversByCarrier, getCarsByCarrier, getAdditionalServices, getCarCapacities, firmSuggest,
-        bankSuggest, addressSuggest, getLastOrderDriverCar, expensesSuggest
+        bankSuggest, addressSuggest, getLastOrderDriverCar, getLastOrderFromLocation, expensesSuggest
     }
 })

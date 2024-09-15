@@ -16,6 +16,7 @@ import AdditionalServicesEditorTable from "../AdditionalServicesEditorTable.vue"
 import {CloudDownloadOutlined} from "@ant-design/icons-vue";
 import axios from "axios";
 import {useAuthStore} from "../../stores/auth.js";
+import DatePicker from "../DatePicker.vue";
 
 const model = defineModel()
 const prop = defineProps({
@@ -350,6 +351,13 @@ watch(() => prop.errors, () => {
                 v-model:value="model.ogrn"
                 placeholder="Введите ОГРН заказчика"
                 :maxlength="model.type === 'LEGAL' ? 13 : 15"
+            />
+        </a-form-item>
+        <a-form-item v-if="model.type !== 'LEGAL'" label="Дата выдачи свидетельства ОГРНИП" name="ogrnip_date" :validate-status="err.ogrnip_date ? 'error': undefined" :help="err.ogrnip_date">
+            <DatePicker
+                v-model="model.ogrnip_date"
+                placeholder="Дата выдачи"
+                style="width: 200px"
             />
         </a-form-item>
         <a-form-item label="Краткое наименование" name="name_short" :validate-status="err.name_short ? 'error': undefined" :help="err.name_short">

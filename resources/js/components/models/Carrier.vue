@@ -19,6 +19,7 @@ import {debounce} from "radash";
 import {CloudDownloadOutlined} from "@ant-design/icons-vue";
 import axios from "axios";
 import {useAuthStore} from "../../stores/auth.js";
+import DatePicker from "../DatePicker.vue";
 
 const dateFormat = 'DD.MM.YYYY'
 const model = defineModel()
@@ -427,6 +428,14 @@ watch(() => prop.errors, () => {
                         :maxlength="model.type === 'LEGAL' ? 13 : 15"
                     />
                 </a-form-item>
+                <a-form-item v-if="model.type !== 'LEGAL'" label="Дата выдачи свидетельства ОГРНИП" name="ogrnip_date" :validate-status="err.ogrnip_date ? 'error': undefined" :help="err.ogrnip_date">
+                    <DatePicker
+                        v-model="model.ogrnip_date"
+                        placeholder="Дата выдачи"
+                        style="width: 200px"
+                    />
+                </a-form-item>
+
                 <a-form-item label="Краткое наименование" name="name_short" :validate-status="err.name_short ? 'error': undefined" :help="err.name_short">
                     <a-input v-model:value="model.name_short" placeholder="Введите краткое наименование перевозчика" />
                 </a-form-item>

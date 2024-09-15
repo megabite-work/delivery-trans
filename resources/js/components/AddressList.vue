@@ -71,7 +71,7 @@ const deleteAddress = () => {
             <a-list-item>
                 <div style="width: 100%">
                     <div style="font-size: 15px; font-weight: 600; color: #334155; display: flex; justify-content: space-between">
-                        <div>{{ item.item.arrive_date.format('DD.MM.YYYY') }}</div>
+                        <div>{{ item.item.arrive_date ? item.item.arrive_date.format('DD.MM.YYYY') : null }}</div>
                         <div v-if="isArray(item.item.arrive_time)">
                             <template v-if="item.item.is_time_interval">
                                 с {{ item.item.arrive_time[0].format('HH:mm') }} до {{ item.item.arrive_time[1].format('HH:mm') }}

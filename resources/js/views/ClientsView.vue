@@ -24,8 +24,9 @@ const columnsClients = [
 ];
 
 const columnsRegitries = [
-    { key: 'id', title: '#' },
+    { key: 'id', title: 'Номер' },
     { key: 'date', title: 'Дата реестра' },
+    { key: 'bill', title: 'Счет' },
     { key: 'orders_count', title: 'Заказов'},
     { key: 'status', title: 'Стaтус' },
     { key: 'client_sum', title: 'Сумма, ₽' },
@@ -35,7 +36,7 @@ const columnsRegitries = [
 ];
 
 const columnsOrders = [
-    { key: 'id', title: '#' },
+    { key: 'id', title: 'Номер' },
     { key: 'created_at', title: 'Дата заказа' },
     { key: 'status_manager', title: 'Статус менеджер' },
     { key: 'status_logist', title: 'Статус логист' },
@@ -232,6 +233,7 @@ const saveRegistry = async () => {
             return
         }
         if (authStore.userCan('CLIENTS_REGISTRIES_EDIT')) {
+            currentRegistry.data.order_ids = currentRegistry.data.orders.map((order) => order.id)
             currentRegistry.data = await registriesStore.storeRegistry(currentRegistry.data)
             currentRegistry.modified = false
             message.success('Изменения записаны')
@@ -369,6 +371,14 @@ onBeforeUnmount(() => {
                                 </template>
                                 <template v-else>
                                     Заказы без реестра
+                                </template>
+                            </template>
+                            <template v-if="column.key === 'bill'">
+                                <template v-if="record.id !== 0">
+                                    {{ record.bill_number ? `#${record.bill_number}` : 'б/н' }}{{ record.bill_date ? ` от ${dayjs(record.bill_date).format('DD.MM.YY')}` : '' }}
+                                </template>
+                                <template v-else>
+                                    –
                                 </template>
                             </template>
                             <template v-if="column.key === 'orders_count'">
@@ -517,6 +527,10 @@ onBeforeUnmount(() => {
             need-deletion-confirm-text="Вы уверены? Реестр будет удален!"
             delete-text="Удалить"
         >
+            <template v-if="authStore.userCan('CLIENTS_REGISTRIES_DOWNLOAD') && currentRegistry.data.id !== 0" #extra>
+                <a-button :icon="h(DownloadOutlined)" type="dashed" @click="(e) => {e.stopPropagation(); registriesStore.downloadRegistry(currentRegistry.data.id)}">Скачать</a-button>
+            </template>
+
             <Registry
                 v-model="currentRegistry.data"
                 :loading="registryDrawer.isLoading"

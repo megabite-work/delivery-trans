@@ -1,7 +1,9 @@
 <script setup>
 import {logistOrderStatuses, managerOrderStatuses} from "../../helpers/index.js";
 import dayjs from "dayjs";
-import {reactive, watch} from "vue";
+import {h, reactive, watch} from "vue";
+import {isArray} from "radash";
+import {DeleteOutlined} from "@ant-design/icons-vue";
 
 const model = defineModel()
 const prop = defineProps({
@@ -17,6 +19,7 @@ const columnsOrders = [
     { key: 'status_logist', title: 'Статус логист' },
     { key: 'carrier_sum', title: 'Сумма заказа' },
     { key: 'carrier_vat', title: 'НДС' },
+    { key: '__delete' },
 ];
 
 const vatArr = ['Без НДС', 'НДС', 'Нал'];
@@ -37,6 +40,12 @@ watch(() => prop.errors, () => {
         err[key] = null
     })
 })
+const deleteOrderFromRegistry = (id, storno) => {
+    if (isArray(model.value.orders)) {
+        model.value.orders = model.value.orders.filter((order) => order.id !== id)
+        model.value.carrier_sum = parseFloat(model.value.carrier_sum) - parseFloat(storno)
+    }
+}
 </script>
 
 <template>
@@ -141,6 +150,9 @@ watch(() => prop.errors, () => {
             </template>
             <template v-else-if="column.key === 'created_at'">
                 {{ dayjs(record.created_at).format('DD.MM.YYYY HH:mm') }}
+            </template>
+            <template v-else-if="column.key === '__delete'">
+                <a-button :icon="h(DeleteOutlined)" type="dashed" @click="() => deleteOrderFromRegistry(record.id, record.carrier_sum)"/>
             </template>
             <template v-else>
                 {{ record[column.key] }}

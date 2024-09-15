@@ -42,6 +42,7 @@ class CarrierController extends Controller
             'ogrn' => ClientType::tryFrom($request->type) == ClientType::LEGAL ?
                 'nullable|digits:13':
                 'nullable|digits:15',
+            'ogrnip_date' => 'nullable|date',
             'vat' => 'integer|nullable',
             'is_resident' => 'boolean',
             'is_active' => 'boolean',
@@ -74,6 +75,7 @@ class CarrierController extends Controller
             'ogrn' => ClientType::tryFrom($request->type) == ClientType::LEGAL ?
                 'nullable|digits:13':
                 'nullable|digits:15',
+            'ogrnip_date' => 'nullable|date',
             'vat' => 'integer|nullable',
             'is_resident' => 'boolean',
             'is_active' => 'boolean',

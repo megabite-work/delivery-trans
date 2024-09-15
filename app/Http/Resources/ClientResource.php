@@ -23,6 +23,7 @@ class ClientResource extends JsonResource
             'inn' => $this->inn,
             'kpp' => $this->kpp,
             'ogrn' => $this->ogrn,
+            'ogrnip_date' => $this->ogrnip_date,
             'vat' => $this->vat,
             'contacts' => ContactResource::collection($this->contacts),
             'bank_accounts' => BankAccountResource::collection($this->bankAccounts),

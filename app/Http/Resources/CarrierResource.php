@@ -24,6 +24,7 @@ class CarrierResource extends JsonResource
             'inn' => $this->inn,
             'kpp' => $this->kpp,
             'ogrn' => $this->ogrn,
+            'ogrnip_date' => $this->ogrnip_date,
             'vat' => $this->vat,
             'is_resident' => $this->is_resident,
             'is_active' => $this->is_active,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Order;
 
+use App\Models\Registry;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Support\Facades\DB;
@@ -461,6 +462,33 @@ class OrderController extends Controller
         $query = DB::select($query, $data);
         if (count($query)>0) {
             return response()->json($query[0]);
+        }
+        return response()->noContent();
+    }
+
+    public function getLastOrderLocation(Request $request)
+    {
+        $data = $request->validate([
+            "client_id" => "required|numeric|exists:clients,id",
+        ]);
+        $query = <<<SQL
+            select o.id,
+            o.from_locations
+            from orders o
+            where o.client_id = :client_id and from_locations NOTNULL
+            order by o.id desc
+            limit 1
+        SQL;
+
+        $query = DB::select($query, $data);
+        if (count($query)>0) {
+            $fl = json_decode($query[0]->from_locations, true);
+            if (count($fl)>0) {
+                return [
+                    "order_id" => $query[0]->id,
+                    "address" => $fl[0]["address"]
+                ];
+            }
         }
         return response()->noContent();
     }

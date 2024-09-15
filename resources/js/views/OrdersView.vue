@@ -78,9 +78,9 @@ const saveOrder = async () => {
         }
         if (authStore.userCan('ORDERS_EDIT')) {
             currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
+            message.success('Заказ записан')
             currentOrder.modified = false
             mainDrawer.isSaving = false
-            closeMainDrawer()
         }
     } catch {
         message.error('Ошибка. Не удалось записать заказ')
@@ -289,9 +289,10 @@ onBeforeUnmount(() => {
                             style="font-size: 12px; border-radius: 4px; text-align: center; padding: 3px 3px"
                             :style="{
                             color: logistOrderStatuses[record.status_logist.status].color,
-                            backgroundColor: logistOrderStatuses[record.status_logist.status].backgroundColor,
+                            backgroundColor: logistOrderStatuses[record.status_logist.status].backgroundColor
                         }">
-                            {{ logistOrderStatuses[record.status_logist.status].label }}
+                            <div>{{ logistOrderStatuses[record.status_logist.status].label }}</div>
+                            <div style="font-size: 10px;">{{ dayjs(record.status_logist.created_at).format('DD.MM.YY HH:mm')}}</div>
                         </div>
                         <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE')" #overlay>
                             <a-menu>
@@ -319,9 +320,10 @@ onBeforeUnmount(() => {
                             style="font-size: 12px; border-radius: 4px; text-align: center; padding: 3px 3px"
                             :style="{
                             color: managerOrderStatuses[record.status_manager.status].color,
-                            backgroundColor: managerOrderStatuses[record.status_manager.status].backgroundColor,
+                            backgroundColor: managerOrderStatuses[record.status_manager.status].backgroundColor
                         }">
-                            {{ managerOrderStatuses[record.status_manager.status].label }}
+                            <div>{{ managerOrderStatuses[record.status_manager.status].label }}</div>
+                            <div style="font-size: 10px;">{{ dayjs(record.status_manager.created_at).format('DD.MM.YY HH:mm')}}</div>
                         </div>
                         <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE')" #overlay>
                             <a-menu>
@@ -407,7 +409,7 @@ onBeforeUnmount(() => {
             :saving="mainDrawer.isSaving"
             :ok-loading="mainDrawer.isSaving"
             :title="`${currentOrder.data.id === null ? 'Новая заявка' : `Заявка #${currentOrder.data.id}`}${currentOrder.modified ? '*' : ''}`"
-            :ok-text="currentOrder.data.id === null ? 'Сохранить' : 'Сохранить и закрыть'"
+            ok-text="Сохранить"
             :need-delete="currentOrder.data.id !== null && authStore.userCan('ORDERS_DELETE')"
             :need-ok="authStore.userCan('ORDERS_EDIT') || authStore.userCan('ORDERS_ADD')"
             need-deletion-confirm-text="Вы уверены? Заявка будет удалена!"
