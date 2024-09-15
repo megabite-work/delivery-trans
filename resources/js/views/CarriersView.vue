@@ -13,12 +13,11 @@ import CarrierRegistry from "../components/models/CarrierRegistry.vue";
 import {useAuthStore} from "../stores/auth.js";
 import {DownloadOutlined} from "@ant-design/icons-vue";
 
-const columnsCarriers = [
+const columnsCarriers = ref([
     { key: 'type', width: 50 },
     { title: 'ИНН', dataIndex: 'inn', width: 150 },
     { title: 'Наименование', dataIndex: 'name_short', width: '100%' },
-    { title: 'Заказов', key: 'orders_count', width: 150},
-];
+]);
 
 const columnsRegitries = [
     { key: 'id', title: 'Номер' },
@@ -51,6 +50,16 @@ const currentCarrier = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 const currentRegistry = reactive({ data:{ id: null }, modified: false })
 const registryDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+
+if (authStore.userCan('CARRIERS_REGISTRIES_VIEW')) {
+    columnsCarriers.value.push({
+        title: 'Документы сданы', children: [
+            {title: 'Кол-во', key: 'count_with_docs', width: 100},
+            {title: 'Сумма', key: 'sum_with_docs', width: 100}
+        ]
+    })
+}
+
 
 const registrySelectionState = ref({})
 const carrierHasSelectedOrders = computed(() => (carrierId => registrySelectionState.value[carrierId] && registrySelectionState.value[carrierId].length > 0))
@@ -340,6 +349,16 @@ onBeforeUnmount(() => {
                 </template>
                 <template v-if="column.key === 'orders_count'">
                     {{ record.orders.length === 0 ? '–' : record.orders.length}}
+                </template>
+                <template v-if="record.statistics && column.key === 'count_with_docs'">
+                    <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
+                        {{ record.statistics.count_with_docs ?? '–' }}
+                    </div>
+                </template>
+                <template v-if="record.statistics && column.key === 'sum_with_docs'">
+                    <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
+                        {{ record.statistics.sum_with_docs ? `${record.statistics.sum_with_docs}₽` : '–' }}
+                    </div>
                 </template>
             </template>
             <template v-if="authStore.userCan('CARRIERS_REGISTRIES_VIEW')" #expandedRowRender="{ record }">
