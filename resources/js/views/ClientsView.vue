@@ -16,12 +16,11 @@ import {managerOrderStatuses, logistOrderStatuses, decl} from "../helpers/index.
 import {useAuthStore} from "../stores/auth.js";
 
 
-const columnsClients = [
+const columnsClients = ref([
     { key: 'type', width: 50 },
     { title: 'ИНН', dataIndex: 'inn', width: 150 },
     { title: 'Наименование', dataIndex: 'name_short', width: '100%' },
-    { title: 'Заказов', key: 'orders_count', width: 150},
-];
+]);
 
 const columnsRegitries = [
     { key: 'id', title: 'Номер' },
@@ -57,6 +56,20 @@ const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false }
 const registryDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 
 const registrySelectionState = ref({})
+
+if (authStore.userCan('')) {
+    columnsClients.value.push(...[
+        { title: 'Без реестра', children: [
+                {title: 'Кол-во', key: 'count_without_registry', width: 100},
+                {title: 'Сумма', key: 'sum_without_registry', width: 100}
+            ]},
+        { title: 'Без реестра c док-ми', children: [
+                {title: 'Кол-во', key: 'count_with_doc', width: 100},
+                {title: 'Сумма', key: 'sum_with_doc', width: 100}
+            ]},
+        { title: 'Реестры без оплаты', key: 'debt_with_bill', width: 150 },
+    ])
+}
 
 const clientHasSelectedOrders = computed(() => (clientId => registrySelectionState.value[clientId] && registrySelectionState.value[clientId].length > 0))
 const clientSelectedRowKeys = computed(() => (clientId => {
@@ -346,8 +359,39 @@ onBeforeUnmount(() => {
                         </a-tooltip>
                     </div>
                 </template>
-                <template v-if="column.key === 'orders_count'">
-                    {{ record.orders.length === 0 ? '–' : record.orders.length}}
+<!--                "statistics": [-->
+<!--                {-->
+<!--                "client_id": 1741511356,-->
+<!--                "count_without_registry": 2,-->
+<!--                "sum_without_registry": "57250.00",-->
+<!--                "count_with_doc": 2,-->
+<!--                "sum_with_doc": "57250.00",-->
+<!--                "debt_with_bill": "16553.00"-->
+<!--                }-->
+                <template v-if="record.statistics && column.key === 'count_without_registry'">
+                    <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
+                        {{ record.statistics.count_without_registry ?? '–' }}
+                    </div>
+                </template>
+                <template v-if="record.statistics && column.key === 'sum_without_registry'">
+                    <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
+                        {{ record.statistics.sum_without_registry ? `${record.statistics.sum_without_registry}₽` : '–' }}
+                    </div>
+                </template>
+                <template v-if="record.statistics && column.key === 'count_with_doc'">
+                    <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
+                        {{ record.statistics.count_with_doc ?? '–' }}
+                    </div>
+                </template>
+                <template v-if="record.statistics && column.key === 'sum_with_doc'">
+                    <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
+                        {{ record.statistics.sum_with_doc ? `${record.statistics.sum_with_doc}₽` : '–' }}
+                    </div>
+                </template>
+                <template v-if="record.statistics && column.key === 'debt_with_bill'">
+                    <div style="text-align: right; text-wrap: nowrap; font-size: 13px">
+                        {{ record.statistics.debt_with_bill ? `${record.statistics.debt_with_bill}₽` : '–' }}
+                    </div>
                 </template>
             </template>
             <template v-if="authStore.userCan('CLIENTS_REGISTRIES_VIEW')" #expandedRowRender="{ record }">
