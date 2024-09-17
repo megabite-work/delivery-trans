@@ -115,7 +115,7 @@ const getClientSuggest = async (type, q) => {
                 <a-auto-complete
                     :value="modelValue.contact_phone"
                     @change="(e) => emit('update:modelValue', {
-                        ...modelValue, contact_phone: e.target.value
+                        ...modelValue, contact_phone: e
                     })"
                     :options="phoneOptions"
                     @search="searchPhone"
