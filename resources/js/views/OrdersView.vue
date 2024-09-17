@@ -1,7 +1,7 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
 import {computed, createVNode, h, onBeforeUnmount, onMounted, reactive, ref} from "vue";
-import {ArrowRightOutlined, ExclamationCircleOutlined, FilterOutlined, SearchOutlined} from "@ant-design/icons-vue";
+import {ArrowRightOutlined, ExclamationCircleOutlined, FilterOutlined, SearchOutlined, CopyOutlined} from "@ant-design/icons-vue";
 import {message, Modal} from "ant-design-vue";
 import {useOrdersStore} from "../stores/models/orders.js";
 import Drawer from "../components/Drawer.vue";
@@ -136,6 +136,16 @@ const columns = computed(() => {
         return colsFromRole.includes(col.key)
     })
 })
+
+const copyOrder = () => {
+    try {
+        mainDrawer.isLoading = true
+        ordersStore.copyOrder(currentOrder.data.id)
+        closeMainDrawer()
+    } finally {
+        mainDrawer.isLoading = false
+    }
+}
 
 const handleTableChange = async (pag, filters, sorter) => {
     await ordersStore.setSorter(sorter.column ? sorter.column.key : undefined, sorter.order)
@@ -419,6 +429,9 @@ onBeforeUnmount(() => {
         >
             <template v-if="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)" #extra>
                 <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
+            <template v-else-if="authStore.userCan('ORDERS_ADD') && currentOrder.data.id !== null" #extra>
+                <a-button :icon="h(CopyOutlined)" @click="copyOrder">Скопировать заказ</a-button>
             </template>
             <Order
                 :read-only="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)"
