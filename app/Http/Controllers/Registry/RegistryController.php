@@ -53,6 +53,8 @@ class RegistryController extends Controller
                 $order->update(['registry_id' => null]);
             }
         }
+        $data["bill_number"] = $request->get("bill_number", null);
+        $data["bill_date"] = $request->get("bill_date", null);
         $registry->update($data);
         return response()->json(new ClientRegistryResource($registry),200);
     }

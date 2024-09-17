@@ -53,6 +53,8 @@ class CarrierRegistryController extends Controller
                 $order->update(['carrier_registry_id' => null]);
             }
         }
+        $data["bill_number"] = $request->get("bill_number", null);
+        $data["bill_date"] = $request->get("bill_date", null);
         $carrierRegistry->update($data);
         return response()->json(new CarrierRegistryResource($carrierRegistry),200);
     }
