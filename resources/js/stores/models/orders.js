@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import axios from "axios";
 import dayjs from "dayjs";
 import {clone, isArray} from "radash";
+import {message} from "ant-design-vue";
 
 export const useOrdersStore = defineStore('orders', () => {
     const err = ref(null)
@@ -90,6 +91,18 @@ export const useOrdersStore = defineStore('orders', () => {
             listLoading.value = false
         }
     }
+
+    async function copyOrder(order_id) {
+        try {
+            const sourceOrder = await getOrder(order_id)
+            delete sourceOrder.id
+            await createOrder(sourceOrder)
+            await refreshDataList()
+        } catch (e) {
+            message.error("Не удалось скопировать заказ")
+        }
+    }
+
 
     async function createOrder(order) {
         try {
@@ -196,6 +209,6 @@ export const useOrdersStore = defineStore('orders', () => {
     return {
         err, paginator, dataList, setPage, setPageSize, setSorter, listLoading,
         refreshDataList, columnsOrders,
-        createOrder, storeOrder, deleteOrder, getOrder, setOrderStatus, filter, applyFilter, resetFilter
+        createOrder, storeOrder, deleteOrder, copyOrder, getOrder, setOrderStatus, filter, applyFilter, resetFilter
     }
 })
