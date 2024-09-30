@@ -14,6 +14,7 @@ class OrderStatus extends Model
         "type",
         "status",
         "user",
+        "updated_at"
     ];
 
     public function order() {

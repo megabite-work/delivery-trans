@@ -56,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::post('clients/{client_id}/additional-service', [AdditionalServiceController::class, 'storeForClient'])->name('client.price.store');
     Route::post('default-prices/{price_id}/price', [PriceController::class, 'storeForDefault'])->name('default.price.store');
     Route::post('default-prices/{price_id}/additional-service', [AdditionalServiceController::class, 'storeForDefault'])->name('default.price.additional-service.store');
+    Route::post('order-status/{order_status}/date', [OrderController::class, 'setStatusDate'])->name('orders.status.date');
 
     Route::get('carriers/{carrier_id}/contacts', [ContactController::class, 'carrierContactsIndex'])->name('carrier.contacts.index');
     Route::get('carriers/{carrier_id}/bank-accounts', [BankAccountController::class, 'carrierBankAccountsIndex'])->name('carrier.bank-accounts.index');

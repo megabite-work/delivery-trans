@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
                             backgroundColor: logistOrderStatuses[record.status_logist.status].backgroundColor
                         }">
                             <div>{{ logistOrderStatuses[record.status_logist.status].label }}</div>
-                            <div style="font-size: 10px;">{{ dayjs(record.status_logist.created_at).format('DD.MM.YY HH:mm')}}</div>
+                            <div style="font-size: 10px;">{{ dayjs(record.status_logist.updated_at).format('DD.MM.YY HH:mm')}}</div>
                         </div>
                         <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE')" #overlay>
                             <a-menu>
@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
                             backgroundColor: managerOrderStatuses[record.status_manager.status].backgroundColor
                         }">
                             <div>{{ managerOrderStatuses[record.status_manager.status].label }}</div>
-                            <div style="font-size: 10px;">{{ dayjs(record.status_manager.created_at).format('DD.MM.YY HH:mm')}}</div>
+                            <div style="font-size: 10px;">{{ dayjs(record.status_manager.updated_at).format('DD.MM.YY HH:mm')}}</div>
                         </div>
                         <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE')" #overlay>
                             <a-menu>
