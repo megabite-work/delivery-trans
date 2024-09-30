@@ -396,19 +396,19 @@ onBeforeUnmount(() => {
                                 {{ record.orders_count }}
                             </template>
                             <template v-if="column.key === 'status'">
-                                <template v-if="parseFloat(record.carrier_sum > 0) && parseFloat(record.carrier_paid) === 0">
+                                <template v-if="parseFloat(record.carrier_sum) > 0 && parseFloat(record.carrier_paid) === 0">
                                     <a-badge status="error" />
                                     Не оплачен
                                 </template>
-                                <template v-else-if="parseFloat(record.carrier_sum > 0) && parseFloat(record.carrier_sum) === parseFloat(record.carrier_paid)">
+                                <template v-else-if="parseFloat(record.carrier_sum) > 0 && parseFloat(record.carrier_sum) === parseFloat(record.carrier_paid)">
                                     <a-badge status="success" />
                                     Оплачен
                                 </template>
-                                <template v-else-if="parseFloat(record.carrier_sum > 0) && parseFloat(record.carrier_sum) > parseFloat(record.carrier_paid)">
+                                <template v-else-if="parseFloat(record.carrier_sum) > 0 && parseFloat(record.carrier_sum) > parseFloat(record.carrier_paid)">
                                     <a-badge status="warning" />
                                     Частично оплачен
                                 </template>
-                                <template v-else-if="parseFloat(record.carrier_sum > 0) && parseFloat(record.carrier_sum) < parseFloat(record.carrier_paid)">
+                                <template v-else-if="parseFloat(record.carrier_sum) > 0 && parseFloat(record.carrier_sum) < parseFloat(record.carrier_paid)">
                                     <a-badge color="blue" />
                                     Переплата
                                 </template>
