@@ -11,7 +11,8 @@ import {
     ReloadOutlined,
     UserOutlined,
     DownloadOutlined,
-    SelectOutlined
+    SelectOutlined,
+    CalendarOutlined
 } from '@ant-design/icons-vue';
 import {useSuggests} from "../../stores/models/suggests.js";
 import {usePricesStore} from "../../stores/models/prices.js";
@@ -84,6 +85,23 @@ const handleWeightTypeChange = (v) => {
         return;
     }
     cargoWeight.value = 0
+}
+
+const currStatusDate = ref(null)
+const updateStatusDate = async (statusId, statusDate) => {
+    try {
+        const status = await ordersStore.setOrderStatusDate(statusId, statusDate)
+        if (status.type === 'MANAGER') {
+            model.value.status_manager = status
+        }
+        if (status.type === 'LOGIST') {
+            model.value.status_logist = status
+        }
+        await ordersStore.refreshDataList()
+        message.success('Дата статуса обновлена')
+    } catch (e) {
+        message.error('Не удалось обновить дату статуса')
+    }
 }
 
 const currentCarrierTab = ref('carrier')
@@ -699,7 +717,7 @@ const downloadForCarrier = () => {
 
                                         <template #title>
                                             <UserOutlined />&nbsp;&nbsp;{{ model.status_manager.user }}<br/>
-                                            <span style="font-size: 12px">{{ dayjs(model.status_manager.created_at).format('DD.MM.YY HH:mm') }}</span>
+                                            <span style="font-size: 12px">{{ dayjs(model.status_manager.updated_at).format('DD.MM.YY HH:mm') }}</span>
                                         </template>
                                     </a-tooltip>
                                 </template>
@@ -707,6 +725,23 @@ const downloadForCarrier = () => {
                             </div>
                             <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE') && model.status_manager" #overlay>
                                 <a-menu>
+                                    <a-menu-item @click="() => currStatusDate = dayjs(model.status_manager.updated_at)">
+                                        <a-popconfirm @confirm="async () => await updateStatusDate(model.status_manager.id, currStatusDate)">
+                                            <template #title>Новая дата статуса</template>
+                                            <template #icon />
+                                            <template #description>
+                                                <a-date-picker
+                                                    style="width: 200px"
+                                                    v-model:value="currStatusDate"
+                                                    :show-time="{ format: 'HH:mm' }"
+                                                    format="DD-MM-YYYY HH:mm"
+                                                    show-time
+                                                />
+                                            </template>
+                                            <CalendarOutlined />&nbsp;&nbsp;Сменить дату и время статуса
+                                        </a-popconfirm>
+                                    </a-menu-item>
+                                    <a-menu-divider />
                                     <template v-for="(v, key) in managerOrderStatuses">
                                         <a-menu-item v-if="key !== model.status_manager.status" @click="() => setOrderStatus(model.id, 'MANAGER', key)">
                                             <div style="display: flex; flex-direction: row; align-items: center">
@@ -814,6 +849,23 @@ const downloadForCarrier = () => {
                         </div>
                         <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE') && model.status_logist" #overlay>
                             <a-menu>
+                                <a-menu-item @click="() => currStatusDate = dayjs(model.status_logist.updated_at)">
+                                    <a-popconfirm @confirm="async () => await updateStatusDate(model.status_logist.id, currStatusDate)">
+                                        <template #title>Новая дата статуса</template>
+                                        <template #icon />
+                                        <template #description>
+                                            <a-date-picker
+                                                style="width: 200px"
+                                                v-model:value="currStatusDate"
+                                                :show-time="{ format: 'HH:mm' }"
+                                                format="DD-MM-YYYY HH:mm"
+                                                show-time
+                                            />
+                                        </template>
+                                        <CalendarOutlined />&nbsp;&nbsp;Сменить дату и время статуса
+                                    </a-popconfirm>
+                                </a-menu-item>
+                                <a-menu-divider />
                                 <template v-for="(v, key) in logistOrderStatuses">
                                     <a-menu-item v-if="key !== model.status_logist.status" @click="() => setOrderStatus(model.id, 'LOGIST', key)">
                                         <div style="display: flex; flex-direction: row; align-items: center">

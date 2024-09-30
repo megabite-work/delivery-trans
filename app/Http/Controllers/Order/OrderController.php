@@ -416,6 +416,13 @@ class OrderController extends Controller
         return response()->json($status, 201);
     }
 
+    public function setStatusDate(Request $request, OrderStatus $order_status)
+    {
+        $request->validate(['date' => 'required|date']);
+        $order_status->update(['updated_at' => $request->get('date')]);
+        return $order_status;
+    }
+
     private function initOrderStatuses($orderId, $userName) {
         $ms = [
             'order_id' => $orderId,

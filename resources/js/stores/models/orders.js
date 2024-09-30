@@ -206,9 +206,20 @@ export const useOrdersStore = defineStore('orders', () => {
         }
     }
 
+    async function setOrderStatusDate(statusId, statusDate) {
+        try {
+            const { data } = await axios.post(`api/order-status/${statusId}/date`, {
+                date: statusDate
+            })
+            return data
+        } catch (e) {
+            throw e
+        }
+    }
+
     return {
         err, paginator, dataList, setPage, setPageSize, setSorter, listLoading,
         refreshDataList, columnsOrders,
-        createOrder, storeOrder, deleteOrder, copyOrder, getOrder, setOrderStatus, filter, applyFilter, resetFilter
+        createOrder, storeOrder, deleteOrder, copyOrder, getOrder, setOrderStatus, setOrderStatusDate, filter, applyFilter, resetFilter
     }
 })
