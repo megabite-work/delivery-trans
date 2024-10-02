@@ -7,7 +7,8 @@ import {debounce} from "radash";
 const model = defineModel()
 const prop = defineProps({ errors: { type: Object, default: null } })
 const { el } = useIMask({
-    mask: '+{7}(000)000-00-00'
+    mask: '+{7}(000)000-00-00',
+    autofix: true
 });
 
 
@@ -119,6 +120,7 @@ const onAddressSearch = debounce({delay: 500}, async (q = '') => {
                 type="text"
                 ref="el"
                 class="dt-input"
+                @change="(e) => model.value = e.target.value"
                 :placeholder="`Введите ${contactTypes[model.type] ? contactTypes[model.type] : contactTypes['OTHER']}`"
             />
             <a-auto-complete
