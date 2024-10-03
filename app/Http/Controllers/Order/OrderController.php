@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Order;
 
+use App\Models\Carrier;
 use App\Models\Registry;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
@@ -362,6 +363,17 @@ class OrderController extends Controller
         $data = $request->validate(VALIDATE_RULES);
         $data["created_by"] = $request->user()->name;
         $data["updated_by"] = $request->user()->name;
+        $carrier_id = $request->get('carrier_id', null);
+        if ($carrier_id) {
+            $carrier = Carrier::find($carrier_id);
+            if ($carrier && $carrier->is_resident) {
+                $data['carrier_tariff_hourly'] = 0;
+                $data['client_tariff_min_hours'] = 0;
+                $data['client_tariff_hours_for_coming'] = 0;
+                $data['client_tariff_mkad_rate'] = 0;
+                $data['carrier_tariff_mkad_price'] = 0;
+            }
+        }
         $order = Order::create($data);
         $this->initOrderStatuses($order->id, $request->user()->name);
         return response()->json(new OrderResource($order), 201);
@@ -382,6 +394,17 @@ class OrderController extends Controller
     {
         $data = $request->validate(VALIDATE_RULES);
         $data["updated_by"] = $request->user()->name;
+        $carrier_id = $request->get('carrier_id', null);
+        if ($carrier_id) {
+            $carrier = Carrier::find($carrier_id);
+            if ($carrier && $carrier->is_resident) {
+                $data['carrier_tariff_hourly'] = 0;
+                $data['client_tariff_min_hours'] = 0;
+                $data['client_tariff_hours_for_coming'] = 0;
+                $data['client_tariff_mkad_rate'] = 0;
+                $data['carrier_tariff_mkad_price'] = 0;
+            }
+        }
         $order->update($data);
         if (count($order->statuses) == 0) {
             $this->initOrderStatuses($order->id, $request->user()->name);

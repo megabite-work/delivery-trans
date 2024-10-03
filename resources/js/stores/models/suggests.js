@@ -112,6 +112,7 @@ export const useSuggests = defineStore('suggests', () => {
                 inn: el.inn,
                 disabled: !el.is_active,
                 vat: el.vat,
+                is_resident: el.is_resident,
             }))
         } catch {
             message.error('Ошибка загрузки списка')
