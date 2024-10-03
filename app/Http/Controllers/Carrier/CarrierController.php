@@ -95,7 +95,7 @@ class CarrierController extends Controller
 
     public function searchSuggest(Request $request) {
         $carriers = DB::table("carriers")
-            ->select("id", "name_full", "name_short", "inn", "vat", "is_active")
+            ->select("id", "name_full", "name_short", "inn", "vat", "is_active", "is_resident")
             ->where("name_short", "ilike", "%{$request['q']}%")
             ->orWhere("name_full", "ilike", "%{$request['q']}%")
             ->orWhere("inn", "ilike", "%{$request['q']}%")

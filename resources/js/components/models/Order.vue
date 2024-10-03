@@ -1414,7 +1414,7 @@ const downloadForCarrier = () => {
                 </a-tab-pane>
                 <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_TARIFF_SECTION')" key="price" tab="Тариф">
                     <a-space direction="vertical" style="width: 100%">
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                        <div v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier" style="display: flex; align-items: center; gap: 10px;">
                             <div style="width: 100px; text-align: right"></div>
                             <div style="flex-grow: 1">
                                 <a-dropdown @open-change="handlePriceLoadingOpen">
@@ -1446,86 +1446,92 @@ const downloadForCarrier = () => {
                                 </a-dropdown>
                             </div>
                         </div>
-
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 100px; text-align: right">Ставка:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.carrier_tariff_hourly"
-                                    :min="0"
-                                    style="width: 100%"
-                                    placeholder="Ставка"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">₽ / час</div>
-                                    </template>
-                                </a-input-number>
+                        <a-alert v-if="model.carrier && model.carrier.is_resident" type="info">
+                            <template #message>
+                                Перевозчик - резидент. Применен тариф заказчика.
+                            </template>
+                        </a-alert>
+                        <template v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 100px; text-align: right">Ставка:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_hourly"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Ставка"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                        <template #addonAfter>
+                                            <div style="width: 45px">₽ / час</div>
+                                        </template>
+                                    </a-input-number>
+                                </div>
                             </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">Минимум:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.carrier_tariff_min_hours"
-                                    :min="0"
-                                    style="width: 100%"
-                                    placeholder="Минимум часов"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter><div style="width: 45px">час.</div></template>
-                                </a-input-number>
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 100px; text-align: right">Минимум:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_min_hours"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Минимум часов"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                        <template #addonAfter><div style="width: 45px">час.</div></template>
+                                    </a-input-number>
+                                </div>
                             </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">На подачу:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.carrier_tariff_hours_for_coming"
-                                    :min="0"
-                                    style="width: 100%"
-                                    placeholder="Часов на подачу"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">час.</div>
-                                    </template>
-                                </a-input-number>
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 100px; text-align: right">На подачу:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_hours_for_coming"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Часов на подачу"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                        <template #addonAfter>
+                                            <div style="width: 45px">час.</div>
+                                        </template>
+                                    </a-input-number>
+                                </div>
                             </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">Тариф МКАД:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.carrier_tariff_mkad_price"
-                                    :min="0"
-                                    style="width: 100%"
-                                    placeholder="Тариф поездки за МКАД"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">₽ / км.</div>
-                                    </template>
-                                </a-input-number>
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 100px; text-align: right">Тариф МКАД:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_mkad_price"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Тариф поездки за МКАД"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                        <template #addonAfter>
+                                            <div style="width: 45px">₽ / км.</div>
+                                        </template>
+                                    </a-input-number>
+                                </div>
                             </div>
-                        </div>
-                        <a-divider dashed style="margin: 0;" />
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">За МКАД:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.carrier_tariff_mkad_rate"
-                                    :min="0"
-                                    style="width: 100%"
-                                    placeholder="Поездка за МКАД"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">км.</div>
-                                    </template>
-                                </a-input-number>
+                            <a-divider dashed style="margin: 0;" />
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 100px; text-align: right">За МКАД:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_mkad_rate"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Поездка за МКАД"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                        <template #addonAfter>
+                                            <div style="width: 45px">км.</div>
+                                        </template>
+                                    </a-input-number>
+                                </div>
                             </div>
-                        </div>
+                        </template>
                     </a-space>
                 </a-tab-pane>
                 <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_EXPENSES_SECTION')" key="expenses" tab="Допрасходы">

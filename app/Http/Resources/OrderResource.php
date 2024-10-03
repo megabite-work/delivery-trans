@@ -16,6 +16,9 @@ class OrderResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+
+        $is_resident = $this->carrier && $this->carrier->is_resident;
+
         $res = [
             'id' => $this->id,
             'statuses' => $this->statuses,
@@ -51,11 +54,11 @@ class OrderResource extends JsonResource
             'client_tariff_hours_for_coming' => $this->client_tariff_hours_for_coming,
             'client_tariff_mkad_rate' => $this->client_tariff_mkad_rate,
             'client_tariff_mkad_price' => $this->client_tariff_mkad_price,
-            'carrier_tariff_hourly' => $this->carrier_tariff_hourly,
-            'carrier_tariff_min_hours' => $this->carrier_tariff_min_hours,
-            'carrier_tariff_hours_for_coming' => $this->carrier_tariff_hours_for_coming,
-            'carrier_tariff_mkad_rate' => $this->carrier_tariff_mkad_rate,
-            'carrier_tariff_mkad_price' => $this->carrier_tariff_mkad_price,
+            'carrier_tariff_hourly' => $is_resident ? $this->client_tariff_hourly : $this->carrier_tariff_hourly,
+            'carrier_tariff_min_hours' => $is_resident ? $this->client_tariff_min_hours : $this->carrier_tariff_min_hours,
+            'carrier_tariff_hours_for_coming' => $is_resident ? $this->client_tariff_hours_for_coming : $this->carrier_tariff_hours_for_coming,
+            'carrier_tariff_mkad_rate' => $is_resident ? $this->client_tariff_mkad_rate : $this->carrier_tariff_mkad_rate,
+            'carrier_tariff_mkad_price' => $is_resident ? $this->client_tariff_mkad_price : $this->carrier_tariff_mkad_price,
             'client_expenses' => json_decode($this->client_expenses),
             'client_discounts' => json_decode($this->client_discounts),
             'carrier_expenses' => json_decode($this->carrier_expenses),

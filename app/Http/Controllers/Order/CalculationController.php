@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
+use App\Models\Carrier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 
@@ -28,6 +29,12 @@ class CalculationController extends Controller
                 "calculated" => true,
             ],
         ];
+        $carrier_resident = false;
+        $carrier_id = $request->get('carrier_id', null);
+        if ($carrier_id) {
+            $carrier = Carrier::find($carrier_id);
+            $carrier_resident = $carrier && $carrier->is_resident;
+        }
 
         $res["client"]["calculated"] = !$request->has('client_sum_calculated') || $request->boolean('client_sum_calculated');
         $res["carrier"]["calculated"] = !$request->has('carrier_sum_calculated') || $request->boolean('carrier_sum_calculated');
@@ -92,7 +99,7 @@ class CalculationController extends Controller
             $res["carrier"]["sum"] += $request->float('carrier_tariff_mkad_price') * $request->float('carrier_tariff_mkad_rate');
         }
 
-        if ($request->has('carrier_tariff_hourly')) {
+        if (!$carrier_resident && $request->has('carrier_tariff_hourly')) {
             $hh_carrier = $hh;
             if ($request->has('carrier_tariff_min_hours')) {
                 $hh_carrier = max($hh_carrier, $request->float('carrier_tariff_min_hours'));
@@ -102,6 +109,17 @@ class CalculationController extends Controller
             if ($request->has('carrier_tariff_hours_for_coming')) {
                 $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $request->float('carrier_tariff_hours_for_coming');
                 $res["order"]["carrier_hours"] += $request->float('carrier_tariff_hours_for_coming');
+            }
+        } elseif ($carrier_resident && $request->has('client_tariff_hourly')) {
+            $hh_carrier = $hh;
+            if ($request->has('client_tariff_min_hours')) {
+                $hh_carrier = max($hh_carrier, $request->float('client_tariff_min_hours'));
+                $res["carrier"]["sum"] += $request->float('client_tariff_hourly') * $hh_carrier;
+            }
+            $res["order"]["carrier_hours"] = $hh_carrier;
+            if ($request->has('client_tariff_hours_for_coming')) {
+                $res["carrier"]["sum"] += $request->float('client_tariff_hourly') * $request->float('client_tariff_hours_for_coming');
+                $res["order"]["carrier_hours"] += $request->float('client_tariff_hours_for_coming');
             }
         }
 
