@@ -19,6 +19,10 @@ class Price extends Model
         "min_hours",
         "hours_for_coming",
         "mkad_price",
+        "additional_hour_price",
+        "additional_point_price",
+        "loading_points",
+        "unloading_points"
     ];
 
     public function owner()

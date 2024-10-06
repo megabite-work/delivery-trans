@@ -46,12 +46,20 @@ const VALIDATE_RULES = [
     'client_tariff_hours_for_coming' => 'nullable|numeric',
     'client_tariff_mkad_rate' => 'nullable|numeric',
     'client_tariff_mkad_price' => 'nullable|numeric',
+    'client_tariff_additional_hour_price' => 'nullable|numeric',
+    'client_tariff_additional_point_price' => 'nullable|numeric',
+    'client_tariff_loading_points' => 'nullable|numeric',
+    'client_tariff_unloading_points' => 'nullable|numeric',
 
     'carrier_tariff_hourly' => 'nullable|numeric',
     'carrier_tariff_min_hours' => 'nullable|numeric',
     'carrier_tariff_hours_for_coming' => 'nullable|numeric',
     'carrier_tariff_mkad_rate' => 'nullable|numeric',
     'carrier_tariff_mkad_price' => 'nullable|numeric',
+    'carrier_tariff_additional_hour_price' => 'nullable|numeric',
+    'carrier_tariff_additional_point_price' => 'nullable|numeric',
+    'carrier_tariff_loading_points' => 'nullable|numeric',
+    'carrier_tariff_unloading_points' => 'nullable|numeric',
 
     'client_expenses' => 'nullable|JSON',
     'client_discounts' => 'nullable|JSON',
@@ -368,10 +376,14 @@ class OrderController extends Controller
             $carrier = Carrier::find($carrier_id);
             if ($carrier && $carrier->is_resident) {
                 $data['carrier_tariff_hourly'] = 0;
-                $data['client_tariff_min_hours'] = 0;
-                $data['client_tariff_hours_for_coming'] = 0;
-                $data['client_tariff_mkad_rate'] = 0;
+                $data['carrier_tariff_min_hours'] = 0;
+                $data['carrier_tariff_hours_for_coming'] = 0;
+                $data['carrier_tariff_mkad_rate'] = 0;
                 $data['carrier_tariff_mkad_price'] = 0;
+                $data['carrier_tariff_additional_hour_price'] = 0;
+                $data['carrier_tariff_additional_point_price'] = 0;
+                $data['carrier_tariff_loading_points'] = 0;
+                $data['carrier_tariff_unloading_points'] = 0;
             }
         }
         $order = Order::create($data);
@@ -399,10 +411,14 @@ class OrderController extends Controller
             $carrier = Carrier::find($carrier_id);
             if ($carrier && $carrier->is_resident) {
                 $data['carrier_tariff_hourly'] = 0;
-                $data['client_tariff_min_hours'] = 0;
-                $data['client_tariff_hours_for_coming'] = 0;
-                $data['client_tariff_mkad_rate'] = 0;
+                $data['carrier_tariff_min_hours'] = 0;
+                $data['carrier_tariff_hours_for_coming'] = 0;
+                $data['carrier_tariff_mkad_rate'] = 0;
                 $data['carrier_tariff_mkad_price'] = 0;
+                $data['carrier_tariff_additional_hour_price'] = 0;
+                $data['carrier_tariff_additional_point_price'] = 0;
+                $data['carrier_tariff_loading_points'] = 0;
+                $data['carrier_tariff_unloading_points'] = 0;
             }
         }
         $order->update($data);

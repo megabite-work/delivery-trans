@@ -178,11 +178,19 @@ const applyDefaultPrice = (defaultPrice, type, onlyExists = false) => {
         model.value.carrier_tariff_min_hours = p ? parseFloat(p.min_hours) : 0
         model.value.carrier_tariff_hours_for_coming = p ? parseFloat(p.hours_for_coming) : 0
         model.value.carrier_tariff_mkad_price = p ? parseFloat(p.mkad_price) : 0
+        model.value.carrier_tariff_additional_hour_price = p ? parseFloat(p.additional_hour_price) : 0
+        model.value.carrier_tariff_additional_point_price = p ? parseFloat(p.additional_point_price) : 0
+        model.value.carrier_tariff_loading_points = p ? parseInt(p.loading_points) : 0
+        model.value.carrier_tariff_unloading_points = p ? parseInt(p.unloading_points) : 0
     } else if (type === 'CLIENT') {
         model.value.client_tariff_hourly = p ? parseFloat(p.hourly) : 0
         model.value.client_tariff_min_hours = p ? parseFloat(p.min_hours) : 0
         model.value.client_tariff_hours_for_coming = p ? parseFloat(p.hours_for_coming) : 0
         model.value.client_tariff_mkad_price = p ? parseFloat(p.mkad_price) : 0
+        model.value.client_tariff_additional_hour_price = p ? parseFloat(p.additional_hour_price) : 0
+        model.value.client_tariff_additional_point_price = p ? parseFloat(p.additional_point_price) : 0
+        model.value.client_tariff_loading_points = p ? parseInt(p.loading_points) : 0
+        model.value.client_tariff_unloading_points = p ? parseInt(p.unloading_points) : 0
     }
     return true
 }
@@ -1086,7 +1094,7 @@ const downloadForCarrier = () => {
                 <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_TARIFF_SECTION')" key="price" tab="Тариф">
                     <a-space direction="vertical" style="width: 100%">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 100px; text-align: right"></div>
+                            <div style="width: 150px; text-align: right"></div>
                             <div style="flex-grow: 1">
                                 <a-dropdown @open-change="handlePriceLoadingOpen">
                                     <a-button style="width: 100%">
@@ -1119,7 +1127,7 @@ const downloadForCarrier = () => {
                         </div>
 
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 100px; text-align: right">Ставка:</div>
+                            <div style="width: 150px; text-align: right">Ставка:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
                                     v-model:value="model.client_tariff_hourly"
@@ -1135,7 +1143,7 @@ const downloadForCarrier = () => {
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">Минимум:</div>
+                            <div style="width: 150px; text-align: right">Минимум:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
                                     v-model:value="model.client_tariff_min_hours"
@@ -1151,7 +1159,7 @@ const downloadForCarrier = () => {
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">На подачу:</div>
+                            <div style="width: 150px; text-align: right">На подачу:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
                                     v-model:value="model.client_tariff_hours_for_coming"
@@ -1167,7 +1175,7 @@ const downloadForCarrier = () => {
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">Тариф МКАД:</div>
+                            <div style="width: 150px; text-align: right">Тариф МКАД:</div>
                             <div style="flex-grow: 1">
                                 <a-input-number
                                     v-model:value="model.client_tariff_mkad_price"
@@ -1179,6 +1187,64 @@ const downloadForCarrier = () => {
                                     <template #addonAfter>
                                         <div style="width: 45px">₽ / км.</div>
                                     </template>
+                                </a-input-number>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 150px; text-align: right">Стоимость доп.часа:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-model:value="model.client_tariff_additional_hour_price"
+                                    :min="0"
+                                    style="width: 100%"
+                                    placeholder="Стоимость доп.часа"
+                                    @change="() => orderCalculate(false)"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">₽</div>
+                                    </template>
+                                </a-input-number>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 150px; text-align: right">Стоимость доп.точки:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-model:value="model.client_tariff_additional_point_price"
+                                    :min="0"
+                                    style="width: 100%"
+                                    placeholder="Стоимость доп.точки"
+                                    @change="() => orderCalculate(false)"
+                                >
+                                    <template #addonAfter>
+                                        <div style="width: 45px">₽</div>
+                                    </template>
+                                </a-input-number>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 150px; text-align: right">Точек загрузки:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-model:value="model.client_tariff_loading_points"
+                                    :min="0"
+                                    style="width: 100%"
+                                    placeholder="Включено точек загрузки"
+                                    @change="() => orderCalculate(false)"
+                                >
+                                </a-input-number>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px">
+                            <div style="width: 150px; text-align: right">Точек разгрузки:</div>
+                            <div style="flex-grow: 1">
+                                <a-input-number
+                                    v-model:value="model.client_tariff_unloading_points"
+                                    :min="0"
+                                    style="width: 100%"
+                                    placeholder="Включено точек разгрузки"
+                                    @change="() => orderCalculate(false)"
+                                >
                                 </a-input-number>
                             </div>
                         </div>
@@ -1415,7 +1481,7 @@ const downloadForCarrier = () => {
                 <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_TARIFF_SECTION')" key="price" tab="Тариф">
                     <a-space direction="vertical" style="width: 100%">
                         <div v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier" style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 100px; text-align: right"></div>
+                            <div style="width: 150px; text-align: right"></div>
                             <div style="flex-grow: 1">
                                 <a-dropdown @open-change="handlePriceLoadingOpen">
                                     <a-button style="width: 100%">
@@ -1453,7 +1519,7 @@ const downloadForCarrier = () => {
                         </a-alert>
                         <template v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier">
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 100px; text-align: right">Ставка:</div>
+                                <div style="width: 150px; text-align: right">Ставка:</div>
                                 <div style="flex-grow: 1">
                                     <a-input-number
                                         v-model:value="model.carrier_tariff_hourly"
@@ -1469,7 +1535,7 @@ const downloadForCarrier = () => {
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 100px; text-align: right">Минимум:</div>
+                                <div style="width: 150px; text-align: right">Минимум:</div>
                                 <div style="flex-grow: 1">
                                     <a-input-number
                                         v-model:value="model.carrier_tariff_min_hours"
@@ -1483,7 +1549,7 @@ const downloadForCarrier = () => {
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 100px; text-align: right">На подачу:</div>
+                                <div style="width: 150px; text-align: right">На подачу:</div>
                                 <div style="flex-grow: 1">
                                     <a-input-number
                                         v-model:value="model.carrier_tariff_hours_for_coming"
@@ -1499,7 +1565,7 @@ const downloadForCarrier = () => {
                                 </div>
                             </div>
                             <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 100px; text-align: right">Тариф МКАД:</div>
+                                <div style="width: 150px; text-align: right">Тариф МКАД:</div>
                                 <div style="flex-grow: 1">
                                     <a-input-number
                                         v-model:value="model.carrier_tariff_mkad_price"
@@ -1511,6 +1577,64 @@ const downloadForCarrier = () => {
                                         <template #addonAfter>
                                             <div style="width: 45px">₽ / км.</div>
                                         </template>
+                                    </a-input-number>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 150px; text-align: right">Стоимость доп.часа:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_additional_hour_price"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Стоимость доп.часа"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                        <template #addonAfter>
+                                            <div style="width: 45px">₽</div>
+                                        </template>
+                                    </a-input-number>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 150px; text-align: right">Стоимость доп.точки:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_additional_point_price"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Стоимость доп.точки"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                        <template #addonAfter>
+                                            <div style="width: 45px">₽</div>
+                                        </template>
+                                    </a-input-number>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 150px; text-align: right">Точек загрузки:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_loading_points"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Включено точек загрузки"
+                                        @change="() => orderCalculate(false)"
+                                    >
+                                    </a-input-number>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px">
+                                <div style="width: 150px; text-align: right">Точек разгрузки:</div>
+                                <div style="flex-grow: 1">
+                                    <a-input-number
+                                        v-model:value="model.carrier_tariff_unloading_points"
+                                        :min="0"
+                                        style="width: 100%"
+                                        placeholder="Включено точек разгрузки"
+                                        @change="() => orderCalculate(false)"
+                                    >
                                     </a-input-number>
                                 </div>
                             </div>
