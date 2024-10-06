@@ -10,7 +10,8 @@ import {debounce} from "radash";
 const model = defineModel()
 const prop = defineProps({ loading: { type: Boolean, default: false }, errors: { type: Object, default: null } })
 const { el } = useIMask({
-    mask: '+{7}(000)000-00-00'
+    mask: '+{7}(000)000-00-00',
+    autofix: true
 });
 
 const citizenshipOptionsList = ref([])
@@ -105,10 +106,11 @@ watch(() => prop.errors, () => {
             <a-form-item label="Номер телефона" name="phone" :validate-status="err.phone ? 'error': undefined" :help="err.phone">
                 <input
                      v-model="model.phone"
-                    type="text"
-                    ref="el"
-                    class="dt-input"
-                    placeholder="Номер телефона"
+                     type="text"
+                     ref="el"
+                     class="dt-input"
+                     @change="(e) => model.phone = e.target.value"
+                     placeholder="Номер телефона"
                 />
             </a-form-item>
         </a-col>
