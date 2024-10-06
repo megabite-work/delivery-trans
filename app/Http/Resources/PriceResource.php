@@ -26,6 +26,10 @@ class PriceResource extends JsonResource
             "min_hours" => $this->min_hours,
             "hours_for_coming" => $this->hours_for_coming,
             "mkad_price" => $this->mkad_price,
+            "additional_hour_price" => $this->additional_hour_price,
+            "additional_point_price" => $this->additional_point_price,
+            "loading_points" => $this->loading_points,
+            "unloading_points" => $this->unloading_points,
         ];
     }
 }

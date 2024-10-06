@@ -27,6 +27,10 @@ class PriceController extends Controller
             'hours_for_coming' => 'required|numeric|min:0',
             'min_hours' => 'required|numeric|min:0',
             'mkad_price' => 'required|numeric|min:0',
+            'additional_hour_price' => 'required|numeric|min:0',
+            'additional_point_price' => 'required|numeric|min:0',
+            'loading_points' => 'required|numeric|min:0',
+            'unloading_points' => 'required|numeric|min:0',
         ]);
         $data["owner_type"] = Client::class;
         $data["owner_id"] = $data["client_id"];
@@ -46,6 +50,10 @@ class PriceController extends Controller
             'hours_for_coming' => 'required|numeric|min:0',
             'min_hours' => 'required|numeric|min:0',
             'mkad_price' => 'required|numeric|min:0',
+            'additional_hour_price' => 'required|numeric|min:0',
+            'additional_point_price' => 'required|numeric|min:0',
+            'loading_points' => 'required|numeric|min:0',
+            'unloading_points' => 'required|numeric|min:0',
         ]);
         $data["owner_type"] = DefaultPrice::class;
         $data["owner_id"] = $data["price_id"];
@@ -75,6 +83,10 @@ class PriceController extends Controller
             'hours_for_coming' => 'required|numeric|min:0',
             'min_hours' => 'required|numeric|min:0',
             'mkad_price' => 'required|numeric|min:0',
+            'additional_hour_price' => 'required|numeric|min:0',
+            'additional_point_price' => 'required|numeric|min:0',
+            'loading_points' => 'required|numeric|min:0',
+            'unloading_points' => 'required|numeric|min:0',
         ]);
         $price->update($data);
         return response()->json(new PriceResource($price));

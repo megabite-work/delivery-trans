@@ -60,6 +60,44 @@ const model = defineModel({type: Object, required: true})
                 </template>
             </a-input-number>
         </a-form-item>
+        <a-form-item label="Стоимость дополнительного часа" name="additional_hour_price">
+            <a-input-number
+                v-model:value="model.additional_hour_price"
+                :min="0"
+                placeholder="Стоимость дополнительного часа"
+                style="width: 100%"
+            >
+                <template #addonAfter>₽</template>
+            </a-input-number>
+        </a-form-item>
+        <a-form-item label="Стоимость дополнительной точки" name="additional_point_price">
+            <a-input-number
+                v-model:value="model.additional_point_price"
+                :min="0"
+                placeholder="Стоимость дополнительной точки"
+                style="width: 100%"
+            >
+                <template #addonAfter>₽</template>
+            </a-input-number>
+        </a-form-item>
+        <a-form-item label="Количество точек загрузки включенных в прайс" name="loading_points">
+            <a-input-number
+                v-model:value="model.loading_points"
+                :min="0"
+                placeholder="Точек загрузки включенных в прайс"
+                style="width: 100%"
+            >
+            </a-input-number>
+        </a-form-item>
+        <a-form-item label="Количество точек разгрузки включенных в прайс" name="unloading_points">
+            <a-input-number
+                v-model:value="model.unloading_points"
+                :min="0"
+                placeholder="Точек разгрузки включенных в прайс"
+                style="width: 100%"
+            >
+            </a-input-number>
+        </a-form-item>
     </a-form>
 </template>
 

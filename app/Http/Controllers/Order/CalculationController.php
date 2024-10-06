@@ -55,6 +55,36 @@ class CalculationController extends Controller
                     }
                 }
             }
+            $from_cnt = count($request->get('from_locations'));
+            if ($request->has('client_tariff_loading_points') && $request->has('client_tariff_additional_point_price')) {
+                if ($from_cnt - $request->integer('client_tariff_loading_points') > 0) {
+                    $res["client"]["sum"] += $request->float("client_tariff_additional_point_price") * ($from_cnt - $request->integer('client_tariff_loading_points'));
+                }
+            }
+            if (!$carrier_resident && $request->has('carrier_tariff_loading_points') && $request->has('carrier_tariff_additional_point_price')) {
+                if ($from_cnt - $request->integer('carrier_tariff_loading_points') > 0) {
+                    $res["carrier"]["sum"] += $request->float("carrier_tariff_additional_point_price") * ($from_cnt - $request->integer('carrier_tariff_loading_points'));
+                }
+            } elseif ($carrier_resident && $request->has('client_tariff_loading_points') && $request->has('client_tariff_additional_point_price')) {
+                if ($from_cnt - $request->integer('client_tariff_loading_points') > 0) {
+                    $res["carrier"]["sum"] += $request->float("client_tariff_additional_point_price") * ($from_cnt - $request->integer('client_tariff_loading_points'));
+                }
+            }
+            $to_cnt = count($request->get('to_locations'));
+            if ($request->has('client_tariff_unloading_points') && $request->has('client_tariff_additional_point_price')) {
+                if ($to_cnt - $request->integer('client_tariff_unloading_points') > 0) {
+                    $res["client"]["sum"] += $request->float("client_tariff_additional_point_price") * ($to_cnt - $request->integer('client_tariff_unloading_points'));
+                }
+            }
+            if (!$carrier_resident && $request->has('carrier_tariff_unloading_points') && $request->has('carrier_tariff_additional_point_price')) {
+                if ($to_cnt - $request->integer('carrier_tariff_unloading_points') > 0) {
+                    $res["carrier"]["sum"] += $request->float("carrier_tariff_additional_point_price") * ($to_cnt - $request->integer('carrier_tariff_unloading_points'));
+                }
+            } elseif ($carrier_resident && $request->has('client_tariff_unloading_points') && $request->has('client_tariff_additional_point_price')) {
+                if ($to_cnt - $request->integer('client_tariff_unloading_points') > 0) {
+                    $res["carrier"]["sum"] += $request->float("client_tariff_additional_point_price") * ($to_cnt - $request->integer('client_tariff_unloading_points'));
+                }
+            }
             if($request->has('ended_at') && $request->get('ended_at') != null) {
                 $gt = Date::parse($request->get('ended_at'))->timezone("Europe/Moscow");
             } else {
@@ -82,12 +112,13 @@ class CalculationController extends Controller
         }
 
         if ($request->has('client_tariff_hourly')) {
-            $hh_client = $hh;
             if ($request->has('client_tariff_min_hours')) {
-                $hh_client = max($hh_client, $request->float('client_tariff_min_hours'));
-                $res["client"]["sum"] += $request->float('client_tariff_hourly') * $hh_client;
+                $res["client"]["sum"] += $request->float('client_tariff_hourly') * $request->float('client_tariff_min_hours');
+                if ($request->has('client_tariff_additional_hour_price') && ($hh - $request->float('client_tariff_min_hours')) > 0) {
+                    $res["client"]["sum"] += $request->float('client_tariff_additional_hour_price') * ($hh - $request->float('client_tariff_min_hours'));
+                }
             }
-            $res["order"]["client_hours"] = $hh_client;
+            $res["order"]["client_hours"] = max($hh, $request->float('client_tariff_min_hours'));
             if ($request->has('client_tariff_hours_for_coming')) {
                 $res["client"]["sum"] += $request->float('client_tariff_hourly') * $request->float('client_tariff_hours_for_coming');
                 $res["order"]["client_hours"] += $request->float('client_tariff_hours_for_coming');
@@ -100,23 +131,25 @@ class CalculationController extends Controller
         }
 
         if (!$carrier_resident && $request->has('carrier_tariff_hourly')) {
-            $hh_carrier = $hh;
             if ($request->has('carrier_tariff_min_hours')) {
-                $hh_carrier = max($hh_carrier, $request->float('carrier_tariff_min_hours'));
-                $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $hh_carrier;
+                $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $request->float('carrier_tariff_min_hours');
+                if ($request->has('carrier_tariff_additional_hour_price') && ($hh - $request->float('carrier_tariff_min_hours')) > 0) {
+                    $res["carrier"]["sum"] += $request->float('carrier_tariff_additional_hour_price') * ($hh - $request->float('carrier_tariff_min_hours'));
+                }
             }
-            $res["order"]["carrier_hours"] = $hh_carrier;
+            $res["order"]["carrier_hours"] = max($hh, $request->float('carrier_tariff_min_hours'));
             if ($request->has('carrier_tariff_hours_for_coming')) {
                 $res["carrier"]["sum"] += $request->float('carrier_tariff_hourly') * $request->float('carrier_tariff_hours_for_coming');
                 $res["order"]["carrier_hours"] += $request->float('carrier_tariff_hours_for_coming');
             }
         } elseif ($carrier_resident && $request->has('client_tariff_hourly')) {
-            $hh_carrier = $hh;
             if ($request->has('client_tariff_min_hours')) {
-                $hh_carrier = max($hh_carrier, $request->float('client_tariff_min_hours'));
-                $res["carrier"]["sum"] += $request->float('client_tariff_hourly') * $hh_carrier;
+                $res["carrier"]["sum"] += $request->float('client_tariff_hourly') * $request->float('client_tariff_min_hours');
+                if ($request->has('client_tariff_additional_hour_price') && ($hh - $request->float('client_tariff_min_hours')) > 0) {
+                    $res["carrier"]["sum"] += $request->float('client_tariff_additional_hour_price') * ($hh - $request->float('client_tariff_min_hours'));
+                }
             }
-            $res["order"]["carrier_hours"] = $hh_carrier;
+            $res["order"]["carrier_hours"] = max($hh, $request->float('client_tariff_min_hours'));
             if ($request->has('client_tariff_hours_for_coming')) {
                 $res["carrier"]["sum"] += $request->float('client_tariff_hourly') * $request->float('client_tariff_hours_for_coming');
                 $res["order"]["carrier_hours"] += $request->float('client_tariff_hours_for_coming');
