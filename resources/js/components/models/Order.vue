@@ -502,10 +502,18 @@ const getTotal = arr => {
     return total
 }
 
+const getVTotal = arr => {
+    let total = 0
+    if (isArray(arr)) {
+        arr.forEach(v => total += parseFloat(v.v) * parseFloat(v.c))
+    }
+    return total
+}
+
 const getVPTotal = arr => {
     let total = 0
     if (isArray(arr)) {
-        arr.forEach(v => total += parseFloat(v.vp))
+        arr.forEach(v => total += parseFloat(v.vp) * parseFloat(v.c))
     }
     return total
 }
@@ -519,7 +527,7 @@ const clientDiscountsTotal = computed(() => {
 })
 
 const additionalServiceTotal = computed(() => {
-    return getTotal(model.value.additional_service)
+    return getVTotal(model.value.additional_service)
 })
 
 const additionalServiceCarrierTotal = computed(() => {
