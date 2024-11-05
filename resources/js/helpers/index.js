@@ -16,7 +16,7 @@ export const managerOrderStatuses = {
     PAID: {label: 'Оплачена', color: '#52c41a', backgroundColor: '#f6ffed'},
     DEBT: {label: 'Долг', color: '#cf1322', backgroundColor: '#fff1f0'},
 }
-
+// ---
 export const logistOrderStatuses = {
     CREATED: {label: 'Создана', color: '#1e1e1e', backgroundColor: '#f5f5f5'},
     ASSIGN_CARRIER: {label: 'Назначить перевозчика', color: '#d46b08', backgroundColor: '#fff7e6'},
