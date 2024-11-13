@@ -40,8 +40,8 @@ class ClientResource extends JsonResource
                                                left join order_statuses os on os.order_id = o.id
                                       where client_id = :client_id
                                         and registry_id is null
-                                        and os.type = 'MANAGER'
-                                        and os.status = 'DOCUMENTS_ACCEPTED') t
+                                        and os.type = 'LOGIST'
+                                        and os.status = 'DOCUMENTS_SUBMITTED') t
                                 group by t.client_id) owd on c.id = owd.client_id
                      left join (select client_id, sum(client_sum) as debt_with_bill
                                 from registries
