@@ -128,6 +128,7 @@ const getDataList = async () => {
                 <a-input v-if="col.type === 'string'" v-model:value="currentModel.data[col.key]" />
                 <a-input-number
                     v-if="col.type === 'number'"
+                    decimal-separator=","
                     v-model:value="currentModel.data[col.key]"
                     style="width: 100%"
                 />

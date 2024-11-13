@@ -816,6 +816,7 @@ const downloadForCarrier = () => {
                             <a-input-number
                                 v-model:value="model.client_sum"
                                 :min="0"
+                                decimal-separator=","
                                 style="width: 200px"
                             >
                                 <template #addonAfter>₽</template>
@@ -937,6 +938,7 @@ const downloadForCarrier = () => {
                     <div v-else style="display: flex; align-items: center">
                         <a-input-number
                             v-model:value="model.carrier_sum"
+                            decimal-separator=","
                             :min="0"
                             style="width: 200px"
                         >
@@ -991,6 +993,7 @@ const downloadForCarrier = () => {
                         v-model:value="cargoWeight"
                         @change="handleCargoWeightChange"
                         placeholder="Вес"
+                        decimal-separator=","
                         :min="0"
                         style="width: 100%"
                     >
@@ -1018,6 +1021,7 @@ const downloadForCarrier = () => {
                         v-model:value="model.cargo_pallets_count"
                         placeholder="Количество палет"
                         @change="handlePalletsChange"
+                        decimal-separator=","
                         style="width: 100%"
                         :min="0"
                     />
@@ -1141,6 +1145,7 @@ const downloadForCarrier = () => {
                                     v-model:value="model.client_tariff_hourly"
                                     :min="0"
                                     style="width: 100%"
+                                    decimal-separator=","
                                     placeholder="Ставка"
                                     @change="() => orderCalculate(false)"
                                 >
@@ -1156,6 +1161,7 @@ const downloadForCarrier = () => {
                                 <a-input-number
                                     v-model:value="model.client_tariff_min_hours"
                                     :min="0"
+                                    decimal-separator=","
                                     style="width: 100%"
                                     placeholder="Минимум часов"
                                     @change="() => orderCalculate(false)"
@@ -1173,6 +1179,7 @@ const downloadForCarrier = () => {
                                     v-model:value="model.client_tariff_hours_for_coming"
                                     :min="0"
                                     style="width: 100%"
+                                    decimal-separator=","
                                     placeholder="Часов на подачу"
                                     @change="() => orderCalculate(false)"
                                 >
@@ -1189,6 +1196,7 @@ const downloadForCarrier = () => {
                                     v-model:value="model.client_tariff_mkad_price"
                                     :min="0"
                                     style="width: 100%"
+                                    decimal-separator=","
                                     placeholder="Тариф поездки за МКАД"
                                     @change="() => orderCalculate(false)"
                                 >
@@ -1206,6 +1214,7 @@ const downloadForCarrier = () => {
                                     :min="0"
                                     style="width: 100%"
                                     placeholder="Стоимость доп.часа"
+                                    decimal-separator=","
                                     @change="() => orderCalculate(false)"
                                 >
                                     <template #addonAfter>
@@ -1221,6 +1230,7 @@ const downloadForCarrier = () => {
                                     v-model:value="model.client_tariff_additional_point_price"
                                     :min="0"
                                     style="width: 100%"
+                                    decimal-separator=","
                                     placeholder="Стоимость доп.точки"
                                     @change="() => orderCalculate(false)"
                                 >
@@ -1236,6 +1246,7 @@ const downloadForCarrier = () => {
                                 <a-input-number
                                     v-model:value="model.client_tariff_loading_points"
                                     :min="0"
+                                    decimal-separator=","
                                     style="width: 100%"
                                     placeholder="Включено точек загрузки"
                                     @change="() => orderCalculate(false)"
@@ -1250,6 +1261,7 @@ const downloadForCarrier = () => {
                                     v-model:value="model.client_tariff_unloading_points"
                                     :min="0"
                                     style="width: 100%"
+                                    decimal-separator=","
                                     placeholder="Включено точек разгрузки"
                                     @change="() => orderCalculate(false)"
                                 >
@@ -1264,6 +1276,7 @@ const downloadForCarrier = () => {
                                     v-model:value="model.client_tariff_mkad_rate"
                                     :min="0"
                                     style="width: 100%"
+                                    decimal-separator=","
                                     placeholder="Поездка за МКАД"
                                     @change="(e) => { syncMKADRate(e); orderCalculate(false) }"
                                 >
@@ -1534,6 +1547,7 @@ const downloadForCarrier = () => {
                                         :min="0"
                                         style="width: 100%"
                                         placeholder="Ставка"
+                                        decimal-separator=","
                                         @change="() => orderCalculate(false)"
                                     >
                                         <template #addonAfter>
@@ -1549,6 +1563,7 @@ const downloadForCarrier = () => {
                                         v-model:value="model.carrier_tariff_min_hours"
                                         :min="0"
                                         style="width: 100%"
+                                        decimal-separator=","
                                         placeholder="Минимум часов"
                                         @change="() => orderCalculate(false)"
                                     >
@@ -1563,6 +1578,7 @@ const downloadForCarrier = () => {
                                         v-model:value="model.carrier_tariff_hours_for_coming"
                                         :min="0"
                                         style="width: 100%"
+                                        decimal-separator=","
                                         placeholder="Часов на подачу"
                                         @change="() => orderCalculate(false)"
                                     >
@@ -1579,6 +1595,7 @@ const downloadForCarrier = () => {
                                         v-model:value="model.carrier_tariff_mkad_price"
                                         :min="0"
                                         style="width: 100%"
+                                        decimal-separator=","
                                         placeholder="Тариф поездки за МКАД"
                                         @change="() => orderCalculate(false)"
                                     >
@@ -1594,6 +1611,7 @@ const downloadForCarrier = () => {
                                     <a-input-number
                                         v-model:value="model.carrier_tariff_additional_hour_price"
                                         :min="0"
+                                        decimal-separator=","
                                         style="width: 100%"
                                         placeholder="Стоимость доп.часа"
                                         @change="() => orderCalculate(false)"
@@ -1611,6 +1629,7 @@ const downloadForCarrier = () => {
                                         v-model:value="model.carrier_tariff_additional_point_price"
                                         :min="0"
                                         style="width: 100%"
+                                        decimal-separator=","
                                         placeholder="Стоимость доп.точки"
                                         @change="() => orderCalculate(false)"
                                     >
@@ -1627,6 +1646,7 @@ const downloadForCarrier = () => {
                                         v-model:value="model.carrier_tariff_loading_points"
                                         :min="0"
                                         style="width: 100%"
+                                        decimal-separator=","
                                         placeholder="Включено точек загрузки"
                                         @change="() => orderCalculate(false)"
                                     >
@@ -1639,6 +1659,7 @@ const downloadForCarrier = () => {
                                     <a-input-number
                                         v-model:value="model.carrier_tariff_unloading_points"
                                         :min="0"
+                                        decimal-separator=","
                                         style="width: 100%"
                                         placeholder="Включено точек разгрузки"
                                         @change="() => orderCalculate(false)"
@@ -1654,6 +1675,7 @@ const downloadForCarrier = () => {
                                         v-model:value="model.carrier_tariff_mkad_rate"
                                         :min="0"
                                         style="width: 100%"
+                                        decimal-separator=","
                                         placeholder="Поездка за МКАД"
                                         @change="() => orderCalculate(false)"
                                     >

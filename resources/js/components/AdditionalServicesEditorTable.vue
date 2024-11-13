@@ -103,6 +103,7 @@ const deleteRow = (e, idx) => {
                     <div style="display: flex">
                         <a-input-number
                             v-model:value="model[currentRowIdx].price"
+                            decimal-separator=","
                             :min="0"
                             placeholder="Цена"
                             style="width: 100%"
@@ -114,6 +115,7 @@ const deleteRow = (e, idx) => {
                         <a-input-number
                             v-model:value="model[currentRowIdx].carrier_price"
                             :min="0"
+                            decimal-separator=","
                             placeholder="Цена для перевозчика"
                         />
                         <a-button shape="circle" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="applyRow"/>

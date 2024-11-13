@@ -93,6 +93,7 @@ const deleteOrderFromRegistry = (id, storno) => {
                 <a-input-number
                     v-model:value="model.client_sum"
                     :min="0"
+                    decimal-separator=","
                     style="width: 100%"
                     placeholder="Сумма к оплате"
                     size="large"
@@ -106,6 +107,7 @@ const deleteOrderFromRegistry = (id, storno) => {
                 <a-input-number
                     v-model:value="model.client_paid"
                     :min="0"
+                    decimal-separator=","
                     style="width: 100%"
                     placeholder="Оплачено"
                     size="large"

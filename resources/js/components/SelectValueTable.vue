@@ -119,6 +119,7 @@ const deleteRow = (e, idx) => {
                         <a-input-number
                             v-model:value="model[currentRowIdx].v"
                             :min="0"
+                            decimal-separator=","
                             :placeholder="valuePlaceholderText"
                         />
                         <a-button shape="circle" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="applyRow"/>

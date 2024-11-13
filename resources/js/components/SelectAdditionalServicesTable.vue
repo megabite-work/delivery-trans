@@ -126,6 +126,7 @@ const deleteRow = (e, idx) => {
                 <template v-if="rec.column.key === 'c'">
                     <a-input-number
                         v-model:value="model[currentRowIdx].c"
+                        decimal-separator=","
                         style="width: 100%"
                         :min="0"
                         placeholder="Кол-во"
@@ -136,6 +137,7 @@ const deleteRow = (e, idx) => {
                         <a-input-number
                             v-model:value="model[currentRowIdx].v"
                             :min="0"
+                            decimal-separator=","
                             placeholder="Цена"
                             style="width: 100%"
                         />
@@ -146,6 +148,7 @@ const deleteRow = (e, idx) => {
                         <a-input-number
                             v-model:value="model[currentRowIdx].vp"
                             :min="0"
+                            decimal-separator=","
                             placeholder="Цена"
                         />
                         <a-button shape="circle" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="applyRow"/>
