@@ -54,6 +54,7 @@ const currentClient = reactive({ data:{ id: null }, modified: false })
 const currentRegistry = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 const registryDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+const orderDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 
 const registrySelectionState = ref({})
 

@@ -132,6 +132,7 @@ const deleteRow = (e, idx) => {
                     <a-input-number
                         v-model:value="model[currentRowIdx].c"
                         style="width: 100%"
+                        decimal-separator=","
                         :min="0"
                         :placeholder="headerCountText"
                     />
@@ -140,6 +141,7 @@ const deleteRow = (e, idx) => {
                     <div style="display: flex">
                         <a-input-number
                             v-model:value="model[currentRowIdx].v"
+                            decimal-separator=","
                             :min="0"
                             :placeholder="valuePlaceholderText"
                         />
