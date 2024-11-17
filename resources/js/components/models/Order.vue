@@ -46,6 +46,7 @@ const prop = defineProps({
 const isStatusLoading = ref(false);
 const cargoWeight = ref()
 const capacitySearchError = ref(false)
+const activeTab = ref("order")
 
 watch(() => model.value.cargo_weight, () => {
     if (!!model.value.cargo_weight) {
@@ -707,1057 +708,1094 @@ const downloadForCarrier = () => {
 </script>
 
 <template>
-<div v-if="authStore.userCan('ORDER_CLIENT_PRICE') || authStore.userCan('ORDER_CARRIER_PRICE')" :style="{
-    backgroundColor: '#f5f5f4',
-    padding: '10px 20px',
-    borderRadius: '6px'
-}">
-    <a-row>
-        <a-col :span="12" style="color: #737373">
-            <div>
-                <div style="display: flex; justify-content: space-between;">
-                    <div v-if="authStore.userCan('ORDER_MANAGER_STATUS')">
-                        <a-dropdown trigger="click">
-                            <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
-                                <template v-if="model.status_manager">
-                                    <a-tooltip>
-                                        <div style="display: flex; align-items: center; gap: 8px">
-                                            <div
-                                                v-if="model.status_manager"
-                                                :style="{backgroundColor: managerOrderStatuses[model.status_manager.status].color}"
-                                                style="width: 12px; height: 12px; border-radius: 8px"
-                                            />
-                                            {{ managerOrderStatuses[model.status_manager.status].label }}
-                                            <a-button v-if="isStatusLoading" type="text" shape="circle" loading/>
-                                        </div>
+<a-tabs v-model:activeKey="activeTab" style="margin-top: -20px">
+    <a-tab-pane key="order" tab="Заявка">
+        <div v-if="authStore.userCan('ORDER_CLIENT_PRICE') || authStore.userCan('ORDER_CARRIER_PRICE')" :style="{
+            backgroundColor: '#f5f5f4',
+            padding: '10px 20px',
+            borderRadius: '6px'
+        }">
+            <a-row>
+                <a-col :span="12" style="color: #737373">
+                    <div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <div v-if="authStore.userCan('ORDER_MANAGER_STATUS')">
+                                <a-dropdown trigger="click">
+                                    <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
+                                        <template v-if="model.status_manager">
+                                            <a-tooltip>
+                                                <div style="display: flex; align-items: center; gap: 8px">
+                                                    <div
+                                                        v-if="model.status_manager"
+                                                        :style="{backgroundColor: managerOrderStatuses[model.status_manager.status].color}"
+                                                        style="width: 12px; height: 12px; border-radius: 8px"
+                                                    />
+                                                    {{ managerOrderStatuses[model.status_manager.status].label }}
+                                                    <a-button v-if="isStatusLoading" type="text" shape="circle" loading/>
+                                                </div>
 
-                                        <template #title>
-                                            <UserOutlined />&nbsp;&nbsp;{{ model.status_manager.user }}<br/>
-                                            <span style="font-size: 12px">{{ dayjs(model.status_manager.updated_at).format('DD.MM.YY HH:mm') }}</span>
+                                                <template #title>
+                                                    <UserOutlined />&nbsp;&nbsp;{{ model.status_manager.user }}<br/>
+                                                    <span style="font-size: 12px">{{ dayjs(model.status_manager.updated_at).format('DD.MM.YY HH:mm') }}</span>
+                                                </template>
+                                            </a-tooltip>
                                         </template>
-                                    </a-tooltip>
-                                </template>
-                                <template v-else>–</template>
-                            </div>
-                            <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE') && model.status_manager" #overlay>
-                                <a-menu>
-                                    <a-menu-item @click="() => currStatusDate = dayjs(model.status_manager.updated_at)">
-                                        <a-popconfirm @confirm="async () => await updateStatusDate(model.status_manager.id, currStatusDate)">
-                                            <template #title>Новая дата статуса</template>
-                                            <template #icon />
-                                            <template #description>
-                                                <a-date-picker
-                                                    style="width: 200px"
-                                                    v-model:value="currStatusDate"
-                                                    :show-time="{ format: 'HH:mm' }"
-                                                    format="DD-MM-YYYY HH:mm"
-                                                    show-time
-                                                />
-                                            </template>
-                                            <CalendarOutlined />&nbsp;&nbsp;Сменить дату и время статуса
-                                        </a-popconfirm>
-                                    </a-menu-item>
-                                    <a-menu-divider />
-                                    <template v-for="(v, key) in managerOrderStatuses">
-                                        <a-menu-item v-if="key !== model.status_manager.status" @click="() => setOrderStatus(model.id, 'MANAGER', key)">
-                                            <div style="display: flex; flex-direction: row; align-items: center">
-                                                <div :style="{
-                                                width: '12px',
-                                                height: '12px',
-                                                backgroundColor: v.color,
-                                                borderRadius: '8px'
-                                                }"></div>
-                                                <div style="padding-left: 8px">{{ v.label }}</div>
-                                            </div>
-                                        </a-menu-item>
-                                    </template>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
-                    </div>
-                    <div v-if="authStore.userCan('CLIENTS_ORDERS_DOWNLOAD') && !!model.id" style="padding-right: 20px; font-size: 16px">
-                        <a-tooltip>
-                            <a-button :icon="h(DownloadOutlined)" size="middle" @click="downloadForClient">Скачать</a-button>
-                            <template #title>Скачать заявку для заказчика</template>
-                        </a-tooltip>
-                    </div>
-                </div>
-                <template v-if="authStore.userCan('ORDER_CLIENT_PRICE')">
-                    К оплате заказчику<template v-if="orderCalculation.order && orderCalculation.order.client_hours"> за {{orderCalculation.order.client_hours}} {{decl(orderCalculation.order.client_hours, ['час', 'часа', 'часов'])}}</template>:
-                    <div :style="{
-                        fontSize: '24px',
-                        fontWeight: '600',
-                        color: '#27272a'
-                    }">
-                        <div v-if="!clientPriceEditing" style="display: flex">
-                            <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')">
-                                <a class="ant-dropdown-link" @click.prevent>
-                                    <div style="display: flex;">
-                                        {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                                        <template v-else>–</template>
                                     </div>
-                                </a>
-                                <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')" #overlay>
+                                    <template v-if="authStore.userCan('ORDER_MANAGER_STATUS_CHANGE') && model.status_manager" #overlay>
+                                        <a-menu>
+                                            <a-menu-item @click="() => currStatusDate = dayjs(model.status_manager.updated_at)">
+                                                <a-popconfirm @confirm="async () => await updateStatusDate(model.status_manager.id, currStatusDate)">
+                                                    <template #title>Новая дата статуса</template>
+                                                    <template #icon />
+                                                    <template #description>
+                                                        <a-date-picker
+                                                            style="width: 200px"
+                                                            v-model:value="currStatusDate"
+                                                            :show-time="{ format: 'HH:mm' }"
+                                                            format="DD-MM-YYYY HH:mm"
+                                                            show-time
+                                                        />
+                                                    </template>
+                                                    <CalendarOutlined />&nbsp;&nbsp;Сменить дату и время статуса
+                                                </a-popconfirm>
+                                            </a-menu-item>
+                                            <a-menu-divider />
+                                            <template v-for="(v, key) in managerOrderStatuses">
+                                                <a-menu-item v-if="key !== model.status_manager.status" @click="() => setOrderStatus(model.id, 'MANAGER', key)">
+                                                    <div style="display: flex; flex-direction: row; align-items: center">
+                                                        <div :style="{
+                                                        width: '12px',
+                                                        height: '12px',
+                                                        backgroundColor: v.color,
+                                                        borderRadius: '8px'
+                                                        }"></div>
+                                                        <div style="padding-left: 8px">{{ v.label }}</div>
+                                                    </div>
+                                                </a-menu-item>
+                                            </template>
+                                        </a-menu>
+                                    </template>
+                                </a-dropdown>
+                            </div>
+                            <div v-if="authStore.userCan('CLIENTS_ORDERS_DOWNLOAD') && !!model.id" style="padding-right: 20px; font-size: 16px">
+                                <a-tooltip>
+                                    <a-button :icon="h(DownloadOutlined)" size="middle" @click="downloadForClient">Скачать</a-button>
+                                    <template #title>Скачать заявку для заказчика</template>
+                                </a-tooltip>
+                            </div>
+                        </div>
+                        <template v-if="authStore.userCan('ORDER_CLIENT_PRICE')">
+                            К оплате заказчику<template v-if="orderCalculation.order && orderCalculation.order.client_hours"> за {{orderCalculation.order.client_hours}} {{decl(orderCalculation.order.client_hours, ['час', 'часа', 'часов'])}}</template>:
+                            <div :style="{
+                                fontSize: '24px',
+                                fontWeight: '600',
+                                color: '#27272a'
+                            }">
+                                <div v-if="!clientPriceEditing" style="display: flex">
+                                    <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')">
+                                        <a class="ant-dropdown-link" @click.prevent>
+                                            <div style="display: flex;">
+                                                {{ model.client_sum ? parseFloat(model.client_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                                            </div>
+                                        </a>
+                                        <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CLIENT_PRICE')" #overlay>
+                                            <a-menu>
+                                                <a-menu-item :icon="h(EditOutlined)" @click="() => clientPriceEditing = true">
+                                                    Изменить сумму
+                                                </a-menu-item>
+                                                <a-menu-divider />
+                                                <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomClientPrice">
+                                                    Посчитать автоматически
+                                                </a-menu-item>
+                                            </a-menu>
+                                        </template>
+                                    </a-dropdown>
+                                    <div v-if="!orderCalculation.client.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
+                                        {{ (orderCalculation.client.sum + orderCalculation.client.expenses + orderCalculation.client.discount + orderCalculation.client.service).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                                    </div>
+                                </div>
+                                <div v-else style="display: flex; align-items: center">
+                                    <a-input-number
+                                        v-model:value="model.client_sum"
+                                        :min="0"
+                                        decimal-separator=","
+                                        style="width: 200px"
+                                    >
+                                        <template #addonAfter>₽</template>
+                                    </a-input-number>
+                                    <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomClientPrice"/>
+                                    <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomClientPrice"/>
+                                </div>
+                                <div :style="{
+                                    fontWeight: '400',
+                                    fontSize: '11px',
+                                    color: '#404040'
+                                }">
+                                    Допрасходы: {{clientExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                                    <a-divider type="vertical" />
+                                    Допуслуги: {{additionalServiceTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                                    <a-divider type="vertical" />
+                                    Скидка: {{clientDiscountsTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </a-col>
+                <a-col :span="12" style="color: #737373">
+                    <div style="display: flex; justify-content: space-between; align-items: center">
+                        <div v-if="authStore.userCan('ORDER_CARRIER_STATUS')">
+                            <a-dropdown trigger="click">
+                                <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
+                                    <template v-if="model.status_logist">
+                                        <a-tooltip>
+                                            <div style="display: flex; align-items: center; gap: 8px">
+                                                <div
+                                                    v-if="model.status_logist"
+                                                    :style="{backgroundColor: logistOrderStatuses[model.status_logist.status].color}"
+                                                    style="width: 12px; height: 12px; border-radius: 8px"
+                                                />
+                                                {{ logistOrderStatuses[model.status_logist.status].label }}
+                                                <a-button v-if="isStatusLoading" type="text" shape="circle" loading/>
+                                            </div>
+
+                                            <template #title>
+                                                <UserOutlined />&nbsp;&nbsp;{{ model.status_logist.user }}<br/>
+                                                <span style="font-size: 12px">{{ dayjs(model.status_logist.created_at).format('DD.MM.YY HH:mm') }}</span>
+                                            </template>
+                                        </a-tooltip>
+                                    </template>
+                                    <template v-else>–</template>
+                                </div>
+                                <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE') && model.status_logist" #overlay>
                                     <a-menu>
-                                        <a-menu-item :icon="h(EditOutlined)" @click="() => clientPriceEditing = true">
-                                            Изменить сумму
+                                        <a-menu-item @click="() => currStatusDate = dayjs(model.status_logist.updated_at)">
+                                            <a-popconfirm @confirm="async () => await updateStatusDate(model.status_logist.id, currStatusDate)">
+                                                <template #title>Новая дата статуса</template>
+                                                <template #icon />
+                                                <template #description>
+                                                    <a-date-picker
+                                                        style="width: 200px"
+                                                        v-model:value="currStatusDate"
+                                                        :show-time="{ format: 'HH:mm' }"
+                                                        format="DD-MM-YYYY HH:mm"
+                                                        show-time
+                                                    />
+                                                </template>
+                                                <CalendarOutlined />&nbsp;&nbsp;Сменить дату и время статуса
+                                            </a-popconfirm>
                                         </a-menu-item>
                                         <a-menu-divider />
-                                        <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomClientPrice">
-                                            Посчитать автоматически
-                                        </a-menu-item>
+                                        <template v-for="(v, key) in logistOrderStatuses">
+                                            <a-menu-item v-if="key !== model.status_logist.status" @click="() => setOrderStatus(model.id, 'LOGIST', key)">
+                                                <div style="display: flex; flex-direction: row; align-items: center">
+                                                    <div :style="{
+                                                        width: '12px',
+                                                        height: '12px',
+                                                        backgroundColor: v.color,
+                                                        borderRadius: '8px'
+                                                        }"></div>
+                                                    <div style="padding-left: 8px">{{ v.label }}</div>
+                                                </div>
+                                            </a-menu-item>
+                                        </template>
                                     </a-menu>
                                 </template>
                             </a-dropdown>
-                            <div v-if="!orderCalculation.client.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
-                                {{ (orderCalculation.client.sum + orderCalculation.client.expenses + orderCalculation.client.discount + orderCalculation.client.service).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
-                            </div>
                         </div>
-                        <div v-else style="display: flex; align-items: center">
-                            <a-input-number
-                                v-model:value="model.client_sum"
-                                :min="0"
-                                decimal-separator=","
-                                style="width: 200px"
-                            >
-                                <template #addonAfter>₽</template>
-                            </a-input-number>
-                            <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomClientPrice"/>
-                            <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomClientPrice"/>
+                        <div v-if="authStore.userCan('CARRIERS_ORDERS_DOWNLOAD') && !!model.id" style="font-size: 16px">
+                            <a-tooltip>
+                                <a-button :icon="h(DownloadOutlined)" size="middle" @click="downloadForCarrier">Скачать</a-button>
+                                <template #title>Скачать заявку для перевозчика</template>
+                            </a-tooltip>
                         </div>
+                    </div>
+                    <template v-if="authStore.userCan('ORDER_CARRIER_PRICE')">
+                        К оплате перевозчику<template v-if="orderCalculation.order && orderCalculation.order.carrier_hours"> за {{orderCalculation.order.carrier_hours}} {{decl(orderCalculation.order.carrier_hours, ['час', 'часа', 'часов'])}}</template>:
                         <div :style="{
-                            fontWeight: '400',
-                            fontSize: '11px',
-                            color: '#404040'
+                            fontSize: '24px',
+                            fontWeight: '600',
+                            color: '#27272a'
                         }">
-                            Допрасходы: {{clientExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                            <a-divider type="vertical" />
-                            Допуслуги: {{additionalServiceTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                            <a-divider type="vertical" />
-                            Скидка: {{clientDiscountsTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </a-col>
-        <a-col :span="12" style="color: #737373">
-            <div style="display: flex; justify-content: space-between; align-items: center">
-                <div v-if="authStore.userCan('ORDER_CARRIER_STATUS')">
-                    <a-dropdown trigger="click">
-                        <div style="color: #27272a; font-size: 16px; font-weight: 500; margin-bottom: 8px; width: fit-content; cursor: pointer">
-                            <template v-if="model.status_logist">
-                                <a-tooltip>
-                                    <div style="display: flex; align-items: center; gap: 8px">
-                                        <div
-                                            v-if="model.status_logist"
-                                            :style="{backgroundColor: logistOrderStatuses[model.status_logist.status].color}"
-                                            style="width: 12px; height: 12px; border-radius: 8px"
-                                        />
-                                        {{ logistOrderStatuses[model.status_logist.status].label }}
-                                        <a-button v-if="isStatusLoading" type="text" shape="circle" loading/>
-                                    </div>
-
-                                    <template #title>
-                                        <UserOutlined />&nbsp;&nbsp;{{ model.status_logist.user }}<br/>
-                                        <span style="font-size: 12px">{{ dayjs(model.status_logist.created_at).format('DD.MM.YY HH:mm') }}</span>
+                            <div v-if="!carrierPriceEditing" style="display: flex">
+                                <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')">
+                                    <a class="ant-dropdown-link" @click.prevent>
+                                        {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
+                                    </a>
+                                    <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')" #overlay>
+                                        <a-menu>
+                                            <a-menu-item :icon="h(EditOutlined)" @click="() => carrierPriceEditing = true">
+                                                Изменить сумму
+                                            </a-menu-item>
+                                            <a-menu-divider />
+                                            <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomCarrierPrice">
+                                                Посчитать автоматически
+                                            </a-menu-item>
+                                        </a-menu>
                                     </template>
-                                </a-tooltip>
-                            </template>
-                            <template v-else>–</template>
-                        </div>
-                        <template v-if="authStore.userCan('ORDER_CARRIER_STATUS_CHANGE') && model.status_logist" #overlay>
-                            <a-menu>
-                                <a-menu-item @click="() => currStatusDate = dayjs(model.status_logist.updated_at)">
-                                    <a-popconfirm @confirm="async () => await updateStatusDate(model.status_logist.id, currStatusDate)">
-                                        <template #title>Новая дата статуса</template>
-                                        <template #icon />
-                                        <template #description>
-                                            <a-date-picker
-                                                style="width: 200px"
-                                                v-model:value="currStatusDate"
-                                                :show-time="{ format: 'HH:mm' }"
-                                                format="DD-MM-YYYY HH:mm"
-                                                show-time
-                                            />
-                                        </template>
-                                        <CalendarOutlined />&nbsp;&nbsp;Сменить дату и время статуса
-                                    </a-popconfirm>
-                                </a-menu-item>
-                                <a-menu-divider />
-                                <template v-for="(v, key) in logistOrderStatuses">
-                                    <a-menu-item v-if="key !== model.status_logist.status" @click="() => setOrderStatus(model.id, 'LOGIST', key)">
-                                        <div style="display: flex; flex-direction: row; align-items: center">
-                                            <div :style="{
-                                                width: '12px',
-                                                height: '12px',
-                                                backgroundColor: v.color,
-                                                borderRadius: '8px'
-                                                }"></div>
-                                            <div style="padding-left: 8px">{{ v.label }}</div>
-                                        </div>
-                                    </a-menu-item>
-                                </template>
-                            </a-menu>
-                        </template>
-                    </a-dropdown>
-                </div>
-                <div v-if="authStore.userCan('CARRIERS_ORDERS_DOWNLOAD') && !!model.id" style="font-size: 16px">
-                    <a-tooltip>
-                        <a-button :icon="h(DownloadOutlined)" size="middle" @click="downloadForCarrier">Скачать</a-button>
-                        <template #title>Скачать заявку для перевозчика</template>
-                    </a-tooltip>
-                </div>
-            </div>
-            <template v-if="authStore.userCan('ORDER_CARRIER_PRICE')">
-                К оплате перевозчику<template v-if="orderCalculation.order && orderCalculation.order.carrier_hours"> за {{orderCalculation.order.carrier_hours}} {{decl(orderCalculation.order.carrier_hours, ['час', 'часа', 'часов'])}}</template>:
-                <div :style="{
-                    fontSize: '24px',
-                    fontWeight: '600',
-                    color: '#27272a'
-                }">
-                    <div v-if="!carrierPriceEditing" style="display: flex">
-                        <a-dropdown placement="bottom" :arrow="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')">
-                            <a class="ant-dropdown-link" @click.prevent>
-                                {{ model.carrier_sum ? parseFloat(model.carrier_sum).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : '–' }}
-                            </a>
-                            <template v-if="!prop.readOnly && authStore.userCan('ORDER_CUSTOM_CARRIER_PRICE')" #overlay>
-                                <a-menu>
-                                    <a-menu-item :icon="h(EditOutlined)" @click="() => carrierPriceEditing = true">
-                                        Изменить сумму
-                                    </a-menu-item>
-                                    <a-menu-divider />
-                                    <a-menu-item :icon="h(ReloadOutlined)" @click="resetCustomCarrierPrice">
-                                        Посчитать автоматически
-                                    </a-menu-item>
-                                </a-menu>
-                            </template>
-                        </a-dropdown>
-                        <div v-if="!orderCalculation.carrier.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
-                            {{ (orderCalculation.carrier.sum + orderCalculation.carrier.expenses - orderCalculation.carrier.fine).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
-                        </div>
-                    </div>
-                    <div v-else style="display: flex; align-items: center">
-                        <a-input-number
-                            v-model:value="model.carrier_sum"
-                            decimal-separator=","
-                            :min="0"
-                            style="width: 200px"
-                        >
-                            <template #addonAfter>₽</template>
-                        </a-input-number>
-                        <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomCarrierPrice"/>
-                        <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomCarrierPrice"/>
-                    </div>
-                    <div :style="{
-                                fontWeight: '400',
-                                fontSize: '11px',
-                                color: '#404040'
-                            }">
-                        Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                        <a-divider type="vertical" />
-                        Допуслуги: {{additionalServiceCarrierTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                        <a-divider type="vertical" />
-                        Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
-                    </div>
-                </div>
-            </template>
-        </a-col>
-    </a-row>
-</div>
-<a-form layout="vertical" :model="model" :disabled="readOnly">
-    <a-row :gutter="16">
-        <a-col v-if="authStore.userCan('ORDER_CARGO_SECTION')" :span="12">
-            <a-divider orientation="left">Груз</a-divider>
-            <a-form-item label="Наименование груза" name="cargo_name">
-                <a-auto-complete
-                    v-model:value="model.cargo_name"
-                    :options="cargoNameOptions"
-                    placeholder="Введите наименование груза"
-                    @search="handleCargoNameSearch"
-                ></a-auto-complete>
-            </a-form-item>
-            <a-space>
-                <a-form-item>
-                    <template #label>
-                        <div style="display: flex; justify-content: space-between; gap: 8px">
-                            <div>Вес груза</div>
-                            <a-segmented
-                                :style="{ marginTop: '-1px' }"
-                                v-model:value="weightSegmentsValue"
-                                :options="weightSegments"
-                                size="small"
-                                @change="handleWeightTypeChange"
-                            />
+                                </a-dropdown>
+                                <div v-if="!orderCalculation.carrier.calculated" style="vertical-align: super; font-size: 14px; margin-left: 8px; color: #575757; font-weight: 400; text-decoration: line-through">
+                                    {{ (orderCalculation.carrier.sum + orderCalculation.carrier.expenses - orderCalculation.carrier.fine).toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) }}
+                                </div>
+                            </div>
+                            <div v-else style="display: flex; align-items: center">
+                                <a-input-number
+                                    v-model:value="model.carrier_sum"
+                                    decimal-separator=","
+                                    :min="0"
+                                    style="width: 200px"
+                                >
+                                    <template #addonAfter>₽</template>
+                                </a-input-number>
+                                <a-button shape="circle" size="large" type="ghost" :icon="h(CheckCircleTwoTone)" @click.prevent="acceptCustomCarrierPrice"/>
+                                <a-button shape="circle" size="large" type="ghost" :icon="h(CloseCircleTwoTone)" @click.prevent="resetCustomCarrierPrice"/>
+                            </div>
+                            <div :style="{
+                                        fontWeight: '400',
+                                        fontSize: '11px',
+                                        color: '#404040'
+                                    }">
+                                Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                                <a-divider type="vertical" />
+                                Допуслуги: {{additionalServiceCarrierTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                                <a-divider type="vertical" />
+                                Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                            </div>
                         </div>
                     </template>
-                    <a-input-number
-                        v-model:value="cargoWeight"
-                        @change="handleCargoWeightChange"
-                        placeholder="Вес"
-                        decimal-separator=","
-                        :min="0"
-                        style="width: 100%"
-                    >
-                        <template #addonAfter>{{ weightSegmentsValue }}.</template>
-                    </a-input-number>
-                </a-form-item>
-                <a-form-item label="Температурный режим">
-                    <a-select
-                        v-model:value="model.cargo_temp"
-                        placeholder="Режим"
-                        style="width: 100%"
-                        :options="tConditionOptions"
-                        @focus="fetchTConditionOptions"
-                        :loading = "suggest.isLoading"
-                        @change="handleTempChange"
-                    />
-                </a-form-item>
-            </a-space>
-            <a-space>
-                <a-form-item label="Паллеты" style="width: 172px">
-                    <a-checkbox v-model:checked="model.cargo_in_pallets" @change="handlePalletsChange">Груз на паллетах</a-checkbox>
-                </a-form-item>
-                <a-form-item v-if="!!model.cargo_in_pallets" label="Количество палет">
-                    <a-input-number
-                        v-model:value="model.cargo_pallets_count"
-                        placeholder="Количество палет"
-                        @change="handlePalletsChange"
-                        decimal-separator=","
-                        style="width: 100%"
-                        :min="0"
-                    />
-                </a-form-item>
-            </a-space>
-        </a-col>
-        <a-col v-if="authStore.userCan('ORDER_CAR_SECTION')" :span="12 + (authStore.userCan('ORDER_CARGO_SECTION') ? 0 : 12)">
-            <a-divider orientation="left">Машина</a-divider>
-            <a-form-item label="Вместимость машины" name="type" :validate-status="capacitySearchError ? 'error': undefined" :help="capacitySearchError ? 'Невозможно подобрать вместимость машины' : undefined">
-                <a-select
-                    v-model:value="model.car_capacity_id"
-                    placeholder="Вместимость"
-                    :options="carCapacitiesOptions"
-                    @focus="fetchCarCapacities"
-                    :loading = "suggest.isLoading"
-                    @change="handlePRefresh"
-                />
-            </a-form-item>
-            <a-form-item label="Тип кузова">
-                <a-select
-                    v-model:value="model.vehicle_body_type"
-                    placeholder="Кузов"
-                    :options="carBodyTypesOptions"
-                    @focus="fetchBodyTypesOptions"
-                    :loading="suggest.isLoading"
-                    @change="handlePRefresh"
-                />
-            </a-form-item>
-            <a-form-item label="Загрузка">
-                <a-checkbox v-model:checked="model.vehicle_loading_rear">Задняя</a-checkbox>
-                <a-checkbox v-model:checked="model.vehicle_loading_lateral">Боковая</a-checkbox>
-                <a-checkbox v-model:checked="model.vehicle_loading_upper">Верхняя</a-checkbox>
-            </a-form-item>
-        </a-col>
-    </a-row>
-    <a-divider :dashed="true" style="margin: 0"/>
-    <a-row :gutter="16">
-        <a-col :span="12">
-            <a-tabs v-model:activeKey="currentClientTab">
-                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_SECTION')" key="client" tab="Заказчик" style="margin-top: -16px">
-                    <a-space direction="vertical" :style="{ width: '100%' }">
-                        <a-input-group compact>
-                            <a-select
-                                show-search
-                                v-model:value="model.client_id"
-                                placeholder="Выберите заказчика"
-                                :filter-option="false"
-                                :not-found-content="suggest.isLoading ? undefined : null"
-                                @search="handleClientSearch"
-                                @focus="handleClientSearchFocus"
-                                @change="handleClientChange"
-                                :options="clientOptions"
-                                style="width: calc(100% - 32px)"
+                </a-col>
+            </a-row>
+        </div>
+        <a-form layout="vertical" :model="model" :disabled="readOnly">
+            <a-row :gutter="16">
+                <a-col v-if="authStore.userCan('ORDER_CARGO_SECTION')" :span="12">
+                    <a-divider orientation="left">Груз</a-divider>
+                    <a-form-item label="Наименование груза" name="cargo_name">
+                        <a-auto-complete
+                            v-model:value="model.cargo_name"
+                            :options="cargoNameOptions"
+                            placeholder="Введите наименование груза"
+                            @search="handleCargoNameSearch"
+                        ></a-auto-complete>
+                    </a-form-item>
+                    <a-space>
+                        <a-form-item>
+                            <template #label>
+                                <div style="display: flex; justify-content: space-between; gap: 8px">
+                                    <div>Вес груза</div>
+                                    <a-segmented
+                                        :style="{ marginTop: '-1px' }"
+                                        v-model:value="weightSegmentsValue"
+                                        :options="weightSegments"
+                                        size="small"
+                                        @change="handleWeightTypeChange"
+                                    />
+                                </div>
+                            </template>
+                            <a-input-number
+                                v-model:value="cargoWeight"
+                                @change="handleCargoWeightChange"
+                                placeholder="Вес"
+                                decimal-separator=","
+                                :min="0"
+                                style="width: 100%"
                             >
-                                <template #option="{ label, inn }">
-                                    <div style="display: flex; justify-content: space-between; align-items: center">
-                                        <div>{{ label }}</div>
-                                        <div style="font-size: 11px; font-weight: 500">
-                                            {{ inn }}
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-if="suggest.isLoading" #notFoundContent>
-                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
-                                        <a-spin size="small" />
-                                    </div>
-                                </template>
-                            </a-select>
-                            <a-button :icon="h(SelectOutlined)" :disabled="!model.client_id" @click="openCurrentClient"/>
-                        </a-input-group>
-                        <a-select
-                            v-model:value="model.client_vat"
-                            placeholder="Выбор НДС"
-                            :style="{ width: '100%' }"
-                        >
-                            <a-select-option :value="0">Без НДС</a-select-option>
-                            <a-select-option :value="1">НДС</a-select-option>
-                            <a-select-option :value="2">Наличные</a-select-option>
-                        </a-select>
+                                <template #addonAfter>{{ weightSegmentsValue }}.</template>
+                            </a-input-number>
+                        </a-form-item>
+                        <a-form-item label="Температурный режим">
+                            <a-select
+                                v-model:value="model.cargo_temp"
+                                placeholder="Режим"
+                                style="width: 100%"
+                                :options="tConditionOptions"
+                                @focus="fetchTConditionOptions"
+                                :loading = "suggest.isLoading"
+                                @change="handleTempChange"
+                            />
+                        </a-form-item>
                     </a-space>
-                </a-tab-pane>
-                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_TARIFF_SECTION')" key="price" tab="Тариф">
-                    <a-space direction="vertical" style="width: 100%">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 150px; text-align: right"></div>
-                            <div style="flex-grow: 1">
-                                <a-dropdown @open-change="handlePriceLoadingOpen">
-                                    <a-button style="width: 100%">
-                                        Загрузить прайс...
-                                    </a-button>
-                                    <template #overlay>
-                                        <a-menu @click="() => {}">
-                                            <a-menu-item v-if="!model.car_capacity_id || !model.vehicle_body_type" disabled>Заполните параметры машины</a-menu-item>
-                                            <template v-else>
-                                                <a-menu-item
-                                                    key="cp"
-                                                    v-if="!!model.client_id"
-                                                    @click="async ()=>{applyClientPrice('CLIENT'); await orderCalculate(false)}"
-                                                >
-                                                    Прайс заказчика
-                                                </a-menu-item>
-                                                <a-menu-divider v-if="defaultPricesOptions.length > 0 && !!model.client_id" />
-                                                <a-menu-item
-                                                    v-for="defaultPrice in defaultPricesOptions"
-                                                    :key="defaultPrice.id"
-                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CLIENT'); await orderCalculate(false)}"
-                                                >
-                                                    {{defaultPrice.name}}
-                                                </a-menu-item>
-                                            </template>
-                                        </a-menu>
-                                    </template>
-                                </a-dropdown>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 150px; text-align: right">Ставка:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_hourly"
-                                    :min="0"
-                                    style="width: 100%"
-                                    decimal-separator=","
-                                    placeholder="Ставка"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">₽ / час</div>
-                                    </template>
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 150px; text-align: right">Минимум:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_min_hours"
-                                    :min="0"
-                                    decimal-separator=","
-                                    style="width: 100%"
-                                    placeholder="Минимум часов"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">час.</div>
-                                    </template>
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 150px; text-align: right">На подачу:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_hours_for_coming"
-                                    :min="0"
-                                    style="width: 100%"
-                                    decimal-separator=","
-                                    placeholder="Часов на подачу"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">час.</div>
-                                    </template>
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 150px; text-align: right">Тариф МКАД:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_mkad_price"
-                                    :min="0"
-                                    style="width: 100%"
-                                    decimal-separator=","
-                                    placeholder="Тариф поездки за МКАД"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">₽ / км.</div>
-                                    </template>
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 150px; text-align: right">Стоимость доп.часа:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_additional_hour_price"
-                                    :min="0"
-                                    style="width: 100%"
-                                    placeholder="Стоимость доп.часа"
-                                    decimal-separator=","
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">₽</div>
-                                    </template>
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 150px; text-align: right">Стоимость доп.точки:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_additional_point_price"
-                                    :min="0"
-                                    style="width: 100%"
-                                    decimal-separator=","
-                                    placeholder="Стоимость доп.точки"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">₽</div>
-                                    </template>
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 150px; text-align: right">Точек загрузки:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_loading_points"
-                                    :min="0"
-                                    decimal-separator=","
-                                    style="width: 100%"
-                                    placeholder="Включено точек загрузки"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 150px; text-align: right">Точек разгрузки:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_unloading_points"
-                                    :min="0"
-                                    style="width: 100%"
-                                    decimal-separator=","
-                                    placeholder="Включено точек разгрузки"
-                                    @change="() => orderCalculate(false)"
-                                >
-                                </a-input-number>
-                            </div>
-                        </div>
-                        <a-divider dashed style="margin: 0;" />
-                        <div style="display: flex; align-items: center; gap: 10px">
-                            <div style="width: 100px; text-align: right">За МКАД:</div>
-                            <div style="flex-grow: 1">
-                                <a-input-number
-                                    v-model:value="model.client_tariff_mkad_rate"
-                                    :min="0"
-                                    style="width: 100%"
-                                    decimal-separator=","
-                                    placeholder="Поездка за МКАД"
-                                    @change="(e) => { syncMKADRate(e); orderCalculate(false) }"
-                                >
-                                    <template #addonAfter>
-                                        <div style="width: 45px">км.</div>
-                                    </template>
-                                </a-input-number>
-                            </div>
-                        </div>
+                    <a-space>
+                        <a-form-item label="Паллеты" style="width: 172px">
+                            <a-checkbox v-model:checked="model.cargo_in_pallets" @change="handlePalletsChange">Груз на паллетах</a-checkbox>
+                        </a-form-item>
+                        <a-form-item v-if="!!model.cargo_in_pallets" label="Количество палет">
+                            <a-input-number
+                                v-model:value="model.cargo_pallets_count"
+                                placeholder="Количество палет"
+                                @change="handlePalletsChange"
+                                decimal-separator=","
+                                style="width: 100%"
+                                :min="0"
+                            />
+                        </a-form-item>
                     </a-space>
-                </a-tab-pane>
-                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_EXPENSES_SECTION')" key="expenses" tab="Допрасходы">
-                    <KeyValueTable
-                        v-model="model.client_expenses"
-                        :scroll="{y: 150}"
-                        header-key-text="Наименование"
-                        header-value-text="Cумма"
-                        :value-width="150"
-                        add-button-text="Добавить расход"
-                        key-placeholder-text="Расход"
-                        value-placeholder-text="Сумма"
-                        value-postfix-text="₽"
-                        :suggests="suggest.expensesSuggest"
-                        :read-only="prop.readOnly"
-                        @update="() => orderCalculate(false)"
-                        @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift({...el}) : model.carrier_expenses = [{...el}]"
-                    />
-                </a-tab-pane>
-                <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_DISCOUNT_SECTION')" key="discount" tab="Скидки">
-                    <KeyValueTable
-                        v-model="model.client_discounts"
-                        :scroll="{y: 150}"
-                        header-key-text="Скидка"
-                        header-value-text="Cумма"
-                        :value-width="150"
-                        add-button-text="Добавить скидку"
-                        key-placeholder-text="Скидка"
-                        value-placeholder-text="Сумма"
-                        value-postfix-text="₽"
-                        :read-only="prop.readOnly"
-                        @update="() => orderCalculate(false)"
-                    />
-                </a-tab-pane>
-            </a-tabs>
-        </a-col>
-        <a-col :span="12">
-            <a-tabs v-model:activeKey="currentCarrierTab">
-                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_SECTION')" key="carrier" tab="Перевозчик" style="margin-top: -16px">
-                    <a-space direction="vertical" :style="{ width: '100%' }">
-                        <a-input-group compact>
-                            <a-select
-                                show-search
-                                v-model:value="model.carrier_id"
-                                placeholder="Выберите перевозчика"
-                                :style="{ width: '100%' }"
-                                :filter-option="false"
-                                :not-found-content="suggest.isLoading ? undefined : null"
-                                @search="handleCarrierSearch"
-                                @focus="handleCarrierSearchFocus"
-                                @change="handleCarrierChange"
-                                :options="carrierOptions"
-                                style="width: calc(100% - 32px)"
-                            >
-                                <template #option="{ label, inn }">
-                                    <div style="display: flex; justify-content: space-between; align-items: center">
-                                        <div>{{ label }}</div>
-                                        <div style="font-size: 11px; font-weight: 500">
-                                            {{ inn }}
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-if="suggest.isLoading" #notFoundContent>
-                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
-                                        <a-spin size="small" />
-                                    </div>
-                                </template>
-                            </a-select>
-                            <a-button :icon="h(SelectOutlined)" :disabled="!model.carrier_id" @click="openCurrentCarrier"/>
-                        </a-input-group>
+                </a-col>
+                <a-col v-if="authStore.userCan('ORDER_CAR_SECTION')" :span="12 + (authStore.userCan('ORDER_CARGO_SECTION') ? 0 : 12)">
+                    <a-divider orientation="left">Машина</a-divider>
+                    <a-form-item label="Вместимость машины" name="type" :validate-status="capacitySearchError ? 'error': undefined" :help="capacitySearchError ? 'Невозможно подобрать вместимость машины' : undefined">
                         <a-select
-                            v-model:value="model.carrier_vat"
-                            placeholder="Выбор НДС"
-                            :style="{ width: '100%' }"
-                        >
-                            <a-select-option :value="0">Без НДС</a-select-option>
-                            <a-select-option :value="1">НДС</a-select-option>
-                            <a-select-option :value="2">Наличные</a-select-option>
-                        </a-select>
-                        <template v-if="!!model.carrier_id">
-                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Водитель{{model.carrier_driver && model.carrier_driver.inn ? ` - ИНН: ${model.carrier_driver.inn}` : '' }}</a-divider>
-                            <a-select
-                                v-model:value="model.carrier_driver_id"
-                                placeholder="Выберите водителя"
-                                :style="{ width: '100%' }"
-                                :options="driversOptions"
-                                @focus="fetchDriversByCarrier"
-                                @change="handleDriverChange"
-                            >
-                                <template #option="{ name, phone, inn }">
-                                    <div style="display: flex; justify-content: space-between; align-items: center">
-                                        <div>{{ name }}</div>
-                                        <div style="font-size: 11px; font-weight: 500">
-                                            {{ phone }}
-                                        </div>
-                                    </div>
-                                    <div v-if="inn" style="font-size: 11px; font-weight: 500">ИНН: {{inn}}</div>
-                                </template>
-                                <template v-if="suggest.isLoading" #notFoundContent>
-                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
-                                        <a-spin size="small" />
-                                    </div>
-                                </template>
-                            </a-select>
-                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Машина</a-divider>
-                            <a-select
-                                v-model:value="model.carrier_car_id"
-                                placeholder="Выберите машину"
-                                :style="{ width: '100%' }"
-                                @focus="fetchCarsByCarrier"
-                                :options="carsOptions"
-                                @change="handleCarChange"
-                            >
-                                <template #option="car">
-                                    <div style="display:flex; flex-direction: column">
-                                        <div style="display: flex; justify-content: space-between; align-items: center">
-                                            <div>{{ car.name }}</div>
-                                            <div style="font-size: 11px; font-weight: 500">
-                                                {{ car.plate_number }}
-                                            </div>
-                                        </div>
-                                        <div style="font-size: 11px">
-                                            {{ carTypes[car.type] }}
-                                            <template v-if="!!car.body_type">
-                                                <a-divider type="vertical" />{{ car.body_type }}
-                                            </template>
-                                            <template v-if="!!car.tonnage">
-                                                <a-divider type="vertical" />{{ car.tonnage }} т
-                                            </template>
-                                            <template v-if="!!car.volume">
-                                                <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
-                                            </template>
-                                            <template v-if="!!car.pallets_count">
-                                                <a-divider type="vertical" />{{ car.pallets_count }} п
-                                            </template>
-                                        </div>
-                                    </div>
-                                </template>
-                                <template v-if="suggest.isLoading" #notFoundContent>
-                                    <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
-                                        <a-spin size="small" />
-                                    </div>
-                                </template>
-                            </a-select>
-                            <template v-if="currentCarIsTractor">
-                                <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Прицеп</a-divider>
-                                <a-select
-                                    v-model:value="model.carrier_trailer_id"
-                                    placeholder="Выберите прицеп"
-                                    :style="{ width: '100%' }"
-                                    @focus="fetchTrailersByCarrier"
-                                    :options="trailerOptions"
-                                >
-                                    <template #option="car">
-                                        <div style="display:flex; flex-direction: column">
+                            v-model:value="model.car_capacity_id"
+                            placeholder="Вместимость"
+                            :options="carCapacitiesOptions"
+                            @focus="fetchCarCapacities"
+                            :loading = "suggest.isLoading"
+                            @change="handlePRefresh"
+                        />
+                    </a-form-item>
+                    <a-form-item label="Тип кузова">
+                        <a-select
+                            v-model:value="model.vehicle_body_type"
+                            placeholder="Кузов"
+                            :options="carBodyTypesOptions"
+                            @focus="fetchBodyTypesOptions"
+                            :loading="suggest.isLoading"
+                            @change="handlePRefresh"
+                        />
+                    </a-form-item>
+                    <a-form-item label="Загрузка">
+                        <a-checkbox v-model:checked="model.vehicle_loading_rear">Задняя</a-checkbox>
+                        <a-checkbox v-model:checked="model.vehicle_loading_lateral">Боковая</a-checkbox>
+                        <a-checkbox v-model:checked="model.vehicle_loading_upper">Верхняя</a-checkbox>
+                    </a-form-item>
+                </a-col>
+            </a-row>
+            <a-divider :dashed="true" style="margin: 0"/>
+            <a-row :gutter="16">
+                <a-col :span="12">
+                    <a-tabs v-model:activeKey="currentClientTab">
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_SECTION')" key="client" tab="Заказчик" style="margin-top: -16px">
+                            <a-space direction="vertical" :style="{ width: '100%' }">
+                                <a-input-group compact>
+                                    <a-select
+                                        show-search
+                                        v-model:value="model.client_id"
+                                        placeholder="Выберите заказчика"
+                                        :filter-option="false"
+                                        :not-found-content="suggest.isLoading ? undefined : null"
+                                        @search="handleClientSearch"
+                                        @focus="handleClientSearchFocus"
+                                        @change="handleClientChange"
+                                        :options="clientOptions"
+                                        style="width: calc(100% - 32px)"
+                                    >
+                                        <template #option="{ label, inn }">
                                             <div style="display: flex; justify-content: space-between; align-items: center">
-                                                <div>{{ car.name }}</div>
+                                                <div>{{ label }}</div>
                                                 <div style="font-size: 11px; font-weight: 500">
-                                                    {{ car.plate_number }}
+                                                    {{ inn }}
                                                 </div>
                                             </div>
-                                            <div style="font-size: 11px">
-                                                {{ carTypes[car.type] }}
-                                                <template v-if="!!car.body_type">
-                                                    <a-divider type="vertical" />{{ car.body_type }}
-                                                </template>
-                                                <template v-if="!!car.tonnage">
-                                                    <a-divider type="vertical" />{{ car.tonnage }} т
-                                                </template>
-                                                <template v-if="!!car.volume">
-                                                    <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
-                                                </template>
-                                                <template v-if="!!car.pallets_count">
-                                                    <a-divider type="vertical" />{{ car.pallets_count }} п
-                                                </template>
+                                        </template>
+                                        <template v-if="suggest.isLoading" #notFoundContent>
+                                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                                <a-spin size="small" />
                                             </div>
-                                        </div>
-                                    </template>
-                                    <template v-if="suggest.isLoading" #notFoundContent>
-                                        <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
-                                            <a-spin size="small" />
-                                        </div>
-                                    </template>
+                                        </template>
+                                    </a-select>
+                                    <a-button :icon="h(SelectOutlined)" :disabled="!model.client_id" @click="openCurrentClient"/>
+                                </a-input-group>
+                                <a-select
+                                    v-model:value="model.client_vat"
+                                    placeholder="Выбор НДС"
+                                    :style="{ width: '100%' }"
+                                >
+                                    <a-select-option :value="0">Без НДС</a-select-option>
+                                    <a-select-option :value="1">НДС</a-select-option>
+                                    <a-select-option :value="2">Наличные</a-select-option>
                                 </a-select>
-                            </template>
-                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Одометр загрузка / разгрузка</a-divider>
-                            <a-row :gutter="8">
-                                <a-col :span="12">
-                                    <a-input
-                                        v-model:value="model.carrier_odometer_start"
-                                        type="number"
-                                        placeholder="Одометр загрузка"
-                                    />
-                                </a-col>
-                                <a-col :span="12">
-                                    <a-input
-                                        v-model:value="model.carrier_odometer_end"
-                                        type="number"
-                                        placeholder="Одометр разгрузка"
-                                    />
-                                </a-col>
-                            </a-row>
-                            <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Время завершения заказа</a-divider>
-                            <a-date-picker
-                                v-model:value="model.ended_at"
-                                format="DD.MM.YYYY HH:mm"
-                                :show-time="{ defaultValue: dayjs('00:00', 'HH:mm') }"
-                                style="width: 100%"
-                                @change="() => orderCalculate(false)"
-                            />
-                        </template>
-                    </a-space>
-                </a-tab-pane>
-                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_TARIFF_SECTION')" key="price" tab="Тариф">
-                    <a-space direction="vertical" style="width: 100%">
-                        <div v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier" style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 150px; text-align: right"></div>
-                            <div style="flex-grow: 1">
-                                <a-dropdown @open-change="handlePriceLoadingOpen">
-                                    <a-button style="width: 100%">
-                                        Загрузить прайс...
-                                    </a-button>
-                                    <template #overlay>
-                                        <a-menu @click="() => {}">
-                                            <a-menu-item v-if="!model.car_capacity_id || !model.vehicle_body_type" disabled>Заполните параметры машины</a-menu-item>
-                                            <template v-else>
-                                                <a-menu-item
-                                                    key="cp"
-                                                    v-if="!!model.client_id"
-                                                    @click="async ()=>{applyClientPrice('CARRIER'); await orderCalculate(false)}"
-                                                >
-                                                    Прайс заказчика
-                                                </a-menu-item>
-                                                <a-menu-divider v-if="defaultPricesOptions.length > 0 && !!model.client_id" />
-                                                <a-menu-item
-                                                    v-for="defaultPrice in defaultPricesOptions"
-                                                    :key="defaultPrice.id"
-                                                    @click="async () => {applyDefaultPrice(defaultPrice, 'CARRIER'); await orderCalculate(false)}"
-                                                >
-                                                    {{defaultPrice.name}}
-                                                </a-menu-item>
+                            </a-space>
+                        </a-tab-pane>
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_TARIFF_SECTION')" key="price" tab="Тариф">
+                            <a-space direction="vertical" style="width: 100%">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 150px; text-align: right"></div>
+                                    <div style="flex-grow: 1">
+                                        <a-dropdown @open-change="handlePriceLoadingOpen">
+                                            <a-button style="width: 100%">
+                                                Загрузить прайс...
+                                            </a-button>
+                                            <template #overlay>
+                                                <a-menu @click="() => {}">
+                                                    <a-menu-item v-if="!model.car_capacity_id || !model.vehicle_body_type" disabled>Заполните параметры машины</a-menu-item>
+                                                    <template v-else>
+                                                        <a-menu-item
+                                                            key="cp"
+                                                            v-if="!!model.client_id"
+                                                            @click="async ()=>{applyClientPrice('CLIENT'); await orderCalculate(false)}"
+                                                        >
+                                                            Прайс заказчика
+                                                        </a-menu-item>
+                                                        <a-menu-divider v-if="defaultPricesOptions.length > 0 && !!model.client_id" />
+                                                        <a-menu-item
+                                                            v-for="defaultPrice in defaultPricesOptions"
+                                                            :key="defaultPrice.id"
+                                                            @click="async () => {applyDefaultPrice(defaultPrice, 'CLIENT'); await orderCalculate(false)}"
+                                                        >
+                                                            {{defaultPrice.name}}
+                                                        </a-menu-item>
+                                                    </template>
+                                                </a-menu>
                                             </template>
-                                        </a-menu>
-                                    </template>
-                                </a-dropdown>
-                            </div>
-                        </div>
-                        <a-alert v-if="model.carrier && model.carrier.is_resident" type="info">
-                            <template #message>
-                                Перевозчик - резидент. Применен тариф заказчика.
-                            </template>
-                        </a-alert>
-                        <template v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 150px; text-align: right">Ставка:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_hourly"
-                                        :min="0"
-                                        style="width: 100%"
-                                        placeholder="Ставка"
-                                        decimal-separator=","
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                        <template #addonAfter>
-                                            <div style="width: 45px">₽ / час</div>
-                                        </template>
-                                    </a-input-number>
+                                        </a-dropdown>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 150px; text-align: right">Минимум:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_min_hours"
-                                        :min="0"
-                                        style="width: 100%"
-                                        decimal-separator=","
-                                        placeholder="Минимум часов"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                        <template #addonAfter><div style="width: 45px">час.</div></template>
-                                    </a-input-number>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 150px; text-align: right">На подачу:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_hours_for_coming"
-                                        :min="0"
-                                        style="width: 100%"
-                                        decimal-separator=","
-                                        placeholder="Часов на подачу"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                        <template #addonAfter>
-                                            <div style="width: 45px">час.</div>
-                                        </template>
-                                    </a-input-number>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 150px; text-align: right">Тариф МКАД:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_mkad_price"
-                                        :min="0"
-                                        style="width: 100%"
-                                        decimal-separator=","
-                                        placeholder="Тариф поездки за МКАД"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                        <template #addonAfter>
-                                            <div style="width: 45px">₽ / км.</div>
-                                        </template>
-                                    </a-input-number>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 150px; text-align: right">Стоимость доп.часа:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_additional_hour_price"
-                                        :min="0"
-                                        decimal-separator=","
-                                        style="width: 100%"
-                                        placeholder="Стоимость доп.часа"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                        <template #addonAfter>
-                                            <div style="width: 45px">₽</div>
-                                        </template>
-                                    </a-input-number>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 150px; text-align: right">Стоимость доп.точки:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_additional_point_price"
-                                        :min="0"
-                                        style="width: 100%"
-                                        decimal-separator=","
-                                        placeholder="Стоимость доп.точки"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                        <template #addonAfter>
-                                            <div style="width: 45px">₽</div>
-                                        </template>
-                                    </a-input-number>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 150px; text-align: right">Точек загрузки:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_loading_points"
-                                        :min="0"
-                                        style="width: 100%"
-                                        decimal-separator=","
-                                        placeholder="Включено точек загрузки"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                    </a-input-number>
-                                </div>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 150px; text-align: right">Точек разгрузки:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_unloading_points"
-                                        :min="0"
-                                        decimal-separator=","
-                                        style="width: 100%"
-                                        placeholder="Включено точек разгрузки"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                    </a-input-number>
-                                </div>
-                            </div>
-                            <a-divider dashed style="margin: 0;" />
-                            <div style="display: flex; align-items: center; gap: 10px">
-                                <div style="width: 100px; text-align: right">За МКАД:</div>
-                                <div style="flex-grow: 1">
-                                    <a-input-number
-                                        v-model:value="model.carrier_tariff_mkad_rate"
-                                        :min="0"
-                                        style="width: 100%"
-                                        decimal-separator=","
-                                        placeholder="Поездка за МКАД"
-                                        @change="() => orderCalculate(false)"
-                                    >
-                                        <template #addonAfter>
-                                            <div style="width: 45px">км.</div>
-                                        </template>
-                                    </a-input-number>
-                                </div>
-                            </div>
-                        </template>
-                    </a-space>
-                </a-tab-pane>
-                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_EXPENSES_SECTION')" key="expenses" tab="Допрасходы">
-                    <KeyValueTable
-                        v-model="model.carrier_expenses"
-                        :scroll="{y: 150}"
-                        header-key-text="Наименование"
-                        header-value-text="Cумма"
-                        :value-width="150"
-                        add-button-text="Добавить расход"
-                        key-placeholder-text="Расход"
-                        value-placeholder-text="Сумма"
-                        value-postfix-text="₽"
-                        :suggests="suggest.expensesSuggest"
-                        :read-only="prop.readOnly"
-                        @update="() => orderCalculate(false)"
-                        @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift({...el}) : model.client_expense = [{...el}]"
-                    />
-                </a-tab-pane>
-                <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_FINES_SECTION')" key="fines" tab="Штрафы">
-                    <KeyValueTable
-                        v-model="model.carrier_fines"
-                        :scroll="{y: 150}"
-                        header-key-text="Штраф"
-                        header-value-text="Cумма"
-                        :value-width="150"
-                        add-button-text="Добавить штраф"
-                        key-placeholder-text="Штраф"
-                        value-placeholder-text="Сумма"
-                        value-postfix-text="₽"
-                        :read-only="prop.readOnly"
-                        @update="() => orderCalculate(false)"
-                        @add="()=>{}"
-                    />
-                </a-tab-pane>
-            </a-tabs>
-        </a-col>
-    </a-row>
-    <a-row v-if="authStore.userCan('ORDER_LOCATION_FROM_SECTION') || authStore.userCan('ORDER_LOCATION_TO_SECTION')" :gutter="16" style="padding-top: 16px">
-        <a-col v-if="authStore.userCan('ORDER_LOCATION_FROM_SECTION')" :span="12 + (authStore.userCan('ORDER_LOCATION_TO_SECTION') ? 0 : 12)">
-            <AddressList
-                v-model="model.from_locations"
-                title="Откуда"
-                add-button-text="Добавить адрес загрузки"
-                @change="() => orderCalculate(false)"
-                :client-id="model.client_id"
-            />
-        </a-col>
-        <a-col v-if="authStore.userCan('ORDER_LOCATION_TO_SECTION')" :span="12 + (authStore.userCan('ORDER_LOCATION_FROM_SECTION') ? 0 : 12)">
-            <AddressList
-                v-model="model.to_locations"
-                title="Куда"
-                add-button-text="Добавить адрес разгрузки"
-                @change="() => orderCalculate(false)"
-                :client-id="model.client_id"
-            />
-        </a-col>
-    </a-row>
-    <template v-if="authStore.userCan('ORDER_ADDITIONAL_SERVICES')">
-        <a-divider orientation="left">Дополнительные услуги</a-divider>
-        <SelectAdditionalServicesTable
-            v-model="model.additional_service"
-            :cid="model.client_id"
-            value-postfix-text="₽"
-            :select-fetcher="suggest.getAdditionalServices"
-            @change="() => orderCalculate(false)"
-            :read-only="prop.readOnly"
-            :without-selected="false"
-        />
-    </template>
-</a-form>
 
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 150px; text-align: right">Ставка:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_hourly"
+                                            :min="0"
+                                            style="width: 100%"
+                                            decimal-separator=","
+                                            placeholder="Ставка"
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                            <template #addonAfter>
+                                                <div style="width: 45px">₽ / час</div>
+                                            </template>
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 150px; text-align: right">Минимум:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_min_hours"
+                                            :min="0"
+                                            decimal-separator=","
+                                            style="width: 100%"
+                                            placeholder="Минимум часов"
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                            <template #addonAfter>
+                                                <div style="width: 45px">час.</div>
+                                            </template>
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 150px; text-align: right">На подачу:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_hours_for_coming"
+                                            :min="0"
+                                            style="width: 100%"
+                                            decimal-separator=","
+                                            placeholder="Часов на подачу"
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                            <template #addonAfter>
+                                                <div style="width: 45px">час.</div>
+                                            </template>
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 150px; text-align: right">Тариф МКАД:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_mkad_price"
+                                            :min="0"
+                                            style="width: 100%"
+                                            decimal-separator=","
+                                            placeholder="Тариф поездки за МКАД"
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                            <template #addonAfter>
+                                                <div style="width: 45px">₽ / км.</div>
+                                            </template>
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 150px; text-align: right">Стоимость доп.часа:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_additional_hour_price"
+                                            :min="0"
+                                            style="width: 100%"
+                                            placeholder="Стоимость доп.часа"
+                                            decimal-separator=","
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                            <template #addonAfter>
+                                                <div style="width: 45px">₽</div>
+                                            </template>
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 150px; text-align: right">Стоимость доп.точки:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_additional_point_price"
+                                            :min="0"
+                                            style="width: 100%"
+                                            decimal-separator=","
+                                            placeholder="Стоимость доп.точки"
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                            <template #addonAfter>
+                                                <div style="width: 45px">₽</div>
+                                            </template>
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 150px; text-align: right">Точек загрузки:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_loading_points"
+                                            :min="0"
+                                            decimal-separator=","
+                                            style="width: 100%"
+                                            placeholder="Включено точек загрузки"
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 150px; text-align: right">Точек разгрузки:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_unloading_points"
+                                            :min="0"
+                                            style="width: 100%"
+                                            decimal-separator=","
+                                            placeholder="Включено точек разгрузки"
+                                            @change="() => orderCalculate(false)"
+                                        >
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                                <a-divider dashed style="margin: 0;" />
+                                <div style="display: flex; align-items: center; gap: 10px">
+                                    <div style="width: 100px; text-align: right">За МКАД:</div>
+                                    <div style="flex-grow: 1">
+                                        <a-input-number
+                                            v-model:value="model.client_tariff_mkad_rate"
+                                            :min="0"
+                                            style="width: 100%"
+                                            decimal-separator=","
+                                            placeholder="Поездка за МКАД"
+                                            @change="(e) => { syncMKADRate(e); orderCalculate(false) }"
+                                        >
+                                            <template #addonAfter>
+                                                <div style="width: 45px">км.</div>
+                                            </template>
+                                        </a-input-number>
+                                    </div>
+                                </div>
+                            </a-space>
+                        </a-tab-pane>
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_EXPENSES_SECTION')" key="expenses" tab="Допрасходы">
+                            <KeyValueTable
+                                v-model="model.client_expenses"
+                                :scroll="{y: 150}"
+                                header-key-text="Наименование"
+                                header-value-text="Cумма"
+                                :value-width="150"
+                                add-button-text="Добавить расход"
+                                key-placeholder-text="Расход"
+                                value-placeholder-text="Сумма"
+                                value-postfix-text="₽"
+                                :suggests="suggest.expensesSuggest"
+                                :read-only="prop.readOnly"
+                                @update="() => orderCalculate(false)"
+                                @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift({...el}) : model.carrier_expenses = [{...el}]"
+                            />
+                        </a-tab-pane>
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_DISCOUNT_SECTION')" key="discount" tab="Скидки">
+                            <KeyValueTable
+                                v-model="model.client_discounts"
+                                :scroll="{y: 150}"
+                                header-key-text="Скидка"
+                                header-value-text="Cумма"
+                                :value-width="150"
+                                add-button-text="Добавить скидку"
+                                key-placeholder-text="Скидка"
+                                value-placeholder-text="Сумма"
+                                value-postfix-text="₽"
+                                :read-only="prop.readOnly"
+                                @update="() => orderCalculate(false)"
+                            />
+                        </a-tab-pane>
+                    </a-tabs>
+                </a-col>
+                <a-col :span="12">
+                    <a-tabs v-model:activeKey="currentCarrierTab">
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_SECTION')" key="carrier" tab="Перевозчик" style="margin-top: -16px">
+                            <a-space direction="vertical" :style="{ width: '100%' }">
+                                <a-input-group compact>
+                                    <a-select
+                                        show-search
+                                        v-model:value="model.carrier_id"
+                                        placeholder="Выберите перевозчика"
+                                        :style="{ width: '100%' }"
+                                        :filter-option="false"
+                                        :not-found-content="suggest.isLoading ? undefined : null"
+                                        @search="handleCarrierSearch"
+                                        @focus="handleCarrierSearchFocus"
+                                        @change="handleCarrierChange"
+                                        :options="carrierOptions"
+                                        style="width: calc(100% - 32px)"
+                                    >
+                                        <template #option="{ label, inn }">
+                                            <div style="display: flex; justify-content: space-between; align-items: center">
+                                                <div>{{ label }}</div>
+                                                <div style="font-size: 11px; font-weight: 500">
+                                                    {{ inn }}
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template v-if="suggest.isLoading" #notFoundContent>
+                                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                                <a-spin size="small" />
+                                            </div>
+                                        </template>
+                                    </a-select>
+                                    <a-button :icon="h(SelectOutlined)" :disabled="!model.carrier_id" @click="openCurrentCarrier"/>
+                                </a-input-group>
+                                <a-select
+                                    v-model:value="model.carrier_vat"
+                                    placeholder="Выбор НДС"
+                                    :style="{ width: '100%' }"
+                                >
+                                    <a-select-option :value="0">Без НДС</a-select-option>
+                                    <a-select-option :value="1">НДС</a-select-option>
+                                    <a-select-option :value="2">Наличные</a-select-option>
+                                </a-select>
+                                <template v-if="!!model.carrier_id">
+                                    <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Водитель{{model.carrier_driver && model.carrier_driver.inn ? ` - ИНН: ${model.carrier_driver.inn}` : '' }}</a-divider>
+                                    <a-select
+                                        v-model:value="model.carrier_driver_id"
+                                        placeholder="Выберите водителя"
+                                        :style="{ width: '100%' }"
+                                        :options="driversOptions"
+                                        @focus="fetchDriversByCarrier"
+                                        @change="handleDriverChange"
+                                    >
+                                        <template #option="{ name, phone, inn }">
+                                            <div style="display: flex; justify-content: space-between; align-items: center">
+                                                <div>{{ name }}</div>
+                                                <div style="font-size: 11px; font-weight: 500">
+                                                    {{ phone }}
+                                                </div>
+                                            </div>
+                                            <div v-if="inn" style="font-size: 11px; font-weight: 500">ИНН: {{inn}}</div>
+                                        </template>
+                                        <template v-if="suggest.isLoading" #notFoundContent>
+                                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                                <a-spin size="small" />
+                                            </div>
+                                        </template>
+                                    </a-select>
+                                    <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Машина</a-divider>
+                                    <a-select
+                                        v-model:value="model.carrier_car_id"
+                                        placeholder="Выберите машину"
+                                        :style="{ width: '100%' }"
+                                        @focus="fetchCarsByCarrier"
+                                        :options="carsOptions"
+                                        @change="handleCarChange"
+                                    >
+                                        <template #option="car">
+                                            <div style="display:flex; flex-direction: column">
+                                                <div style="display: flex; justify-content: space-between; align-items: center">
+                                                    <div>{{ car.name }}</div>
+                                                    <div style="font-size: 11px; font-weight: 500">
+                                                        {{ car.plate_number }}
+                                                    </div>
+                                                </div>
+                                                <div style="font-size: 11px">
+                                                    {{ carTypes[car.type] }}
+                                                    <template v-if="!!car.body_type">
+                                                        <a-divider type="vertical" />{{ car.body_type }}
+                                                    </template>
+                                                    <template v-if="!!car.tonnage">
+                                                        <a-divider type="vertical" />{{ car.tonnage }} т
+                                                    </template>
+                                                    <template v-if="!!car.volume">
+                                                        <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
+                                                    </template>
+                                                    <template v-if="!!car.pallets_count">
+                                                        <a-divider type="vertical" />{{ car.pallets_count }} п
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+                                        <template v-if="suggest.isLoading" #notFoundContent>
+                                            <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                                <a-spin size="small" />
+                                            </div>
+                                        </template>
+                                    </a-select>
+                                    <template v-if="currentCarIsTractor">
+                                        <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Прицеп</a-divider>
+                                        <a-select
+                                            v-model:value="model.carrier_trailer_id"
+                                            placeholder="Выберите прицеп"
+                                            :style="{ width: '100%' }"
+                                            @focus="fetchTrailersByCarrier"
+                                            :options="trailerOptions"
+                                        >
+                                            <template #option="car">
+                                                <div style="display:flex; flex-direction: column">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center">
+                                                        <div>{{ car.name }}</div>
+                                                        <div style="font-size: 11px; font-weight: 500">
+                                                            {{ car.plate_number }}
+                                                        </div>
+                                                    </div>
+                                                    <div style="font-size: 11px">
+                                                        {{ carTypes[car.type] }}
+                                                        <template v-if="!!car.body_type">
+                                                            <a-divider type="vertical" />{{ car.body_type }}
+                                                        </template>
+                                                        <template v-if="!!car.tonnage">
+                                                            <a-divider type="vertical" />{{ car.tonnage }} т
+                                                        </template>
+                                                        <template v-if="!!car.volume">
+                                                            <a-divider type="vertical" />{{ car.volume }} м<sup>3</sup>
+                                                        </template>
+                                                        <template v-if="!!car.pallets_count">
+                                                            <a-divider type="vertical" />{{ car.pallets_count }} п
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            <template v-if="suggest.isLoading" #notFoundContent>
+                                                <div style="display: flex; justify-content: center; align-items: center; min-height: 100px">
+                                                    <a-spin size="small" />
+                                                </div>
+                                            </template>
+                                        </a-select>
+                                    </template>
+                                    <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Одометр загрузка / разгрузка</a-divider>
+                                    <a-row :gutter="8">
+                                        <a-col :span="12">
+                                            <a-input
+                                                v-model:value="model.carrier_odometer_start"
+                                                type="number"
+                                                placeholder="Одометр загрузка"
+                                            />
+                                        </a-col>
+                                        <a-col :span="12">
+                                            <a-input
+                                                v-model:value="model.carrier_odometer_end"
+                                                type="number"
+                                                placeholder="Одометр разгрузка"
+                                            />
+                                        </a-col>
+                                    </a-row>
+                                    <a-divider dashed style="margin: 0; font-size: 11px" orientation="left" orientation-margin="0">Время завершения заказа</a-divider>
+                                    <a-date-picker
+                                        v-model:value="model.ended_at"
+                                        format="DD.MM.YYYY HH:mm"
+                                        :show-time="{ defaultValue: dayjs('00:00', 'HH:mm') }"
+                                        style="width: 100%"
+                                        @change="() => orderCalculate(false)"
+                                    />
+                                </template>
+                            </a-space>
+                        </a-tab-pane>
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_TARIFF_SECTION')" key="price" tab="Тариф">
+                            <a-space direction="vertical" style="width: 100%">
+                                <div v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier" style="display: flex; align-items: center; gap: 10px;">
+                                    <div style="width: 150px; text-align: right"></div>
+                                    <div style="flex-grow: 1">
+                                        <a-dropdown @open-change="handlePriceLoadingOpen">
+                                            <a-button style="width: 100%">
+                                                Загрузить прайс...
+                                            </a-button>
+                                            <template #overlay>
+                                                <a-menu @click="() => {}">
+                                                    <a-menu-item v-if="!model.car_capacity_id || !model.vehicle_body_type" disabled>Заполните параметры машины</a-menu-item>
+                                                    <template v-else>
+                                                        <a-menu-item
+                                                            key="cp"
+                                                            v-if="!!model.client_id"
+                                                            @click="async ()=>{applyClientPrice('CARRIER'); await orderCalculate(false)}"
+                                                        >
+                                                            Прайс заказчика
+                                                        </a-menu-item>
+                                                        <a-menu-divider v-if="defaultPricesOptions.length > 0 && !!model.client_id" />
+                                                        <a-menu-item
+                                                            v-for="defaultPrice in defaultPricesOptions"
+                                                            :key="defaultPrice.id"
+                                                            @click="async () => {applyDefaultPrice(defaultPrice, 'CARRIER'); await orderCalculate(false)}"
+                                                        >
+                                                            {{defaultPrice.name}}
+                                                        </a-menu-item>
+                                                    </template>
+                                                </a-menu>
+                                            </template>
+                                        </a-dropdown>
+                                    </div>
+                                </div>
+                                <a-alert v-if="model.carrier && model.carrier.is_resident" type="info">
+                                    <template #message>
+                                        Перевозчик - резидент. Применен тариф заказчика.
+                                    </template>
+                                </a-alert>
+                                <template v-if="(model.carrier && !model.carrier.is_resident) || !model.carrier">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 150px; text-align: right">Ставка:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_hourly"
+                                                :min="0"
+                                                style="width: 100%"
+                                                placeholder="Ставка"
+                                                decimal-separator=","
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                                <template #addonAfter>
+                                                    <div style="width: 45px">₽ / час</div>
+                                                </template>
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 150px; text-align: right">Минимум:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_min_hours"
+                                                :min="0"
+                                                style="width: 100%"
+                                                decimal-separator=","
+                                                placeholder="Минимум часов"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                                <template #addonAfter><div style="width: 45px">час.</div></template>
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 150px; text-align: right">На подачу:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_hours_for_coming"
+                                                :min="0"
+                                                style="width: 100%"
+                                                decimal-separator=","
+                                                placeholder="Часов на подачу"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                                <template #addonAfter>
+                                                    <div style="width: 45px">час.</div>
+                                                </template>
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 150px; text-align: right">Тариф МКАД:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_mkad_price"
+                                                :min="0"
+                                                style="width: 100%"
+                                                decimal-separator=","
+                                                placeholder="Тариф поездки за МКАД"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                                <template #addonAfter>
+                                                    <div style="width: 45px">₽ / км.</div>
+                                                </template>
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 150px; text-align: right">Стоимость доп.часа:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_additional_hour_price"
+                                                :min="0"
+                                                decimal-separator=","
+                                                style="width: 100%"
+                                                placeholder="Стоимость доп.часа"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                                <template #addonAfter>
+                                                    <div style="width: 45px">₽</div>
+                                                </template>
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 150px; text-align: right">Стоимость доп.точки:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_additional_point_price"
+                                                :min="0"
+                                                style="width: 100%"
+                                                decimal-separator=","
+                                                placeholder="Стоимость доп.точки"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                                <template #addonAfter>
+                                                    <div style="width: 45px">₽</div>
+                                                </template>
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 150px; text-align: right">Точек загрузки:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_loading_points"
+                                                :min="0"
+                                                style="width: 100%"
+                                                decimal-separator=","
+                                                placeholder="Включено точек загрузки"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 150px; text-align: right">Точек разгрузки:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_unloading_points"
+                                                :min="0"
+                                                decimal-separator=","
+                                                style="width: 100%"
+                                                placeholder="Включено точек разгрузки"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                    <a-divider dashed style="margin: 0;" />
+                                    <div style="display: flex; align-items: center; gap: 10px">
+                                        <div style="width: 100px; text-align: right">За МКАД:</div>
+                                        <div style="flex-grow: 1">
+                                            <a-input-number
+                                                v-model:value="model.carrier_tariff_mkad_rate"
+                                                :min="0"
+                                                style="width: 100%"
+                                                decimal-separator=","
+                                                placeholder="Поездка за МКАД"
+                                                @change="() => orderCalculate(false)"
+                                            >
+                                                <template #addonAfter>
+                                                    <div style="width: 45px">км.</div>
+                                                </template>
+                                            </a-input-number>
+                                        </div>
+                                    </div>
+                                </template>
+                            </a-space>
+                        </a-tab-pane>
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_EXPENSES_SECTION')" key="expenses" tab="Допрасходы">
+                            <KeyValueTable
+                                v-model="model.carrier_expenses"
+                                :scroll="{y: 150}"
+                                header-key-text="Наименование"
+                                header-value-text="Cумма"
+                                :value-width="150"
+                                add-button-text="Добавить расход"
+                                key-placeholder-text="Расход"
+                                value-placeholder-text="Сумма"
+                                value-postfix-text="₽"
+                                :suggests="suggest.expensesSuggest"
+                                :read-only="prop.readOnly"
+                                @update="() => orderCalculate(false)"
+                                @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift({...el}) : model.client_expense = [{...el}]"
+                            />
+                        </a-tab-pane>
+                        <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_FINES_SECTION')" key="fines" tab="Штрафы">
+                            <KeyValueTable
+                                v-model="model.carrier_fines"
+                                :scroll="{y: 150}"
+                                header-key-text="Штраф"
+                                header-value-text="Cумма"
+                                :value-width="150"
+                                add-button-text="Добавить штраф"
+                                key-placeholder-text="Штраф"
+                                value-placeholder-text="Сумма"
+                                value-postfix-text="₽"
+                                :read-only="prop.readOnly"
+                                @update="() => orderCalculate(false)"
+                                @add="()=>{}"
+                            />
+                        </a-tab-pane>
+                    </a-tabs>
+                </a-col>
+            </a-row>
+            <a-row v-if="authStore.userCan('ORDER_LOCATION_FROM_SECTION') || authStore.userCan('ORDER_LOCATION_TO_SECTION')" :gutter="16" style="padding-top: 16px">
+                <a-col v-if="authStore.userCan('ORDER_LOCATION_FROM_SECTION')" :span="12 + (authStore.userCan('ORDER_LOCATION_TO_SECTION') ? 0 : 12)">
+                    <AddressList
+                        v-model="model.from_locations"
+                        title="Откуда"
+                        add-button-text="Добавить адрес загрузки"
+                        @change="() => orderCalculate(false)"
+                        :client-id="model.client_id"
+                    />
+                </a-col>
+                <a-col v-if="authStore.userCan('ORDER_LOCATION_TO_SECTION')" :span="12 + (authStore.userCan('ORDER_LOCATION_FROM_SECTION') ? 0 : 12)">
+                    <AddressList
+                        v-model="model.to_locations"
+                        title="Куда"
+                        add-button-text="Добавить адрес разгрузки"
+                        @change="() => orderCalculate(false)"
+                        :client-id="model.client_id"
+                    />
+                </a-col>
+            </a-row>
+            <template v-if="authStore.userCan('ORDER_ADDITIONAL_SERVICES')">
+                <a-divider orientation="left">Дополнительные услуги</a-divider>
+                <SelectAdditionalServicesTable
+                    v-model="model.additional_service"
+                    :cid="model.client_id"
+                    value-postfix-text="₽"
+                    :select-fetcher="suggest.getAdditionalServices"
+                    @change="() => orderCalculate(false)"
+                    :read-only="prop.readOnly"
+                    :without-selected="false"
+                />
+            </template>
+        </a-form>
+    </a-tab-pane>
+    <a-tab-pane key="statuses" tab="Статусы" :disabled="!model.id">
+        <a-row>
+            <a-col :span="12">
+                <a-typography-title :level="4" style="padding-bottom: 16px">Менеджер</a-typography-title>
+                <template v-if="isArray(model.statuses)">
+                    <a-timeline>
+                        <a-timeline-item v-for="status in model.statuses.filter((e) => e.type === 'MANAGER')" :color="managerOrderStatuses[status.status].color">
+                            <p>{{ dayjs(status.updated_at).format("DD.MM.YYYY HH:mm") }} ({{ status.user }})</p>
+                            <p>
+                                <span style="font-weight: 600">
+                                    {{ managerOrderStatuses[status.status].label }}
+                                </span>
+                            </p>
+                        </a-timeline-item>
+                    </a-timeline>
+                </template>
+            </a-col>
+            <a-col :span="12">
+                <a-typography-title :level="4" style="padding-bottom: 16px">Логист</a-typography-title>
+                <template v-if="isArray(model.statuses)">
+                    <a-timeline>
+                        <a-timeline-item v-for="status in model.statuses.filter((e) => e.type === 'LOGIST')" :color="logistOrderStatuses[status.status].color">
+                            <p>{{ dayjs(status.updated_at).format("DD.MM.YYYY HH:mm") }} ({{ status.user }})</p>
+                            <p>
+                                <span style="font-weight: 600">
+                                    {{ logistOrderStatuses[status.status].label }}
+                                </span>
+                            </p>
+                        </a-timeline-item>
+                    </a-timeline>
+                </template>
+            </a-col>
+        </a-row>
+    </a-tab-pane>
+</a-tabs>
 <drawer
     v-model:open="clientDrawer.isOpen"
     @save="saveClient"

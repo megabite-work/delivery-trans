@@ -29,6 +29,15 @@ use Illuminate\Support\Facades\Date;
         return implode(', ', $res);
     }
 
+    function gatAdditionalServices($exp) {
+        $a = json_decode($exp);
+        $res = [];
+        foreach ($a == null ? [] : $a as $service) {
+            $res[] = $service->k.' - '.($service->vp??0).' x '.($service->c??1).' - '.($service->vp??0)*($service->c??1).'₽';
+        }
+        return implode(', ', $res);
+    }
+
     function ordersByDrivers($orders) {
         $res = [];
         foreach ($orders as $order) {
@@ -124,7 +133,10 @@ use Illuminate\Support\Facades\Date;
                     <td style="text-align: right">{{ $order->hours['client'] }}</td>
                     <td style="text-align: right">{{ $order->carrier_tariff_mkad_price ?? 0 }} ₽</td>
                     <td style="text-align: right">{{ $order->carrier_tariff_mkad_rate > 0 ? $order->carrier_tariff_mkad_rate : 0 }}</td>
-                    <td>{{ gatAdditionalExpenses($order->carrier_expenses) }}</td>
+                    <td>
+                        {{ gatAdditionalExpenses($order->carrier_expenses) }}<br/>
+                        {{ gatAdditionalServices($order->additional_service) }}
+                    </td>
                     <td style="text-align: right">{{ $order->carrier_sum }} ₽</td>
                 </tr>
             @endforeach

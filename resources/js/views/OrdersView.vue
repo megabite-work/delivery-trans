@@ -137,11 +137,12 @@ const columns = computed(() => {
     })
 })
 
-const copyOrder = () => {
+const copyOrder = async () => {
     try {
         mainDrawer.isLoading = true
-        ordersStore.copyOrder(currentOrder.data.id)
+        const orderId = await ordersStore.copyOrder(currentOrder.data.id)
         closeMainDrawer()
+        await openMainDrawer(orderId)
     } finally {
         mainDrawer.isLoading = false
     }

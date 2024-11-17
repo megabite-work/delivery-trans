@@ -10,10 +10,12 @@ import Drawer from "../components/Drawer.vue";
 import Client from "../components/models/Client.vue";
 import Registry from "../components/models/Registry.vue";
 
-import { DownloadOutlined } from "@ant-design/icons-vue";
+import {CopyOutlined, DownloadOutlined} from "@ant-design/icons-vue";
 import { UserIcon, BuildingOfficeIcon } from '@heroicons/vue/20/solid';
 import {managerOrderStatuses, logistOrderStatuses, decl} from "../helpers/index.js";
 import {useAuthStore} from "../stores/auth.js";
+import {useOrdersStore} from "../stores/models/orders.js";
+import Order from "../components/models/Order.vue";
 
 
 const columnsClients = ref([
@@ -48,6 +50,7 @@ const vatArr = ['Без НДС', 'НДС', 'Нал'];
 const authStore = useAuthStore()
 const clientsStore = useClientsStore()
 const registriesStore = useRegistriesStore()
+const ordersStore = useOrdersStore()
 
 const clientHeight = ref(document.documentElement.clientHeight)
 const currentClient = reactive({ data:{ id: null }, modified: false })
@@ -55,6 +58,7 @@ const currentRegistry = reactive({ data:{ id: null }, modified: false })
 const mainDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 const registryDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
 const orderDrawer = reactive({ isOpen: false, isSaving: false, isLoading: false })
+const currentOrder = reactive({ data:{ id: null }, modified: false })
 
 const registrySelectionState = ref({})
 
@@ -70,6 +74,74 @@ if (authStore.userCan('CLIENTS_REGISTRIES_VIEW')) {
             ]},
         { title: 'Реестры без оплаты', key: 'debt_with_bill', width: 150 },
     ])
+}
+
+const openOrderDrawer = async (orderId = null) => {
+    currentOrder.data = { id: null }
+    currentOrder.modified = false
+    orderDrawer.isOpen = true
+    if (orderId !== null) {
+        try {
+            orderDrawer.isLoading = true
+            currentOrder.data = await ordersStore.getOrder(orderId)
+        } catch (e) {
+            orderDrawer.isOpen = false
+            message.error('Ошибка загрузки')
+            console.log(e)
+        } finally {
+            orderDrawer.isLoading = false
+        }
+    }
+}
+
+const closeOrderDrawer = () => {
+    if (orderDrawer.isSaving) {
+        return
+    }
+    orderDrawer.isOpen = false
+    currentOrder.data = { id: null }
+}
+
+const saveOrder = async () => {
+    orderDrawer.isSaving = true
+    try {
+        if (authStore.userCan('ORDERS_EDIT')) {
+            currentOrder.data = await ordersStore.storeOrder(currentOrder.data)
+            message.success('Заказ записан')
+            currentOrder.modified = false
+            orderDrawer.isSaving = false
+        }
+    } catch {
+        message.error('Ошибка. Не удалось записать заказ')
+    } finally {
+        orderDrawer.isSaving = false
+        await clientsStore.refreshDataList()
+    }
+}
+
+const deleteOrder = async () => {
+    if (currentOrder.data.id === null || !authStore.userCan('ORDERS_DELETE')) {
+        return
+    }
+    try {
+        await ordersStore.deleteOrder(currentOrder.data.id)
+        message.success('Заказ успешно удален')
+        closeOrderDrawer()
+        await clientsStore.refreshDataList()
+    } catch {
+        message.error('Ошибка. Не удалось удалить заказ')
+    }
+}
+
+const copyOrder = async () => {
+    try {
+        orderDrawer.isLoading = true
+        const orderId = await ordersStore.copyOrder(currentOrder.data.id)
+        closeOrderDrawer()
+        await openOrderDrawer(orderId)
+    } finally {
+        orderDrawer.isLoading = false
+    }
 }
 
 const clientHasSelectedOrders = computed(() => (clientId => registrySelectionState.value[clientId] && registrySelectionState.value[clientId].length > 0))
@@ -305,6 +377,14 @@ const registryTableRowFn = record => ({ onClick: () =>
     }
 })
 
+const ordersTableRowFn = record => ({ onClick: () =>
+    {
+        if (record.id > 0 && authStore.userCan('ORDERS_VIEW')) {
+            openOrderDrawer(record.id)
+        }
+    }
+})
+
 onMounted(() => {
     clientsStore.refreshDataList()
     window.addEventListener('resize', updateClientHeight)
@@ -465,6 +545,8 @@ onBeforeUnmount(() => {
                             <template v-if="record.orders && record.orders.length > 0">
                                 <div :style="{ paddingTop: record.id === 0 ? '8px' : '0' }">
                                     <a-table
+                                        :custom-row="ordersTableRowFn"
+                                        :row-class-name="() => 'cursor-pointer'"
                                         size="small"
                                         :columns="columnsOrders"
                                         :data-source="registryOrdersList(record)"
@@ -572,6 +654,38 @@ onBeforeUnmount(() => {
                 :loading="registryDrawer.isLoading"
                 :errors="registriesStore.err?.errors"
                 :read-only="(!authStore.userCan('CLIENTS_REGISTRIES_EDIT') && currentRegistry.data.id !== null) || (!authStore.userCan('CLIENTS_REGISTRIES_CREATE') && currentRegistry.data.id === null)"
+            />
+        </drawer>
+
+        <drawer
+            v-model:open="orderDrawer.isOpen"
+            @save="saveOrder"
+            @delete="deleteOrder"
+            @close="closeOrderDrawer"
+            :width="900"
+            :loading="orderDrawer.isLoading"
+            :saving="orderDrawer.isSaving"
+            :ok-loading="orderDrawer.isSaving"
+            :title="`Заявка #${currentOrder.data.id}`"
+            ok-text="Сохранить"
+            :need-delete="currentOrder.data.id !== null && authStore.userCan('ORDERS_DELETE')"
+            :need-ok="authStore.userCan('ORDERS_EDIT') || authStore.userCan('ORDERS_ADD')"
+            need-deletion-confirm-text="Вы уверены? Заявка будет удалена!"
+            delete-text="Удалить"
+            :maskClosable="currentOrder.data.id !== null"
+            :closable="currentOrder.data.id !== null"
+        >
+            <template v-if="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)" #extra>
+                <div style="color: #9ca3af">Только для просмотра</div>
+            </template>
+            <template v-else-if="authStore.userCan('ORDERS_ADD') && currentOrder.data.id !== null" #extra>
+                <a-button :icon="h(CopyOutlined)" @click="copyOrder">Скопировать заказ</a-button>
+            </template>
+            <Order
+                :read-only="(!authStore.userCan('ORDERS_EDIT') && currentOrder.data.id !== null) || (!authStore.userCan('ORDERS_ADD') && currentOrder.data.id === null)"
+                v-model="currentOrder.data"
+                :loading="mainDrawer.isLoading"
+                :errors="ordersStore.err?.errors"
             />
         </drawer>
     </Layout>

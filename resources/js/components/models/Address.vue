@@ -94,6 +94,7 @@ const getClientSuggest = async (type, q) => {
                     :options="contactOptions"
                     @search="searchContact"
                     @focus="() => searchContact(modelValue.contact_person ?? '')"
+                    placeholder="Контактное лицо"
                 >
                     <template #option="opt">
                         <div>
@@ -102,12 +103,24 @@ const getClientSuggest = async (type, q) => {
                         </div>
                     </template>
                 </a-auto-complete>
-<!--                <a-input-->
-<!--                    :value="modelValue.contact_person"-->
-<!--                    @change="(e) => emit('update:modelValue', {-->
-<!--                        ...modelValue, contact_person: e.target.value-->
-<!--                    })"-->
-<!--                />-->
+                <a-auto-complete
+                    :value="modelValue.contact_person2"
+                    @change="(e) => emit('update:modelValue', {
+                        ...modelValue, contact_person2: e
+                    })"
+                    :options="contactOptions"
+                    @search="searchContact"
+                    @focus="() => searchContact(modelValue.contact_person2 ?? '')"
+                    style="padding-top: 10px"
+                    placeholder="Контактное лицо"
+                >
+                    <template #option="opt">
+                        <div>
+                            <div style="font-weight: 500">{{ opt.value }}</div>
+                            <div style="font-size: 12px">{{ opt.note }}</div>
+                        </div>
+                    </template>
+                </a-auto-complete>
             </a-form-item>
         </a-col>
         <a-col style="width: 50%">
@@ -120,6 +133,7 @@ const getClientSuggest = async (type, q) => {
                     :options="phoneOptions"
                     @search="searchPhone"
                     @focus="() => searchPhone(modelValue.contact_phone ?? '')"
+                    placeholder="Номер телефона"
                 >
                     <template #option="opt">
                         <div>
@@ -128,12 +142,24 @@ const getClientSuggest = async (type, q) => {
                         </div>
                     </template>
                 </a-auto-complete>
-<!--                <a-input-->
-<!--                    :value="modelValue.contact_phone"-->
-<!--                    @change="(e) => emit('update:modelValue', {-->
-<!--                        ...modelValue, contact_phone: e.target.value-->
-<!--                    })"-->
-<!--                />-->
+                <a-auto-complete
+                    :value="modelValue.contact_phone2"
+                    @change="(e) => emit('update:modelValue', {
+                        ...modelValue, contact_phone2: e
+                    })"
+                    :options="phoneOptions"
+                    @search="searchPhone"
+                    @focus="() => searchPhone(modelValue.contact_phone2 ?? '')"
+                    style="padding-top: 10px"
+                    placeholder="Номер телефона"
+                >
+                    <template #option="opt">
+                        <div>
+                            <div style="font-weight: 500">{{ opt.value }}</div>
+                            <div style="font-size: 12px">{{ opt.note }}</div>
+                        </div>
+                    </template>
+                </a-auto-complete>
             </a-form-item>
         </a-col>
     </a-row>
