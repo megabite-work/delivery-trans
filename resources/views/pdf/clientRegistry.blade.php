@@ -28,6 +28,15 @@
         }
         return implode(', ', $res);
     }
+
+    function gatAdditionalServices($exp) {
+        $a = json_decode($exp);
+        $res = [];
+        foreach ($a == null ? [] : $a as $service) {
+            $res[] = $service->k.' - '.($service->v??0).' x '.($service->c??1).' - '.($service->v??0)*($service->c??1).'₽';
+        }
+        return implode(', ', $res);
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="ru">
@@ -110,7 +119,10 @@
                     <td style="text-align: right">{{ $order->hours['client'] }}</td>
                     <td style="text-align: right">{{ $order->client_tariff_mkad_price ?? 0 }}₽</td>
                     <td style="text-align: right">{{ $order->client_tariff_mkad_rate > 0 ? $order->client_tariff_mkad_rate : 0 }}</td>
-                    <td>{{ gatAdditionalExpenses($order->client_expenses) }}</td>
+                    <td>
+                        {{ gatAdditionalExpenses($order->client_expenses) }}<br/>
+                        {{ gatAdditionalServices($order->additional_service) }}
+                    </td>
                     <td style="text-align: right">{{ $order->client_sum }}₽</td>
                 </tr>
             @endforeach
