@@ -91,7 +91,7 @@ const deleteAddress = () => {
                     <div>
                         {{ item.item.contact_phone }}
                     </div>
-                    <template v-if="item.item.contact_person2 !== '' || item.item.contact_phone2">
+                    <template v-if="(item.item.contact_person2 && item.item.contact_person2 !== '') || (item.item.contact_phone2 && item.item.contact_phone2 !== '')">
                         <a-divider style="margin: 5px 0 0 0" dashed />
                         <div style="padding-top: 5px">
                             {{ item.item.contact_person2 }}
