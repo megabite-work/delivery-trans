@@ -96,10 +96,25 @@ export const useOrdersStore = defineStore('orders', () => {
         try {
             const sourceOrder = await getOrder(order_id)
             delete sourceOrder.id
-            await createOrder(sourceOrder)
+            if (isArray(sourceOrder.from_locations)) {
+                sourceOrder.from_locations.forEach((loc) => {
+                    loc.arrive_date = dayjs()
+                })
+            }
+            if (isArray(sourceOrder.to_locations)) {
+                sourceOrder.to_locations.forEach((loc) => {
+                    loc.arrive_date = dayjs()
+                })
+            }
+            const newOrder = await createOrder(sourceOrder)
             await refreshDataList()
+            if (newOrder) {
+                return newOrder.id
+            }
+            return null
         } catch (e) {
             message.error("Не удалось скопировать заказ")
+            return null
         }
     }
 
