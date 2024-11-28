@@ -40,7 +40,7 @@ class DriverController extends Controller
             "phone" => 'nullable|string',
             "email" => 'nullable|string',
             "license_number" => 'nullable|string',
-            "license_experition" => 'nullable|date',
+            "license_expiration" => 'nullable|date',
             "is_active" => 'nullable|boolean',
         ]);
         $driver = Driver::create($data);
@@ -75,7 +75,7 @@ class DriverController extends Controller
             "phone" => 'nullable|string',
             "email" => 'nullable|string',
             "license_number" => 'nullable|string',
-            "license_experition" => 'nullable|date',
+            "license_expiration" => 'nullable|date',
             "is_active" => 'nullable|boolean',
         ]);
         $driver->update($data);
