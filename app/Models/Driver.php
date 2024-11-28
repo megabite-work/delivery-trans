@@ -25,7 +25,7 @@ class Driver extends Model
         "phone",
         "email",
         "license_number",
-        "license_experition",
+        "license_expiration",
         "is_active",
     ];
 
