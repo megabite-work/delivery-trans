@@ -957,7 +957,7 @@ const downloadForCarrier = () => {
                                     }">
                                 Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                                 <a-divider type="vertical" />
-                                Допуслуги: {{additionalServiceCarrierTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                                Допуслуги: {{model.carrier && model.carrier.is_resident ? additionalServiceTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : additionalServiceCarrierTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                                 <a-divider type="vertical" />
                                 Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                             </div>
@@ -1757,6 +1757,7 @@ const downloadForCarrier = () => {
                     @change="() => orderCalculate(false)"
                     :read-only="prop.readOnly"
                     :without-selected="false"
+                    :one-price-only="model.carrier && model.carrier.is_resident"
                 />
             </template>
         </a-form>
