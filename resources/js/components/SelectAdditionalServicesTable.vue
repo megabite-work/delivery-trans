@@ -20,15 +20,25 @@ const prop = defineProps({
     scroll: { type: Object, required: false },
     valuePostfixText: {type: String, default: ''},
     size: {type: String, default: 'small'},
-    readOnly: {type: Boolean, default: false }
+    readOnly: {type: Boolean, default: false},
+    onePriceOnly: {type: Boolean, default: false}
 })
 
-const columns = [
-    {key: 'k', title: 'Услуга'},
-    {key: 'c', title: 'Кол-во', width: 150},
-    {key: 'v', title: 'Цена клиент', width: 150},
-    {key: 'vp', title: 'Цена перевозчик', width: 150},
-]
+const columns = computed(() => {
+    if (prop.onePriceOnly) {
+        return [
+            {key: 'k', title: 'Услуга'},
+            {key: 'c', title: 'Кол-во', width: 150},
+            {key: 'v', title: 'Цена', width: 150},
+        ]
+    }
+    return [
+        {key: 'k', title: 'Услуга'},
+        {key: 'c', title: 'Кол-во', width: 150},
+        {key: 'v', title: 'Цена клиент', width: 150},
+        {key: 'vp', title: 'Цена перевозчик', width: 150},
+    ]
+})
 
 const optionsList = ref([])
 const loading = ref(false)

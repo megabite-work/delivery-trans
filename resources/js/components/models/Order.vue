@@ -957,7 +957,7 @@ const downloadForCarrier = () => {
                                     }">
                                 Допрасходы: {{carrierExpensesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                                 <a-divider type="vertical" />
-                                Допуслуги: {{additionalServiceCarrierTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
+                                Допуслуги: {{model.carrier && model.carrier.is_resident ? additionalServiceTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'}) : additionalServiceCarrierTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                                 <a-divider type="vertical" />
                                 Штрафы: {{carrierFinesTotal.toLocaleString('ru-RU', {style: 'currency', currency: 'RUB'})}}
                             </div>
@@ -1305,7 +1305,7 @@ const downloadForCarrier = () => {
                                 :suggests="suggest.expensesSuggest"
                                 :read-only="prop.readOnly"
                                 @update="() => orderCalculate(false)"
-                                @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift({...el}) : model.carrier_expenses = [{...el}]"
+                                @add="(el) => isArray(model.carrier_expenses) ? model.carrier_expenses.unshift({...el, v: (el.v / (model.client_vat === 1 ? 1.2 : 1)).toFixed(2)}) : model.carrier_expenses = [{...el, v: (el.v / (model.client_vat === 1 ? 1.2 : 1)).toFixed(2)}]"
                             />
                         </a-tab-pane>
                         <a-tab-pane v-if="authStore.userCan('ORDER_CLIENT_DISCOUNT_SECTION')" key="discount" tab="Скидки">
@@ -1705,7 +1705,7 @@ const downloadForCarrier = () => {
                                 :suggests="suggest.expensesSuggest"
                                 :read-only="prop.readOnly"
                                 @update="() => orderCalculate(false)"
-                                @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift({...el}) : model.client_expense = [{...el}]"
+                                @add="(el) => isArray(model.client_expenses) ? model.client_expenses.unshift({...el, v: (el.v * (model.client_vat === 1 ? 1.2 : 1)).toFixed(2)}) : model.client_expenses = [{...el, v: (el.v * (model.client_vat === 1 ? 1.2 : 1)).toFixed(2)}]"
                             />
                         </a-tab-pane>
                         <a-tab-pane v-if="authStore.userCan('ORDER_CARRIER_FINES_SECTION')" key="fines" tab="Штрафы">
@@ -1757,6 +1757,7 @@ const downloadForCarrier = () => {
                     @change="() => orderCalculate(false)"
                     :read-only="prop.readOnly"
                     :without-selected="false"
+                    :one-price-only="model.carrier && model.carrier.is_resident"
                 />
             </template>
         </a-form>

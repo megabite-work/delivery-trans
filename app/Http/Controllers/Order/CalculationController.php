@@ -185,8 +185,11 @@ class CalculationController extends Controller
             foreach ($request->get('additional_service') as $item) {
                 if (array_key_exists('v', $item)) {
                     $res["client"]["service"] += $item['v'] * (key_exists('c', $item) ? $item['c'] : 1);
+                    if ($carrier_resident) {
+                        $res["carrier"]["service"] += $item['v'] * (key_exists('c', $item) ? $item['c'] : 1);
+                    }
                 }
-                if (array_key_exists('vp', $item)) {
+                if (array_key_exists('vp', $item) && !$carrier_resident) {
                     $res["carrier"]["service"] += $item['vp'] * (key_exists('c', $item) ? $item['c'] : 1);
                 }
             }
