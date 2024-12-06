@@ -61,7 +61,7 @@ class DOTXController extends Controller
         $response->headers->set('Cache-Control', 'max-age=0');
         $disposition = HeaderUtils::makeDisposition(
             HeaderUtils::DISPOSITION_ATTACHMENT,
-            'Order_'.$order->id.'_client.docx'
+            'Order_'.$order->id.'_client.doc'
         );
         $response->headers->set('Content-Disposition', $disposition);
         return $response;
@@ -89,7 +89,7 @@ class DOTXController extends Controller
         $response->headers->set('Cache-Control', 'max-age=0');
         $disposition = HeaderUtils::makeDisposition(
             HeaderUtils::DISPOSITION_ATTACHMENT,
-            'Order_'.$order->id.'_carrier.docx'
+            'Order_'.$order->id.'_carrier.doc'
         );
         $response->headers->set('Content-Disposition', $disposition);
         return $response;
