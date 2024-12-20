@@ -17,7 +17,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
      */
     public function collection()
     {
-        return Order::with(['statuses', 'client', 'carrier', 'driver', 'car'])->all();
+        return Order::with(['statuses', 'client', 'carrier', 'driver', 'car'])->get();
     }
 
     public function headings(): array
