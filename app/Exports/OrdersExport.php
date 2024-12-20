@@ -46,7 +46,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
     {
         $statusManager = ManagerOrderStatus::from($order->status_manager->status)->label() . PHP_EOL . $order->status_manager->created_at;
         $statusLogist = LogistOrderStatus::from($order->status_logist->status)->label() . PHP_EOL . $order->status_logist->created_at;
-        $driver = $order->driver->sur_name . ' ' . $order->driver->name . PHP_EOL . $order->driver->phone;
+        $driver = $order->driver ? $order->driver->sur_name . ' ' . $order->driver->name . PHP_EOL . $order->driver->phone : '';
         $marginSum = "{$order->margin_sum} ₽";
         $marginPercent = round($order->margin_percent) . ' %';
         // $from = $this->locationToString($order->from_locations);
