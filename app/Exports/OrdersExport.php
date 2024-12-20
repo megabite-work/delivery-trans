@@ -49,8 +49,8 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
         $driver = $order->driver->sur_name . ' ' . $order->driver->name . PHP_EOL . $order->driver->phone;
         $marginSum = "{$order->margin_sum} ₽";
         $marginPercent = round($order->margin_percent) . ' %';
-        $from = $this->locationToString($order->from_locations);
-        $to = $this->locationToString($order->to_locations);
+        // $from = $this->locationToString($order->from_locations);
+        // $to = $this->locationToString($order->to_locations);
         
         return [
             $order->id,
@@ -67,14 +67,14 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
             $order->carrier_sum,
             $marginSum,
             $marginPercent,
-            $from,
-            $to,
+            // $from,
+            // $to,
         ];
     }
 
-    private function locationToString(?string $location = null): string
+    private function locationToString($location = null): string
     {
-        $locations = $location ? json_decode($location, true) : [];
+        $locations = $location ?: [];
 
         return implode(' \n', array_map(function ($location): string {
             $arriveDate = !empty($location['arrive_time']) ? $location['arrive_time'] : $location['arrive_date'];
