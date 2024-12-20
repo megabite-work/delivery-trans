@@ -49,6 +49,8 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
         $driver = $order->driver ? $order->driver->sur_name . ' ' . $order->driver->name . PHP_EOL . $order->driver->phone : '';
         $marginSum = "{$order->margin_sum} ₽";
         $marginPercent = round($order->margin_percent) . ' %';
+        $clientNameShort = $order->client?->name_short ?? '';
+        $carrierNameShort = $order->carrier?->name_short ?? '';
         // $from = $this->locationToString($order->from_locations);
         // $to = $this->locationToString($order->to_locations);
         
@@ -58,8 +60,8 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
             $order->started_at,
             $statusManager,
             $statusLogist,
-            $order->client->name_short,
-            $order->carrier->name_short,
+            $clientNameShort,
+            $carrierNameShort,
             $driver,
             // $order->car->plate_number,
             $order->cargo_weight,
