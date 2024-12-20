@@ -144,14 +144,7 @@ export const useOrdersStore = defineStore('orders', () => {
     }
 
     async function orderExport() {
-        try {
-            return await axios.get(`api/excell/order`)
-        } catch {
-            if (e.response) {
-                err.value = e.response.data
-            }
-            throw e
-        }
+        return await axios.get(`api/excell/order`)
     }
 
     async function getOrder(orderId) {
