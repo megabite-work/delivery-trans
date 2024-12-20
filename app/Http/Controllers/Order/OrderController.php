@@ -2,20 +2,23 @@
 
 namespace App\Http\Controllers\Order;
 
-use App\Models\Carrier;
-use App\Models\Registry;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rules\Enum;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Date;
-
 use App\Enums\LogistOrderStatus;
 use App\Enums\ManagerOrderStatus;
 use App\Enums\OrderStatusType;
-use App\Models\Order;
-use App\Models\OrderStatus;
+use App\Exports\OrdersExport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
+use App\Models\Carrier;
+
+use App\Models\Order;
+use App\Models\OrderStatus;
+use App\Models\Registry;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Validation\Rules\Enum;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 const VALIDATE_RULES = [
     'cargo_name' => 'nullable|string',
@@ -558,6 +561,11 @@ class OrderController extends Controller
         SQL;
         $query = DB::select($query, ['q' => '%'.$q.'%']);
         return response()->json(collect($query)->pluck('k')->all());
+    }
+
+    public function exportExcell(): BinaryFileResponse
+    {
+        return Excel::download(new OrdersExport, 'orders.xlsx');
     }
 }
 

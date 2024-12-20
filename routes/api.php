@@ -1,29 +1,29 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-
 use App\Http\Controllers\Auth\RoleController;
+
 use App\Http\Controllers\Auth\UserController;
-use App\Http\Controllers\Dir\CompanyController;
+use App\Http\Controllers\Carrier\CarController;
+use App\Http\Controllers\Carrier\CarrierController;
+use App\Http\Controllers\Carrier\DriverController;
+use App\Http\Controllers\Client\ClientController;
+use App\Http\Controllers\Dir\AdditionalServiceController;
 use App\Http\Controllers\Dir\BankAccountController;
 use App\Http\Controllers\Dir\CarBodyTypeController;
+use App\Http\Controllers\Dir\CarCapacityController;
+use App\Http\Controllers\Dir\CompanyController;
 use App\Http\Controllers\Dir\ContactController;
 use App\Http\Controllers\Dir\CountriesController;
 use App\Http\Controllers\Dir\SuggestController;
-use App\Http\Controllers\Dir\TonnageController;
 use App\Http\Controllers\Dir\TConditionsController;
-use App\Http\Controllers\Dir\CarCapacityController;
-use App\Http\Controllers\Dir\AdditionalServiceController;
-use App\Http\Controllers\Client\ClientController;
-use App\Http\Controllers\Carrier\CarController;
-use App\Http\Controllers\Carrier\DriverController;
-use App\Http\Controllers\Carrier\CarrierController;
-use App\Http\Controllers\Price\PriceController;
-use App\Http\Controllers\Price\DefaultPriceController;
-use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Dir\TonnageController;
 use App\Http\Controllers\Order\CalculationController;
-use App\Http\Controllers\Registry\RegistryController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Price\DefaultPriceController;
+use App\Http\Controllers\Price\PriceController;
 use App\Http\Controllers\Registry\CarrierRegistryController;
+use App\Http\Controllers\Registry\RegistryController;
+use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function (){
     Route::get('user', [UserController::class, 'getCurrentUser'])->name('user');
@@ -84,6 +84,7 @@ Route::middleware('auth:sanctum')->group(function (){
     Route::get('suggest/expenses', [OrderController::class, 'getAdditionalExpensesSuggestions'])->name("suggest.expenses");
     Route::get('suggest/roles', [RoleController::class, 'getRolesList'])->name("suggest.roles");
     Route::post('calculate', [CalculationController::class, 'calculate'])->name('orders.calculate');
+    Route::get('excell/order', [OrderController::class, 'exportExcell']);
 });
 
 
