@@ -44,8 +44,8 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
 
     public function map($order): array
     {
-        $statusManager = ManagerOrderStatus::from($order->status_manager->status)->label() . PHP_EOL . $order->status_manager->created_at->format('Y-m-d H:i');
-        $statusLogist = LogistOrderStatus::from($order->status_logist->status)->label() . PHP_EOL . $order->status_logist->created_at->format('Y-m-d H:i');
+        $statusManager = ManagerOrderStatus::from($order->status_manager->status)->label() . PHP_EOL . $order->status_manager->created_at;
+        $statusLogist = LogistOrderStatus::from($order->status_logist->status)->label() . PHP_EOL . $order->status_logist->created_at;
         $driver = $order->driver->sur_name . ' ' . $order->driver->name . PHP_EOL . $order->driver->phone;
         $marginSum = "{$order->margin_sum} ₽";
         $marginPercent = round($order->margin_percent) . ' %';
@@ -54,8 +54,8 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
         
         return [
             $order->id,
-            $order->created_at->format('Y-m-d H:i'),
-            $order->started_at->format('Y-m-d H:i'),
+            $order->created_at,
+            $order->started_at,
             $statusManager,
             $statusLogist,
             $order->client->name_short,
@@ -77,8 +77,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
         $locations = $location ? json_decode($location, true) : [];
 
         return implode(' \n', array_map(function ($location): string {
-            $date = !empty($location['arrive_time']) ? $location['arrive_time'] : $location['arrive_date'];
-            $arriveDate = Date::parse($date)->timezone("Europe/Moscow")->format('Y-m-d H:i');
+            $arriveDate = !empty($location['arrive_time']) ? $location['arrive_time'] : $location['arrive_date'];
             
             return "{$arriveDate} {$location['address']}";
         }, $locations));
