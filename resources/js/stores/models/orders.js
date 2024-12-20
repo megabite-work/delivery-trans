@@ -144,7 +144,30 @@ export const useOrdersStore = defineStore('orders', () => {
     }
 
     async function orderExport() {
-        return await axios.get(`api/excell/order`)
+        try {
+            const response = await axios.get(`api/excell/order`, {
+                responseType: "blob",
+            });
+
+            const blob = new Blob([response.data], {
+                type: response.headers["content-type"],
+            });
+
+            const filename = response.headers["content-disposition"]
+                ? response.headers["content-disposition"]
+                      .split("filename=")[1]
+                      .replace(/['"]/g, "")
+                : "orders.xlsx";
+
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+
+            window.URL.revokeObjectURL(link.href);
+        } catch (error) {
+            console.error("Error downloading the Excel file:", error);
+        }
     }
 
     async function getOrder(orderId) {
