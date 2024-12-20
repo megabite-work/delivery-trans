@@ -27,6 +27,8 @@ class AdditionalServiceController extends Controller
             select distinct name from additional_services where name ilike :name
         SQL;
 
+
+        
         $params['name'] = '%'.$request->get('q', '').'%';
         $query = DB::select($q, $params);
         return collect($query)->pluck('name')->all();
