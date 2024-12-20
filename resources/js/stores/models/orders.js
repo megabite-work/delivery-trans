@@ -143,6 +143,17 @@ export const useOrdersStore = defineStore('orders', () => {
         }
     }
 
+    async function orderExport() {
+        try {
+            return await axios.get(`api/excell/order`)
+        } catch {
+            if (e.response) {
+                err.value = e.response.data
+            }
+            throw e
+        }
+    }
+
     async function getOrder(orderId) {
         try {
             const res = await axios.get(`api/orders/${orderId}`)
@@ -234,7 +245,7 @@ export const useOrdersStore = defineStore('orders', () => {
 
     return {
         err, paginator, dataList, setPage, setPageSize, setSorter, listLoading,
-        refreshDataList, columnsOrders,
+        refreshDataList, orderExport, columnsOrders,
         createOrder, storeOrder, deleteOrder, copyOrder, getOrder, setOrderStatus, setOrderStatusDate, filter, applyFilter, resetFilter
     }
 })
