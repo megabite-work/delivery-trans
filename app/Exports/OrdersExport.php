@@ -31,14 +31,14 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
             'Заказчик',
             'Перевозчик',
             'Водитель',
-            'Авто',
+            // 'Авто',
             'Вес груза',
             'Сумма',
             'Себестоимость',
             'Маржа ₽',
             'Маржа %',
-            'Откуда',
-            'Куда',
+            // 'Откуда',
+            // 'Куда',
         ];
     }
 
@@ -61,7 +61,7 @@ class OrdersExport implements FromCollection, WithHeadings, WithMapping
             $order->client->name_short,
             $order->carrier->name_short,
             $driver,
-            $order->car->plate_number,
+            // $order->car->plate_number,
             $order->cargo_weight,
             $order->client_sum,
             $order->carrier_sum,
