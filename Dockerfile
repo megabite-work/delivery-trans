@@ -6,7 +6,7 @@ RUN apk add --no-cache git
 COPY composer.json composer.json
 COPY composer.lock composer.lock
 
-RUN composer install --no-scripts --no-dev --no-interaction
+RUN composer install --no-scripts --no-dev --no-interaction --ignore-platform-req=ext-gd
 
 
 FROM node:18-alpine as frontend
