@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DOTXController;
 
 use App\Http\Controllers\Dir\CompanyController;
-use App\Http\Controllers\DOTXController;
 use App\Http\Controllers\PDFController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/download/client-order/{order}', [DOTXController::class, 'getClientOrder']);
     Route::get('/download/carrier-order/{order}', [DOTXController::class, 'getCarrierOrder']);
 });
+
 Route::get('{any?}', function () {
     return view('main');
 })->where('any', '.*');

@@ -49,16 +49,16 @@ return new class extends Migration
             $table->decimal("carrier_tariff_mkad_rate")->nullable();
             $table->decimal("carrier_tariff_mkad_price")->nullable();
             // JSON Tables
-            $table->jsonb("client_expenses")->nullable();
-            $table->jsonb("client_discounts")->nullable();
+            $table->json("client_expenses")->nullable();
+            $table->json("client_discounts")->nullable();
 
-            $table->jsonb("carrier_expenses")->nullable();
-            $table->jsonb("carrier_fines")->nullable();
+            $table->json("carrier_expenses")->nullable();
+            $table->json("carrier_fines")->nullable();
 
-            $table->jsonb("from_locations")->nullable();
-            $table->jsonb("to_locations")->nullable();
+            $table->json("from_locations")->nullable();
+            $table->json("to_locations")->nullable();
 
-            $table->jsonb("additional_service")->nullable();
+            $table->json("additional_service")->nullable();
             // Cash
             $table->decimal("client_sum")->default(0);
             $table->boolean('client_sum_calculated')->default(true);
