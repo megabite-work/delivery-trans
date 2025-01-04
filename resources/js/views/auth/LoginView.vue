@@ -50,7 +50,7 @@ const onFinishFailed = () => {
     <div class="login_layout">
         <div class="login_form" :class="{ shake: isShaking }">
             <div class="login_header">
-                Delivery Trans
+                Delivery MCRM
             </div>
             <a-form
                 :model="loginForm"

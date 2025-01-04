@@ -113,7 +113,7 @@ const optRoutes = computed(() => {
     <a-layout>
         <a-layout-header>
             <div class="logo">
-                <router-link to="/" :style="{color: '#fff'}">Delivery Trans</router-link>
+                <router-link to="/" :style="{color: '#fff'}">Delivery MCRM</router-link>
             </div>
             <a-dropdown :trigger="['click']">
                 <a-avatar
@@ -173,7 +173,7 @@ const optRoutes = computed(() => {
             </div>
         </a-layout-content>
         <a-layout-footer :style="{ textAlign: 'center' }">
-            Delivery Trans ©2024
+            Delivery MCRM ©{{ new Date().getFullYear() }}
         </a-layout-footer>
     </a-layout>
 </a-config-provider>

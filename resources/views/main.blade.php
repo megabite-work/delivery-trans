@@ -6,7 +6,7 @@
 
     <link rel="icon" href="/favicon.ico">
 
-    <title>Delivery Trans</title>
+    <title>Delivery MCRM</title>
     @vite('resources/css/main.css')
 </head>
 <body>
