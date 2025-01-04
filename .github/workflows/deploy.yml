@@ -1,0 +1,22 @@
+name: Delivery MCRM CI
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy transport.mcrm.uz
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          password: ${{ secrets.PASSWORD }}
+          script: |
+            cd ${{ vars.PROJECT_PATH }}
+            git reset --hard
+            git pull
+            cd ../
+            make app_refresh
